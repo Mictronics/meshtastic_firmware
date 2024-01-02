@@ -266,6 +266,24 @@ int32_t PositionModule::runOnce()
     return RUNONCE_INTERVAL; // to save power only wake for our callback occasionally
 }
 
+#if defined(INTRUSION_DETECTION_POSITION)
+void PositionModule::sendIntrusionPositionText()
+{
+    meshtastic_MeshPacket *p = allocDataPacket();
+    p->to = NODENUM_BROADCAST;
+    char *message = new char[60];
+    sprintf(message, "Intrusion at Lat / Lon: %f, %f\a", (lastGpsLatitude * 1e-7), (lastGpsLongitude * 1e-7));
+    p->decoded.portnum = meshtastic_PortNum_TEXT_MESSAGE_APP;
+    p->priority = meshtastic_MeshPacket_Priority_RELIABLE;
+    p->want_ack = false;
+    p->decoded.payload.size = strlen(message);
+    memcpy(p->decoded.payload.bytes, message, p->decoded.payload.size);
+
+    service.sendToMesh(p, RX_SRC_LOCAL, true);
+    delete[] message;
+}
+#endif
+
 void PositionModule::sendLostAndFoundText()
 {
     meshtastic_MeshPacket *p = allocDataPacket();

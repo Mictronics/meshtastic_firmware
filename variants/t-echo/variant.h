@@ -65,6 +65,28 @@ extern "C" {
 #define PIN_BUTTON_TOUCH (0 + 11) // 0.11 is the soft touch button on T-Echo
 
 /*
+ * Remove touch button functionality.
+ * Pin 0.11 used for intrusion detection.
+ * Requires hardware change:
+ * - remove TTP223 and bridge its pin 1 to 3.
+ * - connect intrusion switch between touch sensor pad and GND.
+ * In configuration:
+ * - enable detection sensor module
+ * - set 'Monitor Pin' to 11
+ * - set 'Detection Triggered High' false/low
+ * - set 'Use Pullup' enabled
+ */
+#undef PIN_BUTTON_TOUCH
+#ifdef BUTTON_PIN_TOUCH
+#undef BUTTON_PIN_TOUCH
+#endif
+
+/*
+ * At intrusion detection event send last known position on primary channel.
+ */
+#define INTRUSION_DETECTION_POSITION
+
+/*
  * Analog pins
  */
 #define PIN_A0 (4) // Battery ADC

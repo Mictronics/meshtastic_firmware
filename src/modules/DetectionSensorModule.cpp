@@ -1,6 +1,7 @@
 #include "DetectionSensorModule.h"
 #include "MeshService.h"
 #include "NodeDB.h"
+#include "PositionModule.h"
 #include "PowerFSM.h"
 #include "configuration.h"
 #include "main.h"
@@ -68,6 +69,7 @@ int32_t DetectionSensorModule::runOnce()
 void DetectionSensorModule::sendDetectionMessage()
 {
     LOG_DEBUG("Detected event observed. Sending message\n");
+#if !defined(INTRUSION_DETECTION_POSITION)
     char *message = new char[40];
     sprintf(message, "%s detected", moduleConfig.detection_sensor.name);
     meshtastic_MeshPacket *p = allocDataPacket();
@@ -83,6 +85,13 @@ void DetectionSensorModule::sendDetectionMessage()
     lastSentToMesh = millis();
     service.sendToMesh(p);
     delete[] message;
+#else
+    lastSentToMesh = millis();
+    // Send our last known position.
+    positionModule->sendOurPosition();
+    // Send intrusion position in plain text
+    positionModule->sendIntrusionPositionText();
+#endif
 }
 
 void DetectionSensorModule::sendCurrentStateMessage()
