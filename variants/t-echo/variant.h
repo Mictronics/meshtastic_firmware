@@ -36,6 +36,24 @@ extern "C" {
 
 #define TTGO_T_ECHO
 
+// Build specific code for T-Echo based remote router.
+#define T_ECHO_ROUTER
+
+#ifdef T_ECHO_ROUTER
+#define PRIMARY_PSK                                                                                                              \
+    {                                                                                                                            \
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  \
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00                                               \
+    }
+
+#define ADMIN_PSK                                                                                                                \
+    {                                                                                                                            \
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  \
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00                                               \
+    }
+#error Change PSK!
+#endif
+
 // Number of pins defined in PinDescription array
 #define PINS_COUNT (48)
 #define NUM_DIGITAL_PINS (48)
@@ -43,7 +61,11 @@ extern "C" {
 #define NUM_ANALOG_OUTPUTS (0)
 
 // LEDs
+#ifdef T_ECHO_ROUTER
+#define PIN_LED1 (0 + 8) // LED disabled, output on unused pin
+#else
 #define PIN_LED1 (0 + 14) // blue (confirmed on board marked v1.0, date 2021-6-28)
+#endif
 #define PIN_LED2 (32 + 1) // green
 #define PIN_LED3 (32 + 3) // red
 

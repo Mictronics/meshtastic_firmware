@@ -141,7 +141,7 @@ bool NodeDB::factoryReset()
     // This will erase what's in NVS including ssl keys, persistent variables and ble pairing
     nvs_flash_erase();
 #endif
-#ifdef ARCH_NRF52
+#if defined(ARCH_NRF52) && !defined(T_ECHO_ROUTER)
     Bluefruit.begin();
     LOG_INFO("Clearing bluetooth bonds!\n");
     bond_print_list(BLE_GAP_ROLE_PERIPH);
@@ -162,7 +162,13 @@ void NodeDB::installDefaultConfig()
     config.has_lora = true;
     config.has_position = true;
     config.has_power = true;
+#ifdef T_ECHO_ROUTER
+    config.device.role = meshtastic_Config_DeviceConfig_Role_ROUTER;
+    config.has_network = false;
+    config.power.on_battery_shutdown_after_secs = 0;
+#else
     config.has_network = true;
+#endif
     config.has_bluetooth = true;
     config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_ALL;
 
@@ -170,7 +176,11 @@ void NodeDB::installDefaultConfig()
     config.lora.tx_enabled =
         true; // FIXME: maybe false in the future, and setting region to enable it. (unset region forces it off)
     config.lora.override_duty_cycle = false;
+#ifdef T_ECHO_ROUTER
+    config.lora.region = meshtastic_Config_LoRaConfig_RegionCode_EU_868;
+#else
     config.lora.region = meshtastic_Config_LoRaConfig_RegionCode_UNSET;
+#endif
     config.lora.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
     config.lora.hop_limit = HOP_RELIABLE;
 #ifdef PIN_GPS_EN
@@ -182,7 +192,12 @@ void NodeDB::installDefaultConfig()
     config.device.disable_triple_click = true;
 #endif
     config.position.gps_enabled = true;
+#ifdef T_ECHO_ROUTER
+    config.position.position_broadcast_smart_enabled = false;
+    config.position.fixed_position = true;
+#else
     config.position.position_broadcast_smart_enabled = true;
+#endif
     config.position.broadcast_smart_minimum_distance = 100;
     config.position.broadcast_smart_minimum_interval_secs = 30;
     if (config.device.role != meshtastic_Config_DeviceConfig_Role_ROUTER)
@@ -192,7 +207,11 @@ void NodeDB::installDefaultConfig()
     strncpy(config.network.ntp_server, "0.pool.ntp.org", 32);
     // FIXME: Default to bluetooth capability of platform as default
     config.bluetooth.enabled = true;
+#ifdef T_ECHO_ROUTER
+    config.bluetooth.fixed_pin = 161803;
+#else
     config.bluetooth.fixed_pin = defaultBLEPin;
+#endif
 #if defined(ST7735_CS) || defined(USE_EINK) || defined(ILI9341_DRIVER) || defined(ST7789_CS)
     bool hasScreen = true;
 #elif ARCH_RASPBERRY_PI
@@ -207,10 +226,14 @@ void NodeDB::installDefaultConfig()
     config.bluetooth.mode = hasScreen ? meshtastic_Config_BluetoothConfig_PairingMode_RANDOM_PIN
                                       : meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
     // for backward compat, default position flags are ALT+MSL
+#ifdef T_ECHO_ROUTER
+    config.position.position_flags = meshtastic_Config_PositionConfig_PositionFlags_SATINVIEW;
+#else
     config.position.position_flags =
         (meshtastic_Config_PositionConfig_PositionFlags_ALTITUDE | meshtastic_Config_PositionConfig_PositionFlags_ALTITUDE_MSL |
          meshtastic_Config_PositionConfig_PositionFlags_SPEED | meshtastic_Config_PositionConfig_PositionFlags_HEADING |
          meshtastic_Config_PositionConfig_PositionFlags_DOP | meshtastic_Config_PositionConfig_PositionFlags_SATINVIEW);
+#endif
 
 #ifdef T_WATCH_S3
     config.display.screen_on_secs = 30;
@@ -222,6 +245,19 @@ void NodeDB::installDefaultConfig()
 
 void NodeDB::initConfigIntervals()
 {
+#ifdef T_ECHO_ROUTER
+    // Update each hour to have an somewhat actual position for intrusion detection.
+    config.position.gps_update_interval = 1 * 60 * 60;
+    config.position.gps_attempt_time = default_gps_attempt_time;
+    config.position.position_broadcast_secs = 6 * 60 * 60;
+
+    config.power.ls_secs = default_ls_secs;
+    config.power.min_wake_secs = default_min_wake_secs;
+    config.power.sds_secs = default_sds_secs;
+    config.power.wait_bluetooth_secs = 15;
+
+    config.display.screen_on_secs = 5;
+#else
     config.position.gps_update_interval = default_gps_update_interval;
     config.position.gps_attempt_time = default_gps_attempt_time;
     config.position.position_broadcast_secs = default_broadcast_interval_secs;
@@ -232,6 +268,7 @@ void NodeDB::initConfigIntervals()
     config.power.wait_bluetooth_secs = default_wait_bluetooth_secs;
 
     config.display.screen_on_secs = default_screen_on_secs;
+#endif
 }
 
 void NodeDB::installDefaultModuleConfig()
@@ -240,12 +277,21 @@ void NodeDB::installDefaultModuleConfig()
     memset(&moduleConfig, 0, sizeof(meshtastic_ModuleConfig));
 
     moduleConfig.version = DEVICESTATE_CUR_VER;
+#ifdef T_ECHO_ROUTER
+    moduleConfig.has_mqtt = false;
+    moduleConfig.has_range_test = false;
+    moduleConfig.has_serial = false;
+    moduleConfig.has_store_forward = false;
+    moduleConfig.has_telemetry = true;
+    moduleConfig.has_external_notification = false;
+#else
     moduleConfig.has_mqtt = true;
     moduleConfig.has_range_test = true;
     moduleConfig.has_serial = true;
     moduleConfig.has_store_forward = true;
     moduleConfig.has_telemetry = true;
     moduleConfig.has_external_notification = true;
+#endif
 #if defined(RAK4630) || defined(RAK11310)
     // Default to RAK led pin 2 (blue)
     moduleConfig.external_notification.enabled = true;
@@ -268,6 +314,34 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.external_notification.output_ms = 100;
     moduleConfig.external_notification.active = true;
 #endif
+
+#ifdef T_ECHO_ROUTER
+    moduleConfig.has_canned_message = false;
+
+    strncpy(moduleConfig.mqtt.address, default_mqtt_address, sizeof(moduleConfig.mqtt.address));
+    strncpy(moduleConfig.mqtt.username, default_mqtt_username, sizeof(moduleConfig.mqtt.username));
+    strncpy(moduleConfig.mqtt.password, default_mqtt_password, sizeof(moduleConfig.mqtt.password));
+    strncpy(moduleConfig.mqtt.root, default_mqtt_root, sizeof(moduleConfig.mqtt.root));
+    moduleConfig.mqtt.encryption_enabled = true;
+
+    moduleConfig.has_neighbor_info = true;
+    moduleConfig.neighbor_info.enabled = false;
+
+    moduleConfig.has_detection_sensor = true;
+    moduleConfig.detection_sensor.enabled = true;
+    moduleConfig.detection_sensor.detection_triggered_high = true;
+    moduleConfig.detection_sensor.minimum_broadcast_secs = 900;
+    moduleConfig.detection_sensor.monitor_pin = 11;
+    moduleConfig.detection_sensor.use_pullup = true;
+    strncpy(moduleConfig.detection_sensor.name, "Intrusion", sizeof(moduleConfig.detection_sensor.name));
+
+    moduleConfig.has_ambient_lighting = false;
+    moduleConfig.ambient_lighting.current = 10;
+    // Default to a color based on our node number
+    moduleConfig.ambient_lighting.red = (myNodeInfo.my_node_num & 0xFF0000) >> 16;
+    moduleConfig.ambient_lighting.green = (myNodeInfo.my_node_num & 0x00FF00) >> 8;
+    moduleConfig.ambient_lighting.blue = myNodeInfo.my_node_num & 0x0000FF;
+#else
     moduleConfig.has_canned_message = true;
 
     strncpy(moduleConfig.mqtt.address, default_mqtt_address, sizeof(moduleConfig.mqtt.address));
@@ -290,7 +364,7 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.ambient_lighting.red = (myNodeInfo.my_node_num & 0xFF0000) >> 16;
     moduleConfig.ambient_lighting.green = (myNodeInfo.my_node_num & 0x00FF00) >> 8;
     moduleConfig.ambient_lighting.blue = myNodeInfo.my_node_num & 0x0000FF;
-
+#endif
     initModuleConfigIntervals();
 }
 
@@ -332,10 +406,17 @@ void NodeDB::installRoleDefaults(meshtastic_Config_DeviceConfig_Role role)
 
 void NodeDB::initModuleConfigIntervals()
 {
+#ifdef T_ECHO_ROUTER
+    moduleConfig.telemetry.device_update_interval = 1 * 60 * 60;
+    moduleConfig.telemetry.environment_update_interval = default_broadcast_interval_secs;
+    moduleConfig.telemetry.air_quality_interval = default_broadcast_interval_secs;
+    moduleConfig.neighbor_info.update_interval = default_broadcast_interval_secs;
+#else
     moduleConfig.telemetry.device_update_interval = default_broadcast_interval_secs;
     moduleConfig.telemetry.environment_update_interval = default_broadcast_interval_secs;
     moduleConfig.telemetry.air_quality_interval = default_broadcast_interval_secs;
     moduleConfig.neighbor_info.update_interval = default_broadcast_interval_secs;
+#endif
 }
 
 void NodeDB::installDefaultChannels()
@@ -399,8 +480,13 @@ void NodeDB::installDefaultDeviceState()
 
     // Set default owner name
     pickNewNodeNum(); // based on macaddr now
+#ifdef T_ECHO_ROUTER
+    snprintf(owner.long_name, sizeof(owner.long_name), "Mictronics %02X%02X", ourMacAddr[4], ourMacAddr[5]);
+    snprintf(owner.short_name, sizeof(owner.short_name), "%02X%02X", ourMacAddr[4], ourMacAddr[5]);
+#else
     snprintf(owner.long_name, sizeof(owner.long_name), "Meshtastic %02x%02x", ourMacAddr[4], ourMacAddr[5]);
     snprintf(owner.short_name, sizeof(owner.short_name), "%02x%02x", ourMacAddr[4], ourMacAddr[5]);
+#endif
     snprintf(owner.id, sizeof(owner.id), "!%08x", getNodeNum()); // Default node ID now based on nodenum
     memcpy(owner.macaddr, ourMacAddr, sizeof(owner.macaddr));
 }

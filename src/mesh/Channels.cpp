@@ -10,6 +10,12 @@
 static const uint8_t defaultpsk[] = {0xd4, 0xf1, 0xbb, 0x3a, 0x20, 0x29, 0x07, 0x59,
                                      0xf0, 0xbc, 0xff, 0xab, 0xcf, 0x4e, 0x69, 0x01};
 
+#ifdef T_ECHO_ROUTER
+static const uint8_t primary_psk[] = PRIMARY_PSK;
+
+static const uint8_t admin_psk[] = ADMIN_PSK;
+#endif
+
 Channels channels;
 
 const char *Channels::adminChannel = "admin";
@@ -175,9 +181,45 @@ int16_t Channels::setCrypto(ChannelIndex chIndex)
 void Channels::initDefaults()
 {
     channelFile.channels_count = MAX_NUM_CHANNELS;
-    for (int i = 0; i < channelFile.channels_count; i++)
-        fixupChannel(i);
+#ifdef T_ECHO_ROUTER
+    meshtastic_Config_LoRaConfig &loraConfig = config.lora;
+    loraConfig.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST; // Default to Long Range & Fast
+    loraConfig.use_preset = true;
+    loraConfig.tx_power = 0; // default
+    // Channel 0 Primary
+    meshtastic_Channel &ch0 = getByIndex(0);
+    meshtastic_ChannelSettings &channelSettings0 = ch0.settings;
+    ch0.index = 0;
+    memcpy(channelSettings0.psk.bytes, primary_psk, sizeof(channelSettings0.psk.bytes));
+    channelSettings0.psk.size = sizeof(primary_psk);
+    strncpy(channelSettings0.name, "Mictronics", sizeof(channelSettings0.name));
+    ch0.has_settings = true;
+    ch0.role = meshtastic_Channel_Role_PRIMARY;
+    setChannel(ch0);
+    // Channel 1 Secondary
+    meshtastic_Channel &ch1 = getByIndex(1);
+    ch1.index = 1;
+    meshtastic_ChannelSettings &channelSettings1 = ch1.settings;
+    channelSettings1.psk.bytes[0] = 1;
+    channelSettings1.psk.size = 1;
+    strncpy(channelSettings1.name, "", sizeof(channelSettings1.name));
+    ch1.has_settings = true;
+    ch1.role = meshtastic_Channel_Role_SECONDARY;
+    setChannel(ch1);
+    // Channel 2 Secondary
+    meshtastic_Channel &ch2 = getByIndex(2);
+    ch2.index = 2;
+    meshtastic_ChannelSettings &channelSettings2 = ch2.settings;
+    memcpy(channelSettings2.psk.bytes, admin_psk, sizeof(channelSettings2.psk.bytes));
+    channelSettings2.psk.size = sizeof(admin_psk);
+    strncpy(channelSettings2.name, "admin", sizeof(channelSettings2.name));
+    ch2.has_settings = true;
+    ch2.role = meshtastic_Channel_Role_SECONDARY;
+    setChannel(ch2);
+    onConfigChanged();
+#else
     initDefaultChannel(0);
+#endif
 }
 
 void Channels::onConfigChanged()
