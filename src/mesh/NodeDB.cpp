@@ -194,7 +194,7 @@ void NodeDB::installDefaultConfig()
     config.position.gps_enabled = true;
 #ifdef T_ECHO_ROUTER
     config.position.position_broadcast_smart_enabled = false;
-    config.position.fixed_position = true;
+    config.position.fixed_position = false;
 #else
     config.position.position_broadcast_smart_enabled = true;
 #endif
@@ -247,8 +247,8 @@ void NodeDB::initConfigIntervals()
 {
 #ifdef T_ECHO_ROUTER
     // Update each hour to have an somewhat actual position for intrusion detection.
-    config.position.gps_update_interval = 1 * 60 * 60;
-    config.position.gps_attempt_time = default_gps_attempt_time;
+    config.position.gps_update_interval = 15 * 60;
+    config.position.gps_attempt_time = 15 * 60;
     config.position.position_broadcast_secs = 6 * 60 * 60;
 
     config.power.ls_secs = default_ls_secs;
@@ -330,7 +330,7 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.has_detection_sensor = true;
     moduleConfig.detection_sensor.enabled = true;
     moduleConfig.detection_sensor.detection_triggered_high = true;
-    moduleConfig.detection_sensor.minimum_broadcast_secs = 900;
+    moduleConfig.detection_sensor.minimum_broadcast_secs = 3 * 60;
     moduleConfig.detection_sensor.monitor_pin = 11;
     moduleConfig.detection_sensor.use_pullup = true;
     strncpy(moduleConfig.detection_sensor.name, "Intrusion", sizeof(moduleConfig.detection_sensor.name));
