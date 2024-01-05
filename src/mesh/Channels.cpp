@@ -12,8 +12,8 @@ static const uint8_t defaultpsk[] = {0xd4, 0xf1, 0xbb, 0x3a, 0x20, 0x29, 0x07, 0
 
 #ifdef T_ECHO_ROUTER
 static const uint8_t primary_psk[] = PRIMARY_PSK;
-
 static const uint8_t admin_psk[] = ADMIN_PSK;
+static const uint8_t deutsch_psk[] = DEUTSCH_PSK;
 #endif
 
 Channels channels;
@@ -216,6 +216,16 @@ void Channels::initDefaults()
     ch2.has_settings = true;
     ch2.role = meshtastic_Channel_Role_SECONDARY;
     setChannel(ch2);
+    // Channel 3 Secondary
+    meshtastic_Channel &ch3 = getByIndex(3);
+    ch3.index = 3;
+    meshtastic_ChannelSettings &channelSettings3 = ch3.settings;
+    memcpy(channelSettings3.psk.bytes, deutsch_psk, sizeof(channelSettings3.psk.bytes));
+    channelSettings3.psk.size = sizeof(deutsch_psk);
+    strncpy(channelSettings3.name, "Deutsch", sizeof(channelSettings3.name));
+    ch3.has_settings = true;
+    ch3.role = meshtastic_Channel_Role_SECONDARY;
+    setChannel(ch3);
     onConfigChanged();
 #else
     initDefaultChannel(0);
