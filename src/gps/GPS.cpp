@@ -596,20 +596,15 @@ void GPS::setAwake(bool on)
  */
 uint32_t GPS::getWakeTime() const
 {
-    uint32_t t = config.position.gps_attempt_time;
+    uint32_t t = config.position.position_broadcast_secs;
 
     if (t == UINT32_MAX)
         return t; // already maxint
-    // Wait a minimum of 60 seconds for position lock.
-    // When, for what ever reason, gps_attempt_time is set to zero the GPS module will not be detected!
-    // See bug #3059.
-    if (t < 60) {
-        config.position.gps_attempt_time = t = 60;
-    }
-    return t * 1000;
+
+    return getConfiguredOrDefaultMs(t, default_broadcast_interval_secs);
 }
 
-/** Get how long we should sleep between aqusition attempts in msecs
+/** Get how long we should sleep between acquisition attempts in msecs
  */
 uint32_t GPS::getSleepTime() const
 {
@@ -621,13 +616,8 @@ uint32_t GPS::getSleepTime() const
 
     if (t == UINT32_MAX)
         return t; // already maxint
-    // Wait a minimum of 60 seconds for position update.
-    // gps_update_interval might be set to zero.
-    // See bug #3059.
-    if (t < 60) {
-        config.position.gps_update_interval = t = 60;
-    }
-    return t * 1000;
+
+    return getConfiguredOrDefaultMs(t, default_gps_update_interval);
 }
 
 void GPS::publishUpdate()
