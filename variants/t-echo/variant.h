@@ -71,11 +71,7 @@ extern "C" {
 #define NUM_ANALOG_OUTPUTS (0)
 
 // LEDs
-#ifdef T_ECHO_ROUTER
-#define PIN_LED1 (0 + 8) // LED disabled, output on unused pin
-#else
-#define PIN_LED1 (0 + 14) // blue (confirmed on board marked v1.0, date 2021-6-28)
-#endif
+#define PIN_LED1 (0 + 14) // blue (confirmed on boards marked v1.0, date 2021-6-28)
 #define PIN_LED2 (32 + 1) // green
 #define PIN_LED3 (32 + 3) // red
 
