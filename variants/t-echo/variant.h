@@ -42,6 +42,8 @@ extern "C" {
 #ifdef T_ECHO_ROUTER
 // There will be no screen on the router
 #undef HAS_SCREEN
+#undef HAS_CPU_SHUTDOWN
+#define HAS_CPU_SHUTDOWN 0
 
 #define PRIMARY_PSK                                                                                                              \
     {                                                                                                                            \

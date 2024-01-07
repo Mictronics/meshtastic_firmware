@@ -135,12 +135,14 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         rebootAtMsec = (s < 0) ? 0 : (millis() + s * 1000);
         break;
     }
+#if defined(HAS_CPU_SHUTDOWN) & HAS_CPU_SHUTDOWN == 1
     case meshtastic_AdminMessage_shutdown_seconds_tag: {
         int32_t s = r->shutdown_seconds;
         LOG_INFO("Shutdown in %d seconds\n", s);
         shutdownAtMsec = (s < 0) ? 0 : (millis() + s * 1000);
         break;
     }
+#endif
     case meshtastic_AdminMessage_get_device_metadata_request_tag: {
         LOG_INFO("Client is getting device metadata\n");
         handleGetDeviceMetadata(mp);
