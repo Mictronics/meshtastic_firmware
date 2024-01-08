@@ -478,7 +478,7 @@ void NodeDB::installDefaultDeviceState()
     // Set default owner name
     pickNewNodeNum(); // based on macaddr now
 #ifdef T_ECHO_ROUTER
-    snprintf(owner.long_name, sizeof(owner.long_name), "Mictronics %02X%02X", ourMacAddr[4], ourMacAddr[5]);
+    snprintf(owner.long_name, sizeof(owner.long_name), "Router %02X%02X", ourMacAddr[4], ourMacAddr[5]);
     snprintf(owner.short_name, sizeof(owner.short_name), "%02X%02X", ourMacAddr[4], ourMacAddr[5]);
 #else
     snprintf(owner.long_name, sizeof(owner.long_name), "Meshtastic %02x%02x", ourMacAddr[4], ourMacAddr[5]);

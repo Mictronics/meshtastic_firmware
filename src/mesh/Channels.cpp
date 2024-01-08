@@ -13,7 +13,7 @@ static const uint8_t defaultpsk[] = {0xd4, 0xf1, 0xbb, 0x3a, 0x20, 0x29, 0x07, 0
 #ifdef T_ECHO_ROUTER
 static const uint8_t primary_psk[] = PRIMARY_PSK;
 static const uint8_t admin_psk[] = ADMIN_PSK;
-static const uint8_t deutsch_psk[] = DEUTSCH_PSK;
+static const uint8_t deutsch_psk[] = CHANNEL3_PSK;
 #endif
 
 Channels channels;
@@ -192,7 +192,7 @@ void Channels::initDefaults()
     ch0.index = 0;
     memcpy(channelSettings0.psk.bytes, primary_psk, sizeof(channelSettings0.psk.bytes));
     channelSettings0.psk.size = sizeof(primary_psk);
-    strncpy(channelSettings0.name, "Mictronics", sizeof(channelSettings0.name));
+    strncpy(channelSettings0.name, PRIMARY_CH_NAME, sizeof(channelSettings0.name));
     ch0.has_settings = true;
     ch0.role = meshtastic_Channel_Role_PRIMARY;
     setChannel(ch0);
@@ -222,7 +222,7 @@ void Channels::initDefaults()
     meshtastic_ChannelSettings &channelSettings3 = ch3.settings;
     memcpy(channelSettings3.psk.bytes, deutsch_psk, sizeof(channelSettings3.psk.bytes));
     channelSettings3.psk.size = sizeof(deutsch_psk);
-    strncpy(channelSettings3.name, "Deutsch", sizeof(channelSettings3.name));
+    strncpy(channelSettings3.name, CHANNEL3_NAME, sizeof(channelSettings3.name));
     ch3.has_settings = true;
     ch3.role = meshtastic_Channel_Role_SECONDARY;
     setChannel(ch3);
