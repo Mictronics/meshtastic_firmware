@@ -47,7 +47,7 @@ extern "C" {
 #define HAS_CPU_SHUTDOWN 0
 /* Hardcoded node configuration */
 // Primary channel
-#define PRIMARY_CH_NAME "Mictronics"
+#define PRIMARY_CH_NAME "Private"
 #define PRIMARY_PSK                                                                                                              \
     {                                                                                                                            \
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  \
