@@ -529,13 +529,23 @@ void GPS::setGPSPower(bool on, bool standbyOnly, uint32_t sleepTime)
     if (on) {
         LOG_INFO("Waking GPS");
         pinMode(PIN_GPS_STANDBY, OUTPUT);
+#if defined(RPI_PICO_WAVESHARE)
+        // Inverse logic due to transistor driver on standby pin at Waveshare PCB
+        digitalWrite(PIN_GPS_STANDBY, 0);
+#else
         digitalWrite(PIN_GPS_STANDBY, 1);
+#endif
         return;
     } else {
         LOG_INFO("GPS entering sleep");
         // notifyGPSSleep.notifyObservers(NULL);
         pinMode(PIN_GPS_STANDBY, OUTPUT);
+#if defined(RPI_PICO_WAVESHARE)
+        // Inverse logic due to transistor driver on standby pin at Waveshare PCB
+        digitalWrite(PIN_GPS_STANDBY, 1);
+#else
         digitalWrite(PIN_GPS_STANDBY, 0);
+#endif
         return;
     }
 #endif
