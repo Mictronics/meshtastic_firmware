@@ -16,7 +16,8 @@
 #define GPS_RESET_MODE HIGH
 #endif
 
-#if defined(NRF52840_XXAA) || defined(NRF52833_XXAA) || defined(ARCH_ESP32) || defined(aLinuxInputImpl)
+#if defined(NRF52840_XXAA) || defined(NRF52833_XXAA) || defined(ARCH_ESP32) || defined(aLinuxInputImpl) ||                       \
+    defined(RPI_PICO_WAVESHARE)
 HardwareSerial *GPS::_serial_gps = &Serial1;
 #else
 HardwareSerial *GPS::_serial_gps = NULL;
@@ -311,6 +312,26 @@ bool GPS::setup()
             // Switch to Vehicle Mode, since SoftRF enables Aviation < 2g
             _serial_gps->write("$PCAS11,3*1E\r\n");
             delay(250);
+        } else if (gnssModel == GNSS_MODEL_MTK_WAVESHARE) {
+            // Waveshare Pico-GPS hat uses the L76B with 9600 baud
+            // Initialize the L76B Chip, use GPS + GLONASS
+            // See note in L76_Series_GNSS_Protocol_Specification, chapter 3.29
+            _serial_gps->write("$PMTK353,1,1,0,0,0*2B\r\n");
+            // Above command will reset the GPS and takes longer before it will accept new commands
+            delay(1000);
+            // only ask for RMC and GGA (GNRMC and GNGGA)
+            // See note in L76_Series_GNSS_Protocol_Specification, chapter 2.1
+            _serial_gps->write("$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n");
+            delay(250);
+            // Enable SBAS
+            _serial_gps->write("$PMTK301,2*2E\r\n");
+            delay(250);
+            // Enable PPS for 2D/3D fix only
+            _serial_gps->write("$PMTK285,3,100*3F\r\n");
+            delay(250);
+            // Switch to Fitness Mode, for running and walking purpose with low speed (<5 m/s)
+            _serial_gps->write("$PMTK886,1*29\r\n");
+            delay(250);
         } else if (gnssModel == GNSS_MODEL_UC6580) {
             // The Unicore UC6580 can use a lot of sat systems, enable it to
             // use GPS L1 & L5 + BDS B1I & B2a + GLONASS L1 + GALILEO E1 & E5a + SBAS
@@ -504,7 +525,7 @@ void GPS::setGPSPower(bool on, bool standbyOnly, uint32_t sleepTime)
         return;
     }
 #endif
-#ifdef PIN_GPS_STANDBY // Specifically the standby pin for L76K and clones
+#ifdef PIN_GPS_STANDBY // Specifically the standby pin for L76B, L76K and clones
     if (on) {
         LOG_INFO("Waking GPS");
         pinMode(PIN_GPS_STANDBY, OUTPUT);
@@ -784,7 +805,7 @@ GnssModel_t GPS::probe(int serialSpeed)
     uint8_t buffer[768] = {0};
     delay(100);
 
-    // Close all NMEA sentences , Only valid for MTK platform
+    // Close all NMEA sentences , Only valid for L76K MTK platform
     _serial_gps->write("$PCAS03,0,0,0,0,0,0,0,0,0,0,,,0,0*02\r\n");
     delay(20);
 
@@ -794,6 +815,18 @@ GnssModel_t GPS::probe(int serialSpeed)
     if (getACK("$GPTXT,01,01,02,SW=", 500) == GNSS_RESPONSE_OK) {
         LOG_INFO("L76K GNSS init succeeded, using L76K GNSS Module\n");
         return GNSS_MODEL_MTK;
+    }
+
+    // Close all NMEA sentences, valid for L76B MTK platform (Waveshare Pico GPS)
+    _serial_gps->write("$PMTK514,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*2E\r\n");
+    delay(20);
+
+    // Get version information
+    clearBuffer();
+    _serial_gps->write("$PMTK605*31\r\n");
+    if (getACK("Quectel-L76B", 500) == GNSS_RESPONSE_OK) {
+        LOG_INFO("L76B GNSS init succeeded, using L76B GNSS Module\n");
+        return GNSS_MODEL_MTK_WAVESHARE;
     }
 
     uint8_t cfg_rate[] = {0xB5, 0x62, 0x06, 0x08, 0x00, 0x00, 0x00, 0x00};
@@ -1036,7 +1069,14 @@ bool GPS::factoryReset()
         // byte _message_CFG_RST_COLDSTART[] = {0xB5, 0x62, 0x06, 0x04, 0x04, 0x00, 0xFF, 0xB9, 0x00, 0x00, 0xC6, 0x8B};
         // _serial_gps->write(_message_CFG_RST_COLDSTART, sizeof(_message_CFG_RST_COLDSTART));
         // delay(1000);
-    } else {
+    }
+#if defined(RPI_PICO_WAVESHARE)
+    else if (HW_VENDOR == meshtastic_HardwareModel_RPI_PICO) {
+        _serial_gps->write("$PMTK104*37\r\n");
+        // No PMTK_ACK for this command.
+    }
+#endif
+    else {
         // send the UBLOX Factory Reset Command regardless of detect state, something is very wrong, just assume it's UBLOX.
         // Factory Reset
         byte _message_reset[] = {0xB5, 0x62, 0x06, 0x09, 0x0D, 0x00, 0xFF, 0xFB, 0x00, 0x00, 0x00,
