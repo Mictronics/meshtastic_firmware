@@ -60,6 +60,8 @@ template <typename T> bool SX126xInterface<T>::init()
     limitPower();
 
     int res = lora.begin(getFreq(), bw, sf, cr, syncWord, power, preambleLength, tcxoVoltage, useRegulatorLDO);
+    // Reset and calibrate frequency with new bandwidth for algorithm in radio lib 6.4.0+
+    lora.setFrequency(getFreq(), true, 5.0);
     // \todo Display actual typename of the adapter, not just `SX126x`
     LOG_INFO("SX126x init result %d\n", res);
     if (res == RADIOLIB_ERR_CHIP_NOT_FOUND)
@@ -189,7 +191,8 @@ template <typename T> bool SX126xInterface<T>::reconfigure()
     err = lora.setPreambleLength(preambleLength);
     assert(err == RADIOLIB_ERR_NONE);
 
-    err = lora.setFrequency(getFreq());
+    // Set and calibrate frequency with new bandwidth for algorithm in radio lib 6.4.0+
+    err = lora.setFrequency(getFreq(), true, 5.0);
     if (err != RADIOLIB_ERR_NONE)
         RECORD_CRITICALERROR(meshtastic_CriticalErrorCode_INVALID_RADIO_SETTING);
 
