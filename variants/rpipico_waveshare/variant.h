@@ -7,11 +7,6 @@
 // Expecting the Waveshare Pico GPS hat
 #define HAS_GPS 1
 
-// Pico in combination with Wavshare L76B GPS needs an higher to avoid
-// serial FIFO overflow.
-#undef GPS_THREAD_INTERVAL
-#define GPS_THREAD_INTERVAL 25
-
 #define USE_SH1106 1
 
 // Redefine Waveshare UPS-A/B I2C_1 pins:
