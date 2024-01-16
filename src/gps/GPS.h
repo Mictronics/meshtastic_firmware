@@ -93,8 +93,11 @@ class GPS : private concurrency::OSThread
 
   public:
     /** If !NULL we will use this serial port to construct our GPS */
+#if defined(RPI_PICO_WAVESHARE)
+    static SerialUART *_serial_gps;
+#else
     static HardwareSerial *_serial_gps;
-
+#endif
     static uint8_t _message_PMREQ[];
     static const uint8_t _message_CFG_RXM_PSM[];
     static const uint8_t _message_CFG_RXM_ECO[];

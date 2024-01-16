@@ -16,9 +16,10 @@
 #define GPS_RESET_MODE HIGH
 #endif
 
-#if defined(NRF52840_XXAA) || defined(NRF52833_XXAA) || defined(ARCH_ESP32) || defined(aLinuxInputImpl) ||                       \
-    defined(RPI_PICO_WAVESHARE)
+#if defined(NRF52840_XXAA) || defined(NRF52833_XXAA) || defined(ARCH_ESP32) || defined(aLinuxInputImpl)
 HardwareSerial *GPS::_serial_gps = &Serial1;
+#elif defined(RPI_PICO_WAVESHARE)
+SerialUART *GPS::_serial_gps = &Serial1;
 #else
 HardwareSerial *GPS::_serial_gps = NULL;
 #endif
@@ -1022,6 +1023,7 @@ GPS *GPS::createGps()
         _serial_gps->begin(GPS_BAUDRATE, SERIAL_8N1, new_gps->rx_gpio, new_gps->tx_gpio);
 
 #else
+        _serial_gps->setFIFOSize(256);
         _serial_gps->begin(GPS_BAUDRATE);
 #endif
 
