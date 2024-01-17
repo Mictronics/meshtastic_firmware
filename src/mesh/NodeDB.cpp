@@ -175,10 +175,11 @@ void NodeDB::installDefaultConfig()
     config.lora.sx126x_rx_boosted_gain = true;
     config.lora.tx_enabled =
         true; // FIXME: maybe false in the future, and setting region to enable it. (unset region forces it off)
-    config.lora.override_duty_cycle = false;
 #ifdef T_ECHO_ROUTER
     config.lora.region = meshtastic_Config_LoRaConfig_RegionCode_EU_868;
+    config.lora.override_duty_cycle = true;
 #else
+    config.lora.override_duty_cycle = false;
     config.lora.region = meshtastic_Config_LoRaConfig_RegionCode_UNSET;
 #endif
     config.lora.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
