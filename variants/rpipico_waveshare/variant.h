@@ -7,7 +7,10 @@
 // Expecting the Waveshare Pico GPS hat
 #define HAS_GPS 1
 
+// Enable OLED Screen
+#define HAS_SCREEN 1
 #define USE_SH1106 1
+#define RESET_OLED 8
 
 // Redefine Waveshare UPS-A/B I2C_1 pins:
 #define I2C_SDA1 6
