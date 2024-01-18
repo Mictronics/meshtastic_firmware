@@ -35,7 +35,7 @@ SerialConsole::SerialConsole() : StreamAPI(&Port), RedirectablePrint(&Port), con
 #if defined(ARCH_NRF52) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARCH_RP2040)
     time_t timeout = millis();
     while (!Port) {
-        if ((millis() - timeout) < 5000) {
+        if ((millis() - timeout) < 15000) {
             delay(100);
         } else {
             break;
