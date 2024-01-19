@@ -26,7 +26,12 @@ void INA219Sensor::setup() {}
 bool INA219Sensor::getMetrics(meshtastic_Telemetry *measurement)
 {
     measurement->variant.environment_metrics.voltage = ina219.getBusVoltage_V();
+#ifdef USE_WAVESHARE_PICO_UPS
+    // Waveshare PICO-UPS-A/B uses a 0.01 Ohm shunt
+    measurement->variant.environment_metrics.current = ina219.getCurrent_mA() * 10.0f;
+#else
     measurement->variant.environment_metrics.current = ina219.getCurrent_mA();
+#endif
     return true;
 }
 

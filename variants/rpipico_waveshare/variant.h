@@ -15,6 +15,8 @@
 // Redefine Waveshare UPS-A/B I2C_1 pins:
 #define I2C_SDA1 6
 #define I2C_SCL1 7
+// Waveshare UPS-A/B uses a 0.01 Ohm shunt for the INA219 sensor
+#define USE_WAVESHARE_PICO_UPS
 /*
 #ifdef PIN_WIRE1_SDA
     #undef PIN_WIRE1_SDA
