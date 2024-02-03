@@ -60,7 +60,19 @@ extern "C" {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  \
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00                                               \
     }
-#error Change PSK!
+#undef PRIMARY_PSK
+#undef ADMIN_PSK
+#define PRIMARY_PSK                                                                                                              \
+    {                                                                                                                            \
+        0x3a, 0x08, 0x8d, 0x6a, 0x61, 0x75, 0x75, 0x30, 0x39, 0x9f, 0xb1, 0x23, 0xb7, 0xf5, 0x2f, 0x99, 0x95, 0xee, 0xab, 0x6c,  \
+            0x91, 0x35, 0x6f, 0x6d, 0x38, 0x8f, 0x49, 0x9d, 0x3f, 0xe9, 0x32, 0x27                                               \
+    }
+
+#define ADMIN_PSK                                                                                                                \
+    {                                                                                                                            \
+        0xf2, 0x55, 0xe3, 0xfe, 0x68, 0x51, 0x5f, 0x7c, 0x64, 0xe9, 0xbd, 0x1e, 0x2e, 0x53, 0x19, 0x84, 0xca, 0xae, 0x71, 0x03,  \
+            0x57, 0x05, 0xc7, 0x5c, 0xc3, 0x08, 0x47, 0x2b, 0x07, 0x01, 0x5a, 0x8e                                               \
+    }
 
 // Public Germany wide channel
 #define CHANNEL3_NAME "Deutsch"
@@ -265,7 +277,7 @@ External serial flash WP25R1635FZUIL0
 
 // Battery
 // The battery sense is hooked to pin A0 (4)
-// it is defined in the anlaolgue pin section of this file
+// it is defined in the analogue pin section of this file
 // and has 12 bit resolution
 #define BATTERY_SENSE_RESOLUTION_BITS 12
 #define BATTERY_SENSE_RESOLUTION 4096.0
@@ -282,6 +294,16 @@ External serial flash WP25R1635FZUIL0
 #define VBAT_AR_INTERNAL AR_INTERNAL_3_0
 #define ADC_MULTIPLIER VBAT_DIVIDER_COMP
 #define VBAT_RAW_TO_SCALED(x) (REAL_VBAT_MV_PER_LSB * x)
+// Define battery voltage levels for used Keeppower 26650/5500mAh cells in solar node
+#undef BAT_FULLVOLT
+#define BAT_FULLVOLT 4200
+#undef BAT_EMPTYVOLT
+#define BAT_EMPTYVOLT 2500
+#undef BAT_CHARGINGVOLT
+#define BAT_CHARGINGVOLT 4210
+#undef BAT_NOBATVOLT
+#define BAT_NOBATVOLT 2230
+// Initial definition in Power.cpp
 
 #define HAS_RTC 1
 
