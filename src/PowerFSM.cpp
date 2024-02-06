@@ -160,7 +160,7 @@ static void serialEnter()
 {
     LOG_DEBUG("Enter state: SERIAL\n");
     setBluetoothEnable(false);
-    screen->setOn(true);
+    // screen->setOn(true);
     screen->print("Serial connected\n");
 }
 
@@ -179,7 +179,7 @@ static void powerEnter()
         LOG_INFO("Loss of power in Powered\n");
         powerFSM.trigger(EVENT_POWER_DISCONNECTED);
     } else {
-        screen->setOn(true);
+        // screen->setOn(true);
         setBluetoothEnable(true);
         // within enter() the function getState() returns the state we came from
         if (strcmp(powerFSM.getState()->name, "BOOT") != 0 && strcmp(powerFSM.getState()->name, "POWER") != 0 &&
@@ -200,7 +200,7 @@ static void powerIdle()
 
 static void powerExit()
 {
-    screen->setOn(true);
+    // screen->setOn(true);
     setBluetoothEnable(true);
     if (!isPowered())
         screen->print("Unpowered...\n");
