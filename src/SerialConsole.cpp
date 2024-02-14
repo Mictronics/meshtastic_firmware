@@ -3,7 +3,7 @@
 #include "PowerFSM.h"
 #include "configuration.h"
 
-#define Port Serial
+#define Port Serial1
 // Defaulting to the formerly removed phone_timeout_secs value of 15 minutes
 #define SERIAL_CONNECTION_TIMEOUT (15 * 60) * 1000UL
 
