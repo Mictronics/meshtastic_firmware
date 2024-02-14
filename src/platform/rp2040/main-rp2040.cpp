@@ -1,4 +1,5 @@
 #include "configuration.h"
+#include <pico/stdlib.h>
 #include <pico/unique_id.h>
 #include <stdio.h>
 
@@ -35,6 +36,7 @@ void rp2040Setup()
        Taken from CPU cycle counter and ROSC oscillator, so should be pretty random.
     */
     randomSeed(rp2040.hwrand32());
+    set_sys_clock_khz(230000, false);
 }
 
 void enterDfuMode()
