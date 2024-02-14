@@ -5,7 +5,7 @@
 #define ARDUINO_ARCH_AVR
 
 // Expecting the Waveshare Pico GPS hat
-#define HAS_GPS 1
+// #define HAS_GPS 1
 
 // Enable OLED Screen
 #define HAS_SCREEN 1
@@ -43,23 +43,23 @@
 // rxd = 9
 
 // Waveshare Pico GPS L76B pins:
-#define GPS_RX_PIN 1
-#define GPS_TX_PIN 0
+// #define GPS_RX_PIN 1
+// #define GPS_TX_PIN 0
 
 // Wakeup from backup mode
-#define PIN_GPS_FORCE_ON 14
+// #define PIN_GPS_FORCE_ON 14
 // No GPS reset available
 #undef PIN_GPS_RESET
 /*
  * For PPS output the resistor R20 needs to be populated with 0 Ohm
  * on the Waveshare Pico GPS board.
  */
-#define PIN_GPS_PPS 16
+// #define PIN_GPS_PPS 16
 /*
  * For standby mode switching the resistor R18 needs to be populated
  * with 0 Ohm on the Waveshare Pico GPS board.
  */
-#define PIN_GPS_STANDBY 17
+// #define PIN_GPS_STANDBY 17
 
 #define BUTTON_PIN 18
 #define EXT_NOTIFY_OUT 22
