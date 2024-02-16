@@ -631,12 +631,12 @@ void GPS::setGPSPower(bool on, bool standbyOnly, uint32_t sleepTime)
 #endif
 #ifdef PIN_GPS_STANDBY // Specifically the standby pin for L76K and clones
     if (on) {
-        LOG_INFO("Waking GPS");
+        LOG_INFO("Waking GPS\n");
         pinMode(PIN_GPS_STANDBY, OUTPUT);
         digitalWrite(PIN_GPS_STANDBY, 1);
         return;
     } else {
-        LOG_INFO("GPS entering sleep");
+        LOG_INFO("GPS entering sleep\n");
         // notifyGPSSleep.notifyObservers(NULL);
         pinMode(PIN_GPS_STANDBY, OUTPUT);
         digitalWrite(PIN_GPS_STANDBY, 0);
