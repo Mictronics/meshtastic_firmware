@@ -282,6 +282,8 @@ External serial flash WP25R1635FZUIL0
 #define VBAT_AR_INTERNAL AR_INTERNAL_3_0
 #define ADC_MULTIPLIER VBAT_DIVIDER_COMP
 #define VBAT_RAW_TO_SCALED(x) (REAL_VBAT_MV_PER_LSB * x)
+// Define battery voltage levels for used Keeppower 26650/5500mAh cells in solar node
+// #define OCV_ARRAY 4190, 4050, 3990, 3890, 3800, 3720, 3630, 3530, 3420, 3300, 3100
 
 #define HAS_RTC 1
 
