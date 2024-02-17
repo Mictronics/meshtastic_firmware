@@ -195,7 +195,7 @@ void NodeDB::installDefaultConfig()
 #endif
 
 #ifdef T_ECHO_ROUTER
-    config.position.position_broadcast_smart_enabled = false;
+    config.position.position_broadcast_smart_enabled = true;
     config.position.fixed_position = false;
 #else
     config.position.position_broadcast_smart_enabled = true;
@@ -221,6 +221,8 @@ void NodeDB::installDefaultConfig()
     // FIXME: Default to bluetooth capability of platform as default
     config.bluetooth.enabled = true;
 #ifdef T_ECHO_ROUTER
+    config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+    config.position.gps_enabled = true;
     config.bluetooth.fixed_pin = 161803;
 #else
     config.bluetooth.fixed_pin = defaultBLEPin;
@@ -260,9 +262,9 @@ void NodeDB::initConfigIntervals()
 {
 #ifdef T_ECHO_ROUTER
     // Update each hour to have an somewhat actual position for intrusion detection.
-    config.position.gps_update_interval = 15 * 60;
+    config.position.gps_update_interval = 5 * 60;
     config.position.gps_attempt_time = 15 * 60;
-    config.position.position_broadcast_secs = 6 * 60 * 60;
+    config.position.position_broadcast_secs = 15 * 60;
 
     config.power.ls_secs = default_ls_secs;
     config.power.min_wake_secs = default_min_wake_secs;
@@ -417,8 +419,8 @@ void NodeDB::installRoleDefaults(meshtastic_Config_DeviceConfig_Role role)
 void NodeDB::initModuleConfigIntervals()
 {
 #ifdef T_ECHO_ROUTER
-    moduleConfig.telemetry.device_update_interval = 1 * 60 * 60;
-    moduleConfig.telemetry.environment_update_interval = default_broadcast_interval_secs;
+    moduleConfig.telemetry.device_update_interval = 15 * 60;
+    moduleConfig.telemetry.environment_update_interval = 30 * 60;
     moduleConfig.telemetry.air_quality_interval = default_broadcast_interval_secs;
     moduleConfig.neighbor_info.update_interval = default_broadcast_interval_secs;
 #else
