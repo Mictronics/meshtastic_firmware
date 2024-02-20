@@ -231,12 +231,21 @@ void Channels::initDefaults()
 
 void Channels::onConfigChanged()
 {
+    bool hasPrimary = false;
     // Make sure the phone hasn't mucked anything up
     for (int i = 0; i < channelFile.channels_count; i++) {
         const meshtastic_Channel &ch = fixupChannel(i);
 
-        if (ch.role == meshtastic_Channel_Role_PRIMARY)
+        if (ch.role == meshtastic_Channel_Role_PRIMARY) {
             primaryIndex = i;
+            hasPrimary = true;
+        }
+    }
+
+    if (hasPrimary == false) {
+        meshtastic_Channel &ch = getByIndex(0);
+        ch.role = meshtastic_Channel_Role_PRIMARY;
+        LOG_ERROR("No primary channel detected! Setting channel 0 as primary.\n");
     }
 }
 
