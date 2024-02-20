@@ -196,7 +196,6 @@ void Channels::initDefaults()
     strncpy(channelSettings0.name, PRIMARY_CH_NAME, sizeof(channelSettings0.name));
     ch0.has_settings = true;
     ch0.role = meshtastic_Channel_Role_PRIMARY;
-    setChannel(ch0);
     // Channel 1 Secondary
     meshtastic_Channel &ch1 = getByIndex(1);
     ch1.index = 1;
@@ -206,7 +205,6 @@ void Channels::initDefaults()
     strncpy(channelSettings1.name, "", sizeof(channelSettings1.name));
     ch1.has_settings = true;
     ch1.role = meshtastic_Channel_Role_SECONDARY;
-    setChannel(ch1);
     // Channel 2 Secondary
     meshtastic_Channel &ch2 = getByIndex(2);
     ch2.index = 2;
@@ -216,7 +214,6 @@ void Channels::initDefaults()
     strncpy(channelSettings2.name, "admin", sizeof(channelSettings2.name));
     ch2.has_settings = true;
     ch2.role = meshtastic_Channel_Role_SECONDARY;
-    setChannel(ch2);
     // Channel 3 Secondary
     meshtastic_Channel &ch3 = getByIndex(3);
     ch3.index = 3;
@@ -226,7 +223,6 @@ void Channels::initDefaults()
     strncpy(channelSettings3.name, CHANNEL3_NAME, sizeof(channelSettings3.name));
     ch3.has_settings = true;
     ch3.role = meshtastic_Channel_Role_SECONDARY;
-    setChannel(ch3);
     onConfigChanged();
 #else
     initDefaultChannel(0);
