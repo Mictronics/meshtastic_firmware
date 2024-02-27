@@ -341,7 +341,6 @@ bool GPS::setup()
             delay(250);
             _serial_gps->write("$CFGMSG,6,1,0\r\n");
             delay(250);
-
         } else if (gnssModel == GNSS_MODEL_UBLOX) {
             // Configure GNSS system to GPS+SBAS+GLONASS (Module may restart after this command)
             // We need set it because by default it is GPS only, and we want to use GLONASS too
@@ -480,7 +479,6 @@ bool GPS::setup()
                             LOG_WARN("Unable to enable NMEA 4.10.\n");
                         }
                     }
-
                 } else {
                     if (strncmp(info.hwVersion, "00040007", 8) == 0) { // This PSM mode is only for Neo-6
                         msglen = makeUBXPacket(0x06, 0x11, 0x2, _message_CFG_RXM_ECO);
@@ -664,7 +662,7 @@ void GPS::setGPSPower(bool on, bool standbyOnly, uint32_t sleepTime)
 #endif
 #ifdef PIN_GPS_STANDBY // Specifically the standby pin for L76B, L76K and clones
     if (on) {
-        LOG_INFO("Waking GPS");
+        LOG_INFO("Waking GPS\n");
         pinMode(PIN_GPS_STANDBY, OUTPUT);
 #if defined(RPI_PICO_WAVESHARE)
         // Inverse logic due to transistor driver on standby pin at Waveshare PCB
@@ -674,7 +672,7 @@ void GPS::setGPSPower(bool on, bool standbyOnly, uint32_t sleepTime)
 #endif
         return;
     } else {
-        LOG_INFO("GPS entering sleep");
+        LOG_INFO("GPS entering sleep\n");
         // notifyGPSSleep.notifyObservers(NULL);
         pinMode(PIN_GPS_STANDBY, OUTPUT);
 #if defined(RPI_PICO_WAVESHARE)
