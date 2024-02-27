@@ -319,7 +319,6 @@ bool GPS::setup()
             delay(250);
             _serial_gps->write("$CFGMSG,6,1,0\r\n");
             delay(250);
-
         } else if (gnssModel == GNSS_MODEL_UBLOX) {
             // Configure GNSS system to GPS+SBAS+GLONASS (Module may restart after this command)
             // We need set it because by default it is GPS only, and we want to use GLONASS too
@@ -458,7 +457,6 @@ bool GPS::setup()
                             LOG_WARN("Unable to enable NMEA 4.10.\n");
                         }
                     }
-
                 } else {
                     if (strncmp(info.hwVersion, "00040007", 8) == 0) { // This PSM mode is only for Neo-6
                         msglen = makeUBXPacket(0x06, 0x11, 0x2, _message_CFG_RXM_ECO);
