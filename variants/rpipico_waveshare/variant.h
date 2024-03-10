@@ -4,52 +4,40 @@
 
 #define ARDUINO_ARCH_AVR
 
-// Reroute log output in SensorLib
+// Build with slow system clock enabled to reduce power consumption.
+#define RP2040_SLOW_CLOCK
+
+#ifdef RP2040_SLOW_CLOCK
+// Redefine UART1 serial log output to avoid collision with UART0 for GPS.
+#define SERIAL2_TX 4
+#define SERIAL2_RX 5
+// Reroute log output in SensorLib when USB is not available
 #define log_e(...) Serial2.printf(__VA_ARGS__)
 #define log_i(...) Serial2.printf(__VA_ARGS__)
 #define log_d(...) Serial2.printf(__VA_ARGS__)
+#endif
 
 // Expecting the Waveshare Pico GPS hat
-// #define HAS_GPS 1
+#define HAS_GPS 1
 
 // Enable OLED Screen
 #define HAS_SCREEN 1
 #define USE_SH1106 1
-#define RESET_OLED 8
+#define RESET_OLED 13
+
+// Redefine I2C0 pins to avoid collision with UART1/Serial2.
+#define I2C_SDA 8
+#define I2C_SCL 9
 
 // Redefine Waveshare UPS-A/B I2C_1 pins:
 #define I2C_SDA1 6
 #define I2C_SCL1 7
 // Waveshare UPS-A/B uses a 0.01 Ohm shunt for the INA219 sensor
 #define USE_WAVESHARE_PICO_UPS
-/*
-#ifdef PIN_WIRE1_SDA
-    #undef PIN_WIRE1_SDA
-    #define PIN_WIRE1_SDA (6u)
-#endif
-#ifdef PIN_WIRE1_SCL
-    #undef PIN_WIRE1_SCL
-    #define PIN_WIRE1_SCL (7u)
-#endif
-
-// Don't use I2C_0
-#ifdef PIN_WIRE0_SDA
-    #undef PIN_WIRE0_SDA
-    #define PIN_WIRE0_SDA (-1)
-#endif
-#ifdef PIN_WIRE0_SCL
-    #undef PIN_WIRE0_SCL
-    #define PIN_WIRE0_SCL (-1))
-#endif
-*/
-
-// Recommended pins for SerialModule:
-// txd = 8
-// rxd = 9
 
 // Waveshare Pico GPS L76B pins:
-// #define GPS_RX_PIN 1
-// #define GPS_TX_PIN 0
+#define GPS_RX_PIN 1
+#define GPS_TX_PIN 0
 
 // Wakeup from backup mode
 // #define PIN_GPS_FORCE_ON 14
@@ -59,12 +47,12 @@
  * For PPS output the resistor R20 needs to be populated with 0 Ohm
  * on the Waveshare Pico GPS board.
  */
-// #define PIN_GPS_PPS 16
+#define PIN_GPS_PPS 16
 /*
  * For standby mode switching the resistor R18 needs to be populated
  * with 0 Ohm on the Waveshare Pico GPS board.
  */
-// #define PIN_GPS_STANDBY 17
+#define PIN_GPS_STANDBY 17
 
 #define BUTTON_PIN 18
 #define EXT_NOTIFY_OUT 22
