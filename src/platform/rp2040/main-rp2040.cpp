@@ -38,6 +38,38 @@ void rp2040Setup()
        Taken from CPU cycle counter and ROSC oscillator, so should be pretty random.
     */
     randomSeed(rp2040.hwrand32());
+
+#ifdef RP2040_SLOW_CLOCK
+    uint f_pll_sys = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_PLL_SYS_CLKSRC_PRIMARY);
+    uint f_pll_usb = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_PLL_USB_CLKSRC_PRIMARY);
+    uint f_rosc = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_ROSC_CLKSRC);
+    uint f_clk_sys = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_SYS);
+    uint f_clk_peri = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_PERI);
+    uint f_clk_usb = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_USB);
+    uint f_clk_adc = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_ADC);
+    uint f_clk_rtc = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_RTC);
+
+    LOG_INFO("Clock speed:\n");
+    LOG_INFO("pll_sys  = %dkHz\n", f_pll_sys);
+    LOG_INFO("pll_usb  = %dkHz\n", f_pll_usb);
+    LOG_INFO("rosc     = %dkHz\n", f_rosc);
+    LOG_INFO("clk_sys  = %dkHz\n", f_clk_sys);
+    LOG_INFO("clk_peri = %dkHz\n", f_clk_peri);
+    LOG_INFO("clk_usb  = %dkHz\n", f_clk_usb);
+    LOG_INFO("clk_adc  = %dkHz\n", f_clk_adc);
+    LOG_INFO("clk_rtc  = %dkHz\n", f_clk_rtc);
+#endif
+}
+
+void enterDfuMode()
+{
+    reset_usb_boot(0, 0);
+}
+
+/* Init in early boot state. */
+#ifdef RP2040_SLOW_CLOCK
+void initVariant()
+{
     /* Set the system frequency to 18 MHz. */
     set_sys_clock_khz(18 * KHZ, false);
     /* The previous line automatically detached clk_peri from clk_sys, and
@@ -58,8 +90,4 @@ void rp2040Setup()
     /* Turn off USB PLL */
     pll_deinit(pll_usb);
 }
-
-void enterDfuMode()
-{
-    reset_usb_boot(0, 0);
-}
+#endif
