@@ -193,6 +193,9 @@ __attribute__((weak, noinline)) bool loopCanSleep()
 
 void setup()
 {
+#ifdef ARCH_RP2040
+    rp2040Setup();
+#endif
     concurrency::hasBeenSetup = true;
     meshtastic_Config_DisplayConfig_OledType screen_model =
         meshtastic_Config_DisplayConfig_OledType::meshtastic_Config_DisplayConfig_OledType_OLED_AUTO;
@@ -538,10 +541,6 @@ void setup()
 
 #ifdef ARCH_NRF52
     nrf52Setup();
-#endif
-
-#ifdef ARCH_RP2040
-    rp2040Setup();
 #endif
 
     // We do this as early as possible because this loads preferences from flash
