@@ -4,6 +4,11 @@
 
 #define ARDUINO_ARCH_AVR
 
+// Reroute log output in SensorLib
+#define log_e(...) Serial2.printf(__VA_ARGS__)
+#define log_i(...) Serial2.printf(__VA_ARGS__)
+#define log_d(...) Serial2.printf(__VA_ARGS__)
+
 // Expecting the Waveshare Pico GPS hat
 // #define HAS_GPS 1
 
