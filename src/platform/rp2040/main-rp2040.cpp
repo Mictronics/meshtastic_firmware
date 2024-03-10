@@ -5,7 +5,7 @@
 #include <pico/unique_id.h>
 #include <stdio.h>
 
-void setBluetoothEnable(bool on)
+void setBluetoothEnable(bool enable)
 {
     // not needed
 }
