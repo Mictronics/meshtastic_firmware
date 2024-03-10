@@ -126,8 +126,8 @@ int32_t SerialModule::runOnce()
             uint32_t baud = getBaudRate();
 
             if (moduleConfig.serial.override_console_serial_port) {
-                Serial.flush();
-                serialPrint = &Serial;
+                Serial2.flush();
+                serialPrint = &Serial2;
                 // Give it a chance to flush out 💩
                 delay(10);
             }
@@ -151,8 +151,8 @@ int32_t SerialModule::runOnce()
                 Serial2.begin(baud, SERIAL_8N1);
                 Serial2.setTimeout(moduleConfig.serial.timeout > 0 ? moduleConfig.serial.timeout : TIMEOUT);
             } else {
-                Serial.begin(baud, SERIAL_8N1);
-                Serial.setTimeout(moduleConfig.serial.timeout > 0 ? moduleConfig.serial.timeout : TIMEOUT);
+                Serial2.begin(baud, SERIAL_8N1);
+                Serial2.setTimeout(moduleConfig.serial.timeout > 0 ? moduleConfig.serial.timeout : TIMEOUT);
             }
 #else
             Serial.begin(baud, SERIAL_8N1);
