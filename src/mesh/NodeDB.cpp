@@ -130,6 +130,9 @@ bool NodeDB::factoryReset()
     LOG_INFO("Performing factory reset!\n");
     // first, remove the "/prefs" (this removes most prefs)
     rmDir("/prefs");
+    if (FSCom.exists("/static/rangetest.csv") && !FSCom.remove("/static/rangetest.csv")) {
+        LOG_WARN("Could not remove rangetest.csv file\n");
+    }
     // second, install default state (this will deal with the duplicate mac address issue)
     installDefaultDeviceState();
     installDefaultConfig();
@@ -872,6 +875,12 @@ void NodeDB::updateFrom(const meshtastic_MeshPacket &mp)
 
         if (mp.rx_snr)
             info->snr = mp.rx_snr; // keep the most recent SNR we received for this node.
+
+        info->via_mqtt = mp.via_mqtt; // Store if we received this packet via MQTT
+
+        // If hopStart was set and there wasn't someone messing with the limit in the middle, add hopsAway
+        if (mp.hop_start != 0 && mp.hop_limit <= mp.hop_start)
+            info->hops_away = mp.hop_start - mp.hop_limit;
     }
 }
 
