@@ -260,6 +260,10 @@ static void drawWelcomeScreen(OLEDDisplay *display, OLEDDisplayUiState *state, i
 /// Used on eink displays while in deep sleep
 static void drawSleepScreen(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
 {
+    // Next frame should use full-refresh, and block while running, else device will sleep before async callback
+    EINK_ADD_FRAMEFLAG(display, COSMETIC);
+    EINK_ADD_FRAMEFLAG(display, BLOCKING);
+
     drawIconScreen("Sleeping...", display, state, x, y);
 }
 #endif
@@ -898,9 +902,12 @@ Screen::Screen(ScanI2C::DeviceAddress address, meshtastic_Config_DisplayConfig_O
 #elif defined(ST7735_CS) || defined(ILI9341_DRIVER) || defined(ST7789_CS) || defined(RAK14014)
     dispdev = new TFTDisplay(address.address, -1, -1, geometry,
                              (address.port == ScanI2C::I2CPort::WIRE1) ? HW_I2C::I2C_TWO : HW_I2C::I2C_ONE);
-#elif defined(USE_EINK)
+#elif defined(USE_EINK) && !defined(USE_EINK_DYNAMICDISPLAY)
     dispdev = new EInkDisplay(address.address, -1, -1, geometry,
                               (address.port == ScanI2C::I2CPort::WIRE1) ? HW_I2C::I2C_TWO : HW_I2C::I2C_ONE);
+#elif defined(USE_EINK) && defined(USE_EINK_DYNAMICDISPLAY)
+    dispdev = new EInkDynamicDisplay(address.address, -1, -1, geometry,
+                                     (address.port == ScanI2C::I2CPort::WIRE1) ? HW_I2C::I2C_TWO : HW_I2C::I2C_ONE);
 #elif defined(USE_ST7567)
     dispdev = new ST7567Wire(address.address, -1, -1, geometry,
                              (address.port == ScanI2C::I2CPort::WIRE1) ? HW_I2C::I2C_TWO : HW_I2C::I2C_ONE);
@@ -935,6 +942,9 @@ void Screen::doDeepSleep()
     static const int sleepFrameCount = sizeof(sleepFrames) / sizeof(sleepFrames[0]);
     ui->setFrames(sleepFrames, sleepFrameCount);
     ui->update();
+#ifdef PIN_EINK_EN
+    digitalWrite(PIN_EINK_EN, LOW); // power off backlight
+#endif
 #endif
     setOn(false);
 }
@@ -1164,6 +1174,7 @@ int32_t Screen::runOnce()
             break;
         case Cmd::STOP_BLUETOOTH_PIN_SCREEN:
         case Cmd::STOP_BOOT_SCREEN:
+            EINK_ADD_FRAMEFLAG(dispdev, COSMETIC); // E-Ink: Explicitly use full-refresh for next frame
             setFrames();
             break;
         case Cmd::PRINT:
@@ -1344,6 +1355,7 @@ void Screen::handleStartBluetoothPinScreen(uint32_t pin)
 {
     LOG_DEBUG("showing bluetooth screen\n");
     showingNormalScreen = false;
+    EINK_ADD_FRAMEFLAG(dispdev, DEMAND_FAST); // E-Ink: Explicitly use fast-refresh for next frame
 
     static FrameCallback frames[] = {drawFrameBluetooth};
     snprintf(btPIN, sizeof(btPIN), "%06u", pin);
@@ -1361,6 +1373,7 @@ void Screen::handleShutdownScreen()
 {
     LOG_DEBUG("showing shutdown screen\n");
     showingNormalScreen = false;
+    EINK_ADD_FRAMEFLAG(dispdev, DEMAND_FAST); // E-Ink: Explicitly use fast-refresh for next frame
 
     auto frame = [](OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) -> void {
         drawFrameText(display, state, x, y, "Shutting down...");
@@ -1374,6 +1387,7 @@ void Screen::handleRebootScreen()
 {
     LOG_DEBUG("showing reboot screen\n");
     showingNormalScreen = false;
+    EINK_ADD_FRAMEFLAG(dispdev, DEMAND_FAST); // E-Ink: Explicitly use fast-refresh for next frame
 
     auto frame = [](OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) -> void {
         drawFrameText(display, state, x, y, "Rebooting...");
@@ -1386,6 +1400,7 @@ void Screen::handleStartFirmwareUpdateScreen()
 {
     LOG_DEBUG("showing firmware screen\n");
     showingNormalScreen = false;
+    EINK_ADD_FRAMEFLAG(dispdev, DEMAND_FAST); // E-Ink: Explicitly use fast-refresh for next frame
 
     static FrameCallback frames[] = {drawFrameFirmware};
     setFrameImmediateDraw(frames);

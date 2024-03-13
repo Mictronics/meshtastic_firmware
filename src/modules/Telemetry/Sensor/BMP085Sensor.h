@@ -1,17 +1,17 @@
 #include "../mesh/generated/meshtastic/telemetry.pb.h"
 #include "TelemetrySensor.h"
-#include <Adafruit_SHT31.h>
+#include <Adafruit_BMP085.h>
 
-class SHT31Sensor : public TelemetrySensor
+class BMP085Sensor : public TelemetrySensor
 {
   private:
-    Adafruit_SHT31 sht31;
+    Adafruit_BMP085 bmp085;
 
   protected:
     virtual void setup() override;
 
   public:
-    SHT31Sensor();
+    BMP085Sensor();
     virtual int32_t runOnce() override;
     virtual bool getMetrics(meshtastic_Telemetry *measurement) override;
 };

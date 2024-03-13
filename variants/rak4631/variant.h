@@ -133,10 +133,6 @@ static const uint8_t SCK = PIN_SPI_SCK;
 #define PIN_EINK_SCLK (0 + 3)
 #define PIN_EINK_MOSI (0 + 30) // also called SDI
 
-// Controls power for the eink display - Board power is enabled either by VBUS from USB or the CPU asserting PWR_ON
-// FIXME - I think this is actually just the board power enable - it enables power to the CPU also
-// #define PIN_EINK_PWR_ON (-1)
-
 // #define USE_EINK
 
 // RAKRGB
@@ -219,6 +215,7 @@ SO GPIO 39/TXEN MAY NOT BE DEFINED FOR SUCCESSFUL OPERATION OF THE SX1262 - TG
 #define NRF_APM
 
 // enables 3.3V periphery like GPS or IO Module
+// Do not toggle this for GPS power savings
 #define PIN_3V3_EN (34)
 
 // RAK1910 GPS module
