@@ -92,8 +92,12 @@ class AccelerometerThread : public concurrency::OSThread
                 RISING); // Select the interrupt mode according to the actual circuit
 #endif
 
+#ifdef T_WATCH_S3
             // Need to raise the wrist function, need to set the correct axis
             bmaSensor.setReampAxes(bmaSensor.REMAP_TOP_LAYER_RIGHT_CORNER);
+#else
+            bmaSensor.setReampAxes(bmaSensor.REMAP_BOTTOM_LAYER_BOTTOM_LEFT_CORNER);
+#endif
             // bmaSensor.enableFeature(bmaSensor.FEATURE_STEP_CNTR, true);
             bmaSensor.enableFeature(bmaSensor.FEATURE_TILT, true);
             bmaSensor.enableFeature(bmaSensor.FEATURE_WAKEUP, true);
