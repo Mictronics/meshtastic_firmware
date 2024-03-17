@@ -33,7 +33,7 @@
 #define I2C_SDA1 6
 #define I2C_SCL1 7
 // Waveshare UPS-A/B uses a 0.01 Ohm shunt for the INA219 sensor
-#define USE_WAVESHARE_PICO_UPS
+#define INA219_MULTIPLIER 10.0f
 
 // Waveshare Pico GPS L76B pins:
 #define GPS_RX_PIN 1
@@ -53,6 +53,10 @@
  * with 0 Ohm on the Waveshare Pico GPS board.
  */
 #define PIN_GPS_STANDBY 17
+/*
+ * Pico Waveshare GPS uses inverted logic on the standby.
+ */
+#define PIN_GPS_STANDBY_INVERTED
 
 #define BUTTON_PIN 18
 #define EXT_NOTIFY_OUT 22
