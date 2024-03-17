@@ -20,13 +20,7 @@ struct uBloxGnssModelInfo {
     char extension[10][30];
 };
 
-typedef enum {
-    GNSS_MODEL_MTK,
-    GNSS_MODEL_UBLOX,
-    GNSS_MODEL_UC6580,
-    GNSS_MODEL_UNKNOWN,
-    GNSS_MODEL_MTK_WAVESHARE,
-} GnssModel_t;
+typedef enum { GNSS_MODEL_MTK, GNSS_MODEL_UBLOX, GNSS_MODEL_UC6580, GNSS_MODEL_UNKNOWN, GNSS_MODEL_MTK_L76B } GnssModel_t;
 
 typedef enum {
     GNSS_RESPONSE_NONE,

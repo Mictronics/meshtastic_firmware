@@ -292,7 +292,7 @@ bool GPS::setup()
             // Switch to Vehicle Mode, since SoftRF enables Aviation < 2g
             _serial_gps->write("$PCAS11,3*1E\r\n");
             delay(250);
-        } else if (gnssModel == GNSS_MODEL_MTK_WAVESHARE) {
+        } else if (gnssModel == GNSS_MODEL_MTK_L76B) {
             // Waveshare Pico-GPS hat uses the L76B with 9600 baud
             // Initialize the L76B Chip, use GPS + GLONASS
             // See note in L76_Series_GNSS_Protocol_Specification, chapter 3.29
@@ -651,8 +651,9 @@ void GPS::setGPSPower(bool on, bool standbyOnly, uint32_t sleepTime)
     if (on) {
         LOG_INFO("Waking GPS\n");
         pinMode(PIN_GPS_STANDBY, OUTPUT);
-#if defined(RPI_PICO_WAVESHARE)
-        // Inverse logic due to transistor driver on standby pin at Waveshare PCB
+        // Some PCB's use an inverse logic due to a transistor driver
+        // Example for this is the Pico-Waveshare Lora+GPS HAT
+#ifdef PIN_GPS_STANDBY_INVERTED
         digitalWrite(PIN_GPS_STANDBY, 0);
 #else
         digitalWrite(PIN_GPS_STANDBY, 1);
@@ -662,8 +663,7 @@ void GPS::setGPSPower(bool on, bool standbyOnly, uint32_t sleepTime)
         LOG_INFO("GPS entering sleep\n");
         // notifyGPSSleep.notifyObservers(NULL);
         pinMode(PIN_GPS_STANDBY, OUTPUT);
-#if defined(RPI_PICO_WAVESHARE)
-        // Inverse logic due to transistor driver on standby pin at Waveshare PCB
+#ifdef PIN_GPS_STANDBY_INVERTED
         digitalWrite(PIN_GPS_STANDBY, 1);
 #else
         digitalWrite(PIN_GPS_STANDBY, 0);
@@ -969,7 +969,7 @@ GnssModel_t GPS::probe(int serialSpeed)
     _serial_gps->write("$PMTK605*31\r\n");
     if (getACK("Quectel-L76B", 500) == GNSS_RESPONSE_OK) {
         LOG_INFO("L76B GNSS init succeeded, using L76B GNSS Module\n");
-        return GNSS_MODEL_MTK_WAVESHARE;
+        return GNSS_MODEL_MTK_L76B;
     }
 
     uint8_t cfg_rate[] = {0xB5, 0x62, 0x06, 0x08, 0x00, 0x00, 0x00, 0x00};
@@ -1153,7 +1153,6 @@ GPS *GPS::createGps()
         LOG_DEBUG("Using GPIO%d for GPS RX\n", new_gps->rx_gpio);
         LOG_DEBUG("Using GPIO%d for GPS TX\n", new_gps->tx_gpio);
         _serial_gps->begin(GPS_BAUDRATE, SERIAL_8N1, new_gps->rx_gpio, new_gps->tx_gpio);
-
 #else
         _serial_gps->setFIFOSize(256);
         _serial_gps->begin(GPS_BAUDRATE);
@@ -1213,14 +1212,16 @@ bool GPS::factoryReset()
         // byte _message_CFG_RST_COLDSTART[] = {0xB5, 0x62, 0x06, 0x04, 0x04, 0x00, 0xFF, 0xB9, 0x00, 0x00, 0xC6, 0x8B};
         // _serial_gps->write(_message_CFG_RST_COLDSTART, sizeof(_message_CFG_RST_COLDSTART));
         // delay(1000);
-    }
-#if defined(RPI_PICO_WAVESHARE)
-    else if (HW_VENDOR == meshtastic_HardwareModel_RPI_PICO) {
+    } else if (gnssModel == GNSS_MODEL_MTK) {
+        // send the CAS10 to perform a factory restart of the device (and other device that support PCAS statements)
+        LOG_INFO("GNSS Factory Reset via PCAS10,3\n");
+        _serial_gps->write("$PCAS10,3*1F\r\n");
+        delay(100);
+    } else {
+        // fire this for good measure, if we have an L76B - won't harm other devices.
         _serial_gps->write("$PMTK104*37\r\n");
         // No PMTK_ACK for this command.
-    }
-#endif
-    else {
+        delay(100);
         // send the UBLOX Factory Reset Command regardless of detect state, something is very wrong, just assume it's UBLOX.
         // Factory Reset
         byte _message_reset[] = {0xB5, 0x62, 0x06, 0x09, 0x0D, 0x00, 0xFF, 0xFB, 0x00, 0x00, 0x00,
