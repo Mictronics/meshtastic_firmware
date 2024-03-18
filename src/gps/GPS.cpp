@@ -1,4 +1,5 @@
 #include "GPS.h"
+#include "Default.h"
 #include "NodeDB.h"
 #include "RTC.h"
 #include "configuration.h"
@@ -497,7 +498,6 @@ bool GPS::setup()
                         }
                     }
                 }
-
             } else {
                 // LOG_INFO("u-blox M10 hardware found.\n");
                 delay(1000);
@@ -761,7 +761,7 @@ uint32_t GPS::getWakeTime() const
     if (t == UINT32_MAX)
         return t; // already maxint
 
-    return getConfiguredOrDefaultMs(t, default_broadcast_interval_secs);
+    return Default::Default::getConfiguredOrDefaultMs(t, default_broadcast_interval_secs);
 }
 
 /** Get how long we should sleep between aqusition attempts in msecs
