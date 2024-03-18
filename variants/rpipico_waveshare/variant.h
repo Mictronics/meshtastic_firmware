@@ -33,7 +33,7 @@
 #define I2C_SDA1 6
 #define I2C_SCL1 7
 // Waveshare UPS-A/B uses a 0.01 Ohm shunt for the INA219 sensor
-#define INA219_MULTIPLIER 10.0f
+// #define INA219_MULTIPLIER 10.0f
 
 // Waveshare Pico GPS L76B pins:
 #define GPS_RX_PIN 1
