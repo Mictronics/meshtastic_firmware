@@ -759,7 +759,7 @@ uint32_t GPS::getWakeTime() const
     if (t == UINT32_MAX)
         return t; // already maxint
 
-    return Default::Default::getConfiguredOrDefaultMs(t, default_broadcast_interval_secs);
+    return Default::getConfiguredOrDefaultMs(t, default_broadcast_interval_secs);
 }
 
 /** Get how long we should sleep between acquisition attempts in msecs
@@ -775,7 +775,7 @@ uint32_t GPS::getSleepTime() const
     if (t == UINT32_MAX)
         return t; // already maxint
 
-    return getConfiguredOrDefaultMs(t, default_gps_update_interval);
+    return Default::getConfiguredOrDefaultMs(t, default_gps_update_interval);
 }
 
 void GPS::publishUpdate()
