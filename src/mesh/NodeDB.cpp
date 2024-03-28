@@ -235,12 +235,13 @@ void NodeDB::installDefaultConfig()
 #ifdef T_ECHO_ROUTER
     config.device.role = meshtastic_Config_DeviceConfig_Role_ROUTER;
     config.has_network = false;
+    config.has_bluetooth = true;
     config.power.on_battery_shutdown_after_secs = 0;
 #else
     config.has_network = true;
     config.has_bluetooth = (HAS_BLUETOOTH ? true : false);
     config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_ALL;
-
+#endif
     config.lora.sx126x_rx_boosted_gain = true;
     config.lora.tx_enabled =
         true; // FIXME: maybe false in the future, and setting region to enable it. (unset region forces it off)
