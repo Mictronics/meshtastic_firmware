@@ -1,11 +1,12 @@
 #include "configuration.h"
-
+#if !MESHTASTIC_EXCLUDE_GPS
+#include "GPS.h"
+#endif
 #include "../detect/ScanI2C.h"
 #include "Channels.h"
 #include "CryptoEngine.h"
 #include "Default.h"
 #include "FSCommon.h"
-#include "GPS.h"
 #include "MeshRadio.h"
 #include "NodeDB.h"
 #include "PacketHistory.h"
@@ -25,7 +26,9 @@
 #include <vector>
 
 #ifdef ARCH_ESP32
+#if !MESHTASTIC_EXCLUDE_WIFI
 #include "mesh/wifi/WiFiAPClient.h"
+#endif
 #include "modules/esp32/StoreForwardModule.h"
 #include <Preferences.h>
 #include <nvs_flash.h>
@@ -235,8 +238,7 @@ void NodeDB::installDefaultConfig()
     config.power.on_battery_shutdown_after_secs = 0;
 #else
     config.has_network = true;
-#endif
-    config.has_bluetooth = true;
+    config.has_bluetooth = (HAS_BLUETOOTH ? true : false);
     config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_ALL;
 
     config.lora.sx126x_rx_boosted_gain = true;
