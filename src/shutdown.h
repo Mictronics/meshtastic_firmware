@@ -39,7 +39,7 @@ void powerCommandsCheck()
 #if defined(HAS_CPU_SHUTDOWN) & HAS_CPU_SHUTDOWN == 1
 #if defined(ARCH_ESP32) || defined(ARCH_NRF52)
     if (shutdownAtMsec) {
-        screen->startShutdownScreen();
+        screen->startAlert("Shutting down...");
     }
 #endif
 
