@@ -292,7 +292,8 @@ void NodeDB::installDefaultConfig()
 #else
     config.bluetooth.fixed_pin = defaultBLEPin;
 #endif
-#if defined(ST7735_CS) || defined(USE_EINK) || defined(ILI9341_DRIVER) || defined(ST7789_CS) || defined(HX8357_CS) || defined(USE_ST7789)
+#if defined(ST7735_CS) || defined(USE_EINK) || defined(ILI9341_DRIVER) || defined(ST7789_CS) || defined(HX8357_CS) ||            \
+    defined(USE_ST7789)
     bool hasScreen = true;
 #elif ARCH_PORTDUINO
     bool hasScreen = false;
@@ -509,13 +510,18 @@ void NodeDB::initModuleConfigIntervals()
 #ifdef T_ECHO_ROUTER
     moduleConfig.telemetry.device_update_interval = 15 * 60;
     moduleConfig.telemetry.environment_update_interval = 30 * 60;
-    moduleConfig.telemetry.air_quality_interval = default_broadcast_interval_secs;
-    moduleConfig.neighbor_info.update_interval = default_broadcast_interval_secs;
+    moduleConfig.telemetry.air_quality_interval = 0;
+    moduleConfig.neighbor_info.update_interval = 0;
+    moduleConfig.telemetry.power_update_interval = 0;
+    moduleConfig.paxcounter.paxcounter_update_interval = 0;
 #else
-    moduleConfig.telemetry.device_update_interval = default_broadcast_interval_secs;
-    moduleConfig.telemetry.environment_update_interval = default_broadcast_interval_secs;
-    moduleConfig.telemetry.air_quality_interval = default_broadcast_interval_secs;
-    moduleConfig.neighbor_info.update_interval = default_broadcast_interval_secs;
+    // Zero out telemetry intervals so that they coalesce to defaults in Default.h
+    moduleConfig.telemetry.device_update_interval = 0;
+    moduleConfig.telemetry.environment_update_interval = 0;
+    moduleConfig.telemetry.air_quality_interval = 0;
+    moduleConfig.telemetry.power_update_interval = 0;
+    moduleConfig.neighbor_info.update_interval = 0;
+    moduleConfig.paxcounter.paxcounter_update_interval = 0;
 #endif
 }
 
@@ -740,6 +746,26 @@ void NodeDB::loadFromDisk()
     state = loadProto(oemConfigFile, meshtastic_OEMStore_size, sizeof(meshtastic_OEMStore), &meshtastic_OEMStore_msg, &oemStore);
     if (state == LoadFileResult::SUCCESS) {
         LOG_INFO("Loaded OEMStore\n");
+    }
+
+    // 2.4.X - configuration migration to update new default intervals
+    if (moduleConfig.version < 23) {
+        LOG_DEBUG("ModuleConfig version %d is stale, upgrading to new default intervals\n", moduleConfig.version);
+        moduleConfig.version = DEVICESTATE_CUR_VER;
+        if (moduleConfig.telemetry.device_update_interval == 900)
+            moduleConfig.telemetry.device_update_interval = 0;
+        if (moduleConfig.telemetry.environment_update_interval == 900)
+            moduleConfig.telemetry.environment_update_interval = 0;
+        if (moduleConfig.telemetry.air_quality_interval == 900)
+            moduleConfig.telemetry.air_quality_interval = 0;
+        if (moduleConfig.telemetry.power_update_interval == 900)
+            moduleConfig.telemetry.power_update_interval = 0;
+        if (moduleConfig.neighbor_info.update_interval == 900)
+            moduleConfig.neighbor_info.update_interval = 0;
+        if (moduleConfig.paxcounter.paxcounter_update_interval == 900)
+            moduleConfig.paxcounter.paxcounter_update_interval = 0;
+
+        saveToDisk(SEGMENT_MODULECONFIG);
     }
 }
 
