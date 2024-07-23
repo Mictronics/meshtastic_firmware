@@ -62,9 +62,9 @@
 #define EXT_NOTIFY_OUT 22
 #define LED_PIN PIN_LED
 
-#define BATTERY_PIN 26
+#define BATTERY_PIN 29
 // ratio of voltage divider = 3.0 (R17=200k, R18=100k)
-#define ADC_MULTIPLIER 3.1 // 3.0 + a bit for being optimistic
+#define ADC_MULTIPLIER 3.0 // 3.0 + a bit for being optimistic
 #define BATTERY_SENSE_RESOLUTION_BITS ADC_RESOLUTION
 
 #define USE_SX1262
