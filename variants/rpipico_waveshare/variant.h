@@ -17,6 +17,9 @@
 #define log_d(...) Serial2.printf(__VA_ARGS__)
 #endif
 
+// At intrusion detection event send last known position on primary channel.
+#define INTRUSION_DETECTION_POSITION
+
 // Expecting the Waveshare Pico GPS hat
 #define HAS_GPS 1
 
