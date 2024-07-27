@@ -402,6 +402,13 @@ bool GPS::setup()
     int msglen = 0;
 
     if (!didSerialInit) {
+#ifdef GNSS_AIROHA
+        if (tx_gpio && gnssModel == GNSS_MODEL_UNKNOWN) {
+            probe(GPS_BAUDRATE);
+            LOG_INFO("GPS setting to %d.\n", GPS_BAUDRATE);
+        }
+#else
+#if !defined(GPS_UC6580)
 
         if (tx_gpio && gnssModel == GNSS_MODEL_UNKNOWN) {
 
@@ -425,6 +432,9 @@ bool GPS::setup()
         } else {
             gnssModel = GNSS_MODEL_UNKNOWN;
         }
+#else
+        gnssModel = GNSS_MODEL_UC6580;
+#endif
 
         if (gnssModel == GNSS_MODEL_MTK) {
             /*
@@ -776,6 +786,7 @@ bool GPS::setup()
                 LOG_INFO("GNSS module configuration saved!\n");
             }
         }
+#endif
         didSerialInit = true;
     }
 
@@ -1173,7 +1184,7 @@ int GPS::prepareDeepSleep(void *unused)
 
 GnssModel_t GPS::probe(int serialSpeed)
 {
-#if defined(ARCH_NRF52) || defined(ARCH_PORTDUINO) || defined(ARCH_RP2040)
+#if defined(ARCH_NRF52) || defined(ARCH_PORTDUINO) || defined(ARCH_RP2040) || defined(ARCH_STM32WL)
     _serial_gps->end();
     _serial_gps->begin(serialSpeed);
 #else
@@ -1261,7 +1272,7 @@ GnssModel_t GPS::probe(int serialSpeed)
         _serial_gps->write(_message_prt, sizeof(_message_prt));
         delay(500);
         serialSpeed = 9600;
-#if defined(ARCH_NRF52) || defined(ARCH_PORTDUINO) || defined(ARCH_RP2040)
+#if defined(ARCH_NRF52) || defined(ARCH_PORTDUINO) || defined(ARCH_RP2040) || defined(ARCH_STM32WL)
         _serial_gps->end();
         _serial_gps->begin(serialSpeed);
 #else
