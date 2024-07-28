@@ -1474,11 +1474,11 @@ bool GPS::factoryReset()
         uint8_t msglen = makeCASPacket(0x06, 0x02, sizeof(_message_CAS_CFG_RST_FACTORY), _message_CAS_CFG_RST_FACTORY);
         _serial_gps->write(UBXscratch, msglen);
         delay(100);
-    } else {
-        // fire this for good measure, if we have an L76B - won't harm other devices.
+    } else if (gnssModel == GNSS_MODEL_MTK_L76B) {
+        LOG_INFO("GNSS Factory Reset via PMTK104\n");
         _serial_gps->write("$PMTK104*37\r\n");
         // No PMTK_ACK for this command.
-        delay(100);
+    } else {
         // send the UBLOX Factory Reset Command regardless of detect state, something is very wrong, just assume it's UBLOX.
         // Factory Reset
         byte _message_reset[] = {0xB5, 0x62, 0x06, 0x09, 0x0D, 0x00, 0xFF, 0xFB, 0x00, 0x00, 0x00,
