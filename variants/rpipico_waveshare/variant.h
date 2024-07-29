@@ -60,6 +60,10 @@
  * Pico Waveshare GPS uses inverted logic on the standby.
  */
 #define PIN_GPS_STANDBY_INVERTED
+/*
+ * Disable GPS lock and search time prediction algorithm
+ */
+#define DISABLE_GPS_SEARCH_TIME_PREDICTION
 
 #define BUTTON_PIN 18
 #define EXT_NOTIFY_OUT 22
