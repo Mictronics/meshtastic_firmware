@@ -11,6 +11,12 @@
 #if !MESHTASTIC_EXCLUDE_MQTT
 #include "mqtt/MQTT.h"
 #endif
+#if ARCH_PORTDUINO
+#include "platform/portduino/PortduinoGlue.h"
+#endif
+#if ENABLE_JSON_LOGGING || ARCH_PORTDUINO
+#include "serialization/MeshPacketSerializer.h"
+#endif
 /**
  * Router todo
  *
@@ -92,22 +98,23 @@ void Router::enqueueReceivedMessage(meshtastic_MeshPacket *p)
 // FIXME, move this someplace better
 PacketId generatePacketId()
 {
-    static uint32_t i; // Note: trying to keep this in noinit didn't help for working across reboots
+    static uint32_t rollingPacketId; // Note: trying to keep this in noinit didn't help for working across reboots
     static bool didInit = false;
-
-    uint32_t numPacketId = UINT32_MAX;
 
     if (!didInit) {
         didInit = true;
 
         // pick a random initial sequence number at boot (to prevent repeated reboots always starting at 0)
         // Note: we mask the high order bit to ensure that we never pass a 'negative' number to random
-        i = random(numPacketId & 0x7fffffff);
-        LOG_DEBUG("Initial packet id %u, numPacketId %u\n", i, numPacketId);
+        rollingPacketId = random(UINT32_MAX & 0x7fffffff);
+        LOG_DEBUG("Initial packet id %u\n", rollingPacketId);
     }
 
-    i++;
-    PacketId id = (i % numPacketId) + 1; // return number between 1 and numPacketId (ie - never zero)
+    rollingPacketId++;
+
+    rollingPacketId &= UINT32_MAX >> 22;                                   // Mask out the top 22 bits
+    PacketId id = rollingPacketId | random(UINT32_MAX & 0x7fffffff) << 10; // top 22 bits
+    LOG_DEBUG("Partially randomized packet id %u\n", id);
     return id;
 }
 
@@ -355,6 +362,13 @@ bool perhapsDecode(meshtastic_MeshPacket *p)
                 } */
 
                 printPacket("decoded message", p);
+#if ENABLE_JSON_LOGGING
+                LOG_TRACE("%s\n", MeshPacketSerializer::JsonSerialize(p, false).c_str());
+#elif ARCH_PORTDUINO
+                if (settingsStrings[traceFilename] != "" || settingsMap[logoutputlevel] == level_trace) {
+                    LOG_TRACE("%s\n", MeshPacketSerializer::JsonSerialize(p, false).c_str());
+                }
+#endif
                 return true;
             }
         }
@@ -490,6 +504,17 @@ void Router::handleReceived(meshtastic_MeshPacket *p, RxSource src)
 
 void Router::perhapsHandleReceived(meshtastic_MeshPacket *p)
 {
+#if ENABLE_JSON_LOGGING
+    // Even ignored packets get logged in the trace
+    p->rx_time = getValidTime(RTCQualityFromNet); // store the arrival timestamp for the phone
+    LOG_TRACE("%s\n", MeshPacketSerializer::JsonSerializeEncrypted(p).c_str());
+#elif ARCH_PORTDUINO
+    // Even ignored packets get logged in the trace
+    if (settingsStrings[traceFilename] != "" || settingsMap[logoutputlevel] == level_trace) {
+        p->rx_time = getValidTime(RTCQualityFromNet); // store the arrival timestamp for the phone
+        LOG_TRACE("%s\n", MeshPacketSerializer::JsonSerializeEncrypted(p).c_str());
+    }
+#endif
     // assert(radioConfig.has_preferences);
     bool ignore = is_in_repeated(config.lora.ignore_incoming, p->from) || (config.lora.ignore_mqtt && p->via_mqtt);
 
