@@ -400,7 +400,7 @@ void PositionModule::sendIntrusionPositionText()
     p->decoded.payload.size = strlen(message);
     memcpy(p->decoded.payload.bytes, message, p->decoded.payload.size);
 
-    service.sendToMesh(p, RX_SRC_LOCAL, true);
+    service->sendToMesh(p, RX_SRC_LOCAL, true);
     delete[] message;
 }
 #endif
