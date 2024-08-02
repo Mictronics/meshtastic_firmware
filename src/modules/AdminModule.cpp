@@ -16,6 +16,7 @@
 #ifdef ARCH_PORTDUINO
 #include "unistd.h"
 #endif
+#include "../userPrefs.h"
 #include "Default.h"
 #include "TypeConversions.h"
 
@@ -347,7 +348,7 @@ void AdminModule::handleSetOwner(const meshtastic_User &o)
     }
 
     if (changed) { // If nothing really changed, don't broadcast on the network or write to flash
-        service.reloadOwner(!hasOpenEditTransaction);
+        service->reloadOwner(!hasOpenEditTransaction);
         saveChanges(SEGMENT_DEVICESTATE);
     }
 }
@@ -400,6 +401,13 @@ void AdminModule::handleSetConfig(const meshtastic_Config &c)
                 requiresReboot = true;
             }
         }
+#if EVENT_MODE
+        // If we're in event mode, nobody is a Router or Repeater
+        if (config.device.role == meshtastic_Config_DeviceConfig_Role_ROUTER ||
+            config.device.role == meshtastic_Config_DeviceConfig_Role_REPEATER) {
+            config.device.role = meshtastic_Config_DeviceConfig_Role_CLIENT;
+        }
+#endif
         break;
     case meshtastic_Config_position_tag:
         LOG_INFO("Setting config: Position\n");
@@ -459,6 +467,15 @@ void AdminModule::handleSetConfig(const meshtastic_Config &c)
             config.lora.sx126x_rx_boosted_gain == c.payload_variant.lora.sx126x_rx_boosted_gain) {
             requiresReboot = false;
         }
+
+#ifdef RF95_FAN_EN
+        // Turn PA off if disabled by config
+        if (c.payload_variant.lora.pa_fan_disabled) {
+            digitalWrite(RF95_FAN_EN, LOW ^ 0);
+        } else {
+            digitalWrite(RF95_FAN_EN, HIGH ^ 0);
+        }
+#endif
         config.lora = c.payload_variant.lora;
         // If we're setting region for the first time, init the region
         if (isRegionUnset && config.lora.region > meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
@@ -831,7 +848,7 @@ void AdminModule::saveChanges(int saveWhat, bool shouldReboot)
 {
     if (!hasOpenEditTransaction) {
         LOG_INFO("Saving changes to disk\n");
-        service.reloadConfig(saveWhat); // Calls saveToDisk among other things
+        service->reloadConfig(saveWhat); // Calls saveToDisk among other things
     } else {
         LOG_INFO("Delaying save of changes to disk until the open transaction is committed\n");
     }
@@ -862,7 +879,7 @@ void AdminModule::handleSetHamMode(const meshtastic_HamParameters &p)
     channels.setChannel(primaryChannel);
     channels.onConfigChanged();
 
-    service.reloadOwner(false);
+    service->reloadOwner(false);
     saveChanges(SEGMENT_CONFIG | SEGMENT_DEVICESTATE | SEGMENT_CHANNELS);
 }
 
