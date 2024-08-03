@@ -71,6 +71,11 @@ extern "C" {
     }
 #endif
 
+/*
+ * Disable GPS lock and search time prediction algorithm
+ */
+#define DISABLE_GPS_SEARCH_TIME_PREDICTION
+
 // Number of pins defined in PinDescription array
 #define PINS_COUNT (48)
 #define NUM_DIGITAL_PINS (48)
