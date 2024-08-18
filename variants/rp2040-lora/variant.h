@@ -17,7 +17,7 @@
 #define EXT_NOTIFY_OUT 22
 #undef BUTTON_PIN // Pin 17 used for antenna switching via DIO4
 
-#define LED_PIN PIN_LED
+#define LED_PIN 25 // GPIO25
 
 // #define BATTERY_PIN 26
 //  ratio of voltage divider = 3.0 (R17=200k, R18=100k)
