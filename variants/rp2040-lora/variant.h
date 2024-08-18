@@ -46,7 +46,7 @@
 #define LORA_DIO4 17          // GPIO17
 
 // On rp2040-lora board the antenna switch is wired and works with complementary-pin control logic.
-// See PE4259 datasheet page 4
+// See RTC6603SP datasheet page 3
 
 #ifdef USE_SX1262
 #define SX126X_CS LORA_CS
