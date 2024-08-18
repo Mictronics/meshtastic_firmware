@@ -1,26 +1,29 @@
-// #define RADIOLIB_CUSTOM_ARDUINO 1
-// #define RADIOLIB_TONE_UNSUPPORTED 1
-// #define RADIOLIB_SOFTWARE_SERIAL_UNSUPPORTED 1
-
 #define ARDUINO_ARCH_AVR
 
-// #define USE_SH1106 1
+// Build with slow system clock enabled to reduce power consumption.
+#define RP2040_SLOW_CLOCK
 
-// default I2C pins:
-// SDA = 4
-// SCL = 5
+#ifdef RP2040_SLOW_CLOCK
+// Redefine UART1 serial log output to avoid collision with UART0 for GPS.
+#define SERIAL2_TX 4
+#define SERIAL2_RX 5
+// Reroute log output in SensorLib when USB is not available
+#define log_e(...) Serial2.printf(__VA_ARGS__)
+#define log_i(...) Serial2.printf(__VA_ARGS__)
+#define log_d(...) Serial2.printf(__VA_ARGS__)
 
-// Recommended pins for SerialModule:
-// txd = 8
-// rxd = 9
+// Redefine I2C0 pins to avoid collision with UART1/Serial2.
+#define I2C_SDA 8
+#define I2C_SCL 9
+#endif
 
-#define EXT_NOTIFY_OUT 22
-#undef BUTTON_PIN // Pin 17 used for antenna switching via DIO4
+#undef EXT_NOTIFY_OUT // Not used
+#undef BUTTON_PIN     // Pin 17 used for antenna switching via DIO4
 
 #define LED_PIN 25 // GPIO25
 
 // #define BATTERY_PIN 26
-//  ratio of voltage divider = 3.0 (R17=200k, R18=100k)
+// ratio of voltage divider = 3.0 (R17=200k, R18=100k)
 // #define ADC_MULTIPLIER 3.1 // 3.0 + a bit for being optimistic
 
 #define USE_SX1262
