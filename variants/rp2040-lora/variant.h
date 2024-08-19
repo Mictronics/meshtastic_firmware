@@ -16,11 +16,11 @@
 #define log_e(...) Serial2.printf(__VA_ARGS__)
 #define log_i(...) Serial2.printf(__VA_ARGS__)
 #define log_d(...) Serial2.printf(__VA_ARGS__)
+#endif
 
 // Redefine I2C0 pins to avoid collision with UART1/Serial2.
 #define I2C_SDA 8
 #define I2C_SCL 9
-#endif
 
 #undef EXT_NOTIFY_OUT // Not used
 #undef BUTTON_PIN     // Pin 17 used for antenna switching via DIO4
