@@ -1,5 +1,10 @@
 #define ARDUINO_ARCH_AVR
 
+// Remove unsupported features, reduce code size
+#define MESHTASTIC_EXCLUDE_WIFI 1
+#define MESHTASTIC_EXCLUDE_BLUETOOTH 1
+#define MESHTASTIC_EXCLUDE_MQTT 1
+
 // Build with slow system clock enabled to reduce power consumption.
 #define RP2040_SLOW_CLOCK
 
