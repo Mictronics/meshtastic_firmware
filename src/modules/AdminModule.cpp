@@ -352,7 +352,7 @@ void AdminModule::handleGetModuleConfigResponse(const meshtastic_MeshPacket &mp,
         if (devicestate.node_remote_hardware_pins[i].node_num == 0 || !devicestate.node_remote_hardware_pins[i].has_pin) {
             continue;
         }
-        for (uint8_t j = 0; j < sizeof(r->get_module_config_response.payload_variant.remote_hardware.available_pins); j++) {
+        for (uint8_t j = 0; j < r->get_module_config_response.payload_variant.remote_hardware.available_pins_count; j++) {
             auto availablePin = r->get_module_config_response.payload_variant.remote_hardware.available_pins[j];
             if (i < devicestate.node_remote_hardware_pins_count) {
                 devicestate.node_remote_hardware_pins[i].node_num = mp.from;
@@ -700,6 +700,10 @@ void AdminModule::handleGetConfig(const meshtastic_MeshPacket &req, const uint32
             LOG_INFO("Getting config: Security\n");
             res.get_config_response.which_payload_variant = meshtastic_Config_security_tag;
             res.get_config_response.payload_variant.security = config.security;
+            break;
+        case meshtastic_AdminMessage_ConfigType_SESSIONKEY_CONFIG:
+            LOG_INFO("Getting config: Sessionkey\n");
+            res.get_config_response.which_payload_variant = meshtastic_Config_sessionkey_tag;
             break;
         }
         // NOTE: The phone app needs to know the ls_secs value so it can properly expect sleep behavior.
