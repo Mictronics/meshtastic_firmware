@@ -13,16 +13,6 @@
 #include "mqtt/MQTT.h"
 #endif
 
-/// 16 bytes of random PSK for our _public_ default channel that all devices power up on (AES128)
-static const uint8_t defaultpsk[] = {0xd4, 0xf1, 0xbb, 0x3a, 0x20, 0x29, 0x07, 0x59,
-                                     0xf0, 0xbc, 0xff, 0xab, 0xcf, 0x4e, 0x69, 0x01};
-
-#ifdef T_ECHO_ROUTER
-static const uint8_t primary_psk[] = PRIMARY_PSK;
-static const uint8_t admin_psk[] = ADMIN_PSK;
-static const uint8_t deutsch_psk[] = CHANNEL3_PSK;
-#endif
-
 Channels channels;
 
 const char *Channels::adminChannel = "admin";
