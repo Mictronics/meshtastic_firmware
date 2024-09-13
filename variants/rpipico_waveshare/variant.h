@@ -7,6 +7,11 @@
 // Build with slow system clock enabled to reduce power consumption.
 #define RP2040_SLOW_CLOCK
 
+// Enable device and environment telemetry broadcast for repeater.
+// Monitoring a repeater node is essential like for any other node type.
+// This will also enable the detection sensor module, e.g. to setup a tamper switch.
+#define HAS_REPEATER_TELEMETRY
+
 #ifdef RP2040_SLOW_CLOCK
 // Redefine UART1 serial log output to avoid collision with UART0 for GPS.
 #define SERIAL2_TX 4

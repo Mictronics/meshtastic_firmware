@@ -24,7 +24,9 @@ int32_t DeviceTelemetryModule::runOnce()
           Default::getConfiguredOrDefaultMsScaled(moduleConfig.telemetry.device_update_interval,
                                                   default_telemetry_broadcast_interval_secs, numOnlineNodes))) &&
         airTime->isTxAllowedChannelUtil(!isImpoliteRole) && airTime->isTxAllowedAirUtil() &&
+#if !defined(HAS_REPEATER_TELEMETRY)
         config.device.role != meshtastic_Config_DeviceConfig_Role_REPEATER &&
+#endif
         config.device.role != meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN) {
         sendTelemetry();
         lastSentToMesh = uptimeLastMs;
