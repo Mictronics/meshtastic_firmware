@@ -117,7 +117,12 @@ class Channels
     meshtastic_Channel &fixupChannel(ChannelIndex chIndex);
 
     /**
-     * Write a default channel to the specified channel index
+     * Writes the default lora config
+     */
+    void initDefaultLoraConfig();
+
+    /**
+     * Write default channels defined in UserPrefs
      */
     void initDefaultChannel(ChannelIndex chIndex);
 
@@ -138,9 +143,3 @@ static const uint8_t defaultpsk[] = {0xd4, 0xf1, 0xbb, 0x3a, 0x20, 0x29, 0x07, 0
 static const uint8_t eventpsk[] = {0x38, 0x4b, 0xbc, 0xc0, 0x1d, 0xc0, 0x22, 0xd1, 0x81, 0xbf, 0x36,
                                    0xb8, 0x61, 0x21, 0xe1, 0xfb, 0x96, 0xb7, 0x2e, 0x55, 0xbf, 0x74,
                                    0x22, 0x7e, 0x9d, 0x6a, 0xfb, 0x48, 0xd6, 0x4c, 0xb1, 0xa1};
-
-#ifdef T_ECHO_ROUTER
-static const uint8_t primary_psk[] = PRIMARY_PSK;
-static const uint8_t admin_psk[] = ADMIN_PSK;
-static const uint8_t deutsch_psk[] = CHANNEL3_PSK;
-#endif

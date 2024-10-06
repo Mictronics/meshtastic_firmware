@@ -36,40 +36,11 @@ extern "C" {
 
 #define TTGO_T_ECHO
 
-// Build specific code for T-Echo based remote router.
-#define T_ECHO_ROUTER
-
-#ifdef T_ECHO_ROUTER
 // There will be no screen on the router
 #undef HAS_SCREEN
 // Disable shutdown functionality
 #undef HAS_CPU_SHUTDOWN
 #define HAS_CPU_SHUTDOWN 0
-/* Hardcoded node configuration */
-// Primary channel
-#define PRIMARY_CH_NAME "Private"
-#define PRIMARY_PSK                                                                                                              \
-    {                                                                                                                            \
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  \
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00                                               \
-    }
-// Admin channel
-// Name set to "admin"
-#define ADMIN_PSK                                                                                                                \
-    {                                                                                                                            \
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  \
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00                                               \
-    }
-#error Change PSK!
-
-// Public Germany wide channel
-#define CHANNEL3_NAME "Deutsch"
-#define CHANNEL3_PSK                                                                                                             \
-    {                                                                                                                            \
-        0x2b, 0xbb, 0x63, 0x7b, 0xa5, 0x52, 0x0d, 0xd5, 0x5e, 0x36, 0x10, 0x0f, 0xd6, 0x33, 0xf7, 0xc7, 0x77, 0x6f, 0x34, 0x5b,  \
-            0x56, 0x3b, 0x80, 0x9e, 0xde, 0x73, 0xec, 0xa2, 0x85, 0x42, 0x0c, 0xa8,                                              \
-    }
-#endif
 
 /*
  * Disable GPS lock and search time prediction algorithm
@@ -83,11 +54,7 @@ extern "C" {
 #define NUM_ANALOG_OUTPUTS (0)
 
 // LEDs
-#ifdef T_ECHO_ROUTER
 #define PIN_LED1 (0 + 8) // LED disabled, output on unused pin
-#else
-#define PIN_LED1 (0 + 14) // blue (confirmed on board marked v1.0, date 2021-6-28)
-#endif
 #define PIN_LED2 (32 + 1) // green
 #define PIN_LED3 (32 + 3) // red
 

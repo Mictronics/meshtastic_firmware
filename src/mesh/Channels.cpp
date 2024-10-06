@@ -76,6 +76,23 @@ meshtastic_Channel &Channels::fixupChannel(ChannelIndex chIndex)
     return ch;
 }
 
+void Channels::initDefaultLoraConfig()
+{
+    meshtastic_Config_LoRaConfig &loraConfig = config.lora;
+
+    loraConfig.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST; // Default to Long Range & Fast
+    loraConfig.use_preset = true;
+    loraConfig.tx_power = 0; // default
+    loraConfig.channel_num = 0;
+
+#ifdef USERPREFS_LORACONFIG_MODEM_PRESET
+    loraConfig.modem_preset = USERPREFS_LORACONFIG_MODEM_PRESET;
+#endif
+#ifdef USERPREFS_LORACONFIG_CHANNEL_NUM
+    loraConfig.channel_num = USERPREFS_LORACONFIG_CHANNEL_NUM;
+#endif
+}
+
 /**
  * Write a default channel to the specified channel index
  */
@@ -83,12 +100,7 @@ void Channels::initDefaultChannel(ChannelIndex chIndex)
 {
     meshtastic_Channel &ch = getByIndex(chIndex);
     meshtastic_ChannelSettings &channelSettings = ch.settings;
-    meshtastic_Config_LoRaConfig &loraConfig = config.lora;
 
-    loraConfig.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST; // Default to Long Range & Fast
-    loraConfig.use_preset = true;
-    loraConfig.tx_power = 0; // default
-    loraConfig.channel_num = 0;
     uint8_t defaultpskIndex = 1;
     channelSettings.psk.bytes[0] = defaultpskIndex;
     channelSettings.psk.size = 1;
@@ -97,29 +109,53 @@ void Channels::initDefaultChannel(ChannelIndex chIndex)
     channelSettings.has_module_settings = true;
 
     ch.has_settings = true;
-    ch.role = meshtastic_Channel_Role_PRIMARY;
+    ch.role = chIndex == 0 ? meshtastic_Channel_Role_PRIMARY : meshtastic_Channel_Role_SECONDARY;
 
-#ifdef LORACONFIG_MODEM_PRESET_USERPREFS
-    loraConfig.modem_preset = LORACONFIG_MODEM_PRESET_USERPREFS;
-#endif
-#ifdef LORACONFIG_CHANNEL_NUM_USERPREFS
-    loraConfig.channel_num = LORACONFIG_CHANNEL_NUM_USERPREFS;
-#endif
-
-    // Install custom defaults. Will eventually support setting multiple default channels
-    if (chIndex == 0) {
-#ifdef CHANNEL_0_PSK_USERPREFS
-        static const uint8_t defaultpsk[] = CHANNEL_0_PSK_USERPREFS;
-        memcpy(channelSettings.psk.bytes, defaultpsk, sizeof(defaultpsk));
-        channelSettings.psk.size = sizeof(defaultpsk);
+    switch (chIndex) {
+    case 0:
+#ifdef USERPREFS_CHANNEL_0_PSK
+        static const uint8_t defaultpsk0[] = USERPREFS_CHANNEL_0_PSK;
+        memcpy(channelSettings.psk.bytes, defaultpsk0, sizeof(defaultpsk0));
+        channelSettings.psk.size = sizeof(defaultpsk0);
 
 #endif
-#ifdef CHANNEL_0_NAME_USERPREFS
-        strcpy(channelSettings.name, CHANNEL_0_NAME_USERPREFS);
+#ifdef USERPREFS_CHANNEL_0_NAME
+        strcpy(channelSettings.name, USERPREFS_CHANNEL_0_NAME);
 #endif
-#ifdef CHANNEL_0_PRECISION_USERPREFS
-        channelSettings.module_settings.position_precision = CHANNEL_0_PRECISION_USERPREFS;
+#ifdef USERPREFS_CHANNEL_0_PRECISION
+        channelSettings.module_settings.position_precision = USERPREFS_CHANNEL_0_PRECISION;
 #endif
+        break;
+    case 1:
+#ifdef USERPREFS_CHANNEL_1_PSK
+        static const uint8_t defaultpsk1[] = USERPREFS_CHANNEL_1_PSK;
+        memcpy(channelSettings.psk.bytes, defaultpsk1, sizeof(defaultpsk1));
+        channelSettings.psk.size = sizeof(defaultpsk1);
+
+#endif
+#ifdef USERPREFS_CHANNEL_1_NAME
+        strcpy(channelSettings.name, USERPREFS_CHANNEL_1_NAME);
+#endif
+#ifdef USERPREFS_CHANNEL_1_PRECISION
+        channelSettings.module_settings.position_precision = USERPREFS_CHANNEL_1_PRECISION;
+#endif
+        break;
+    case 2:
+#ifdef USERPREFS_CHANNEL_2_PSK
+        static const uint8_t defaultpsk2[] = USERPREFS_CHANNEL_2_PSK;
+        memcpy(channelSettings.psk.bytes, defaultpsk2, sizeof(defaultpsk2));
+        channelSettings.psk.size = sizeof(defaultpsk2);
+
+#endif
+#ifdef USERPREFS_CHANNEL_2_NAME
+        strcpy(channelSettings.name, USERPREFS_CHANNEL_2_NAME);
+#endif
+#ifdef USERPREFS_CHANNEL_2_PRECISION
+        channelSettings.module_settings.position_precision = USERPREFS_CHANNEL_2_PRECISION;
+#endif
+        break;
+    default:
+        break;
     }
 }
 
@@ -207,48 +243,14 @@ int16_t Channels::setCrypto(ChannelIndex chIndex)
 void Channels::initDefaults()
 {
     channelFile.channels_count = MAX_NUM_CHANNELS;
-#ifdef T_ECHO_ROUTER
-    meshtastic_Config_LoRaConfig &loraConfig = config.lora;
-    loraConfig.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST; // Default to Long Range & Fast
-    loraConfig.use_preset = true;
-    loraConfig.tx_power = 0; // default
-    // Channel 0 Primary
-    meshtastic_Channel &ch0 = getByIndex(0);
-    meshtastic_ChannelSettings &channelSettings0 = ch0.settings;
-    ch0.index = 0;
-    memcpy(channelSettings0.psk.bytes, primary_psk, sizeof(channelSettings0.psk.bytes));
-    channelSettings0.psk.size = sizeof(primary_psk);
-    strncpy(channelSettings0.name, PRIMARY_CH_NAME, sizeof(channelSettings0.name));
-    ch0.has_settings = true;
-    ch0.role = meshtastic_Channel_Role_PRIMARY;
-    // Channel 1 Secondary
-    meshtastic_Channel &ch1 = getByIndex(1);
-    ch1.index = 1;
-    meshtastic_ChannelSettings &channelSettings1 = ch1.settings;
-    channelSettings1.psk.bytes[0] = 1;
-    channelSettings1.psk.size = 1;
-    strncpy(channelSettings1.name, "", sizeof(channelSettings1.name));
-    ch1.has_settings = true;
-    ch1.role = meshtastic_Channel_Role_SECONDARY;
-    // Channel 2 Secondary
-    meshtastic_Channel &ch2 = getByIndex(2);
-    ch2.index = 2;
-    meshtastic_ChannelSettings &channelSettings2 = ch2.settings;
-    memcpy(channelSettings2.psk.bytes, admin_psk, sizeof(channelSettings2.psk.bytes));
-    channelSettings2.psk.size = sizeof(admin_psk);
-    strncpy(channelSettings2.name, "admin", sizeof(channelSettings2.name));
-    ch2.has_settings = true;
-    ch2.role = meshtastic_Channel_Role_SECONDARY;
-    // Channel 3 Secondary
-    meshtastic_Channel &ch3 = getByIndex(3);
-    ch3.index = 3;
-    meshtastic_ChannelSettings &channelSettings3 = ch3.settings;
-    memcpy(channelSettings3.psk.bytes, deutsch_psk, sizeof(channelSettings3.psk.bytes));
-    channelSettings3.psk.size = sizeof(deutsch_psk);
-    strncpy(channelSettings3.name, CHANNEL3_NAME, sizeof(channelSettings3.name));
-    ch3.has_settings = true;
-    ch3.role = meshtastic_Channel_Role_SECONDARY;
-    onConfigChanged();
+    for (int i = 0; i < channelFile.channels_count; i++)
+        fixupChannel(i);
+    initDefaultLoraConfig();
+
+#ifdef USERPREFS_CHANNELS_TO_WRITE
+    for (int i = 0; i < USERPREFS_CHANNELS_TO_WRITE; i++) {
+        initDefaultChannel(i);
+    }
 #else
     initDefaultChannel(0);
 #endif
@@ -324,7 +326,7 @@ void Channels::setChannel(const meshtastic_Channel &c)
 
 bool Channels::anyMqttEnabled()
 {
-#if EVENT_MODE
+#if USERPREFS_EVENT_MODE
     // Don't publish messages on the public MQTT broker if we are in event mode
     if (strcmp(moduleConfig.mqtt.address, default_mqtt_address) == 0) {
         return false;
