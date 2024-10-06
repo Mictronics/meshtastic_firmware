@@ -154,6 +154,18 @@ void Channels::initDefaultChannel(ChannelIndex chIndex)
         channelSettings.module_settings.position_precision = USERPREFS_CHANNEL_2_PRECISION;
 #endif
         break;
+    case 3:
+#ifdef USERPREFS_CHANNEL_3_PSK
+        static const uint8_t defaultpsk3[] = USERPREFS_CHANNEL_3_PSK;
+        memcpy(channelSettings.psk.bytes, defaultpsk3, sizeof(defaultpsk3));
+        channelSettings.psk.size = sizeof(defaultpsk3);
+#endif
+#ifdef USERPREFS_CHANNEL_3_NAME
+        strcpy(channelSettings.name, USERPREFS_CHANNEL_3_NAME);
+#endif
+#ifdef USERPREFS_CHANNEL_3_PRECISION
+        channelSettings.module_settings.position_precision = USERPREFS_CHANNEL_3_PRECISION;
+#endif
     default:
         break;
     }
