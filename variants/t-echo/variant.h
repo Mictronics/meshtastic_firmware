@@ -42,6 +42,11 @@ extern "C" {
 #undef HAS_CPU_SHUTDOWN
 #define HAS_CPU_SHUTDOWN 0
 
+// Enable device and environment telemetry broadcast for repeater.
+// Monitoring a repeater node is essential like for any other node type.
+// This will also enable the detection sensor module, e.g. to setup a tamper switch.
+#define HAS_REPEATER_TELEMETRY
+
 /*
  * Disable GPS lock and search time prediction algorithm
  */
@@ -54,7 +59,7 @@ extern "C" {
 #define NUM_ANALOG_OUTPUTS (0)
 
 // LEDs
-#define PIN_LED1 (0 + 8) // LED disabled, output on unused pin
+#define PIN_LED1 (0 + 8)  // LED disabled, output on unused pin
 #define PIN_LED2 (32 + 1) // green
 #define PIN_LED3 (32 + 3) // red
 
