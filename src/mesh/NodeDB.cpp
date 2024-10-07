@@ -326,8 +326,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #ifdef USERPREFS_USE_ADMIN_KEY
     memcpy(config.security.admin_key[0].bytes, USERPREFS_ADMIN_KEY, 32);
     config.security.admin_key[0].size = 32;
-#else
-    config.security.admin_key[0].size = 0;
+    config.security.admin_key_count = 1;
 #endif
     if (shouldPreserveKey) {
         config.security.private_key.size = 32;
@@ -775,6 +774,21 @@ void NodeDB::loadFromDisk()
             LOG_INFO("Loaded saved config version %d\n", config.version);
         }
     }
+
+#ifdef USERPREFS_USE_ADMIN_KEY
+    // Make sure we load a hard coded admin key even when the configuration file has none.
+    uint16_t sum = 0;
+    for (uint8_t b = 0; b < 32; b++) {
+        sum += config.security.admin_key[0].bytes[b];
+    }
+    if (sum == 0) {
+        LOG_INFO("Admin key zero. Loading hard coded key from user preferences.\n");
+        memcpy(config.security.admin_key[0].bytes, USERPREFS_ADMIN_KEY, 32);
+        config.security.admin_key[0].size = 32;
+        config.security.admin_key_count = 1;
+        saveToDisk(SEGMENT_CONFIG);
+    }
+#endif
 
     state = loadProto(moduleConfigFileName, meshtastic_LocalModuleConfig_size, sizeof(meshtastic_LocalModuleConfig),
                       &meshtastic_LocalModuleConfig_msg, &moduleConfig);
