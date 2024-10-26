@@ -37,6 +37,7 @@
 #define ADC_MULTIPLIER 3.0 // 3.0 + a bit for being optimistic
 #define BATTERY_SENSE_RESOLUTION_BITS ADC_RESOLUTION
 
+#define HAS_CPU_SHUTDOWN 1
 #define USE_SX1262
 
 #undef LORA_SCK
