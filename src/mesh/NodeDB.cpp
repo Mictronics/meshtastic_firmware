@@ -61,6 +61,10 @@ meshtastic_LocalConfig config;
 meshtastic_LocalModuleConfig moduleConfig;
 meshtastic_ChannelFile channelFile;
 
+#ifdef USERPREFS_USE_ADMIN_KEY
+static unsigned char userprefs_admin_key[] = USERPREFS_USE_ADMIN_KEY;
+#endif
+
 bool meshtastic_DeviceState_callback(pb_istream_t *istream, pb_ostream_t *ostream, const pb_field_iter_t *field)
 {
     if (ostream) {
@@ -385,7 +389,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
     config.lora.ignore_mqtt = false;
 #endif
 #ifdef USERPREFS_USE_ADMIN_KEY
-    memcpy(config.security.admin_key[0].bytes, USERPREFS_ADMIN_KEY, 32);
+    memcpy(config.security.admin_key[0].bytes, userprefs_admin_key, 32);
     config.security.admin_key[0].size = 32;
     config.security.admin_key_count = 1;
 #endif
@@ -847,7 +851,7 @@ void NodeDB::loadFromDisk()
     }
     if (sum == 0) {
         LOG_INFO("Admin key zero. Loading hard coded key from user preferences.\n");
-        memcpy(config.security.admin_key[0].bytes, USERPREFS_ADMIN_KEY, 32);
+        memcpy(config.security.admin_key[0].bytes, userprefs_admin_key, 32);
         config.security.admin_key[0].size = 32;
         config.security.admin_key_count = 1;
         saveToDisk(SEGMENT_CONFIG);
