@@ -6,6 +6,7 @@
 
 // Build with slow system clock enabled to reduce power consumption.
 #define RP2040_SLOW_CLOCK
+#define RP2040_SLOW_CLOCK_MHZ 36
 
 // Enable device and environment telemetry broadcast for repeater.
 // Monitoring a repeater node is essential like for any other node type.
