@@ -107,7 +107,7 @@ class GPS : private concurrency::OSThread
 
   public:
     /** If !NULL we will use this serial port to construct our GPS */
-#if defined(ARCH_RP2040)
+#if defined(RPI_PICO_WAVESHARE)
     static SerialUART *_serial_gps;
 #else
     static HardwareSerial *_serial_gps;
