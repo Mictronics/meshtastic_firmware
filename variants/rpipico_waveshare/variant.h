@@ -70,6 +70,10 @@
  * Disable GPS lock and search time prediction algorithm
  */
 #define DISABLE_GPS_SEARCH_TIME_PREDICTION
+/*
+ * Maximum time in seconds the GPS is acquiring a position lock.
+ */
+#define GPS_SEARCH_TIME_SEC 300
 
 #define BUTTON_PIN 18
 #define EXT_NOTIFY_OUT 22
