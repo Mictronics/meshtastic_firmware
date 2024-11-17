@@ -59,7 +59,7 @@ int32_t DetectionSensorModule::runOnce()
     // moduleConfig.detection_sensor.minimum_broadcast_secs = 30;
     // moduleConfig.detection_sensor.state_broadcast_secs = 120;
     // moduleConfig.detection_sensor.detection_trigger_type =
-    //          meshtastic_ModuleConfig_DetectionSensorConfig_TriggerType_LOGIC_HIGH;
+    // meshtastic_ModuleConfig_DetectionSensorConfig_TriggerType_LOGIC_HIGH;
     // strcpy(moduleConfig.detection_sensor.name, "Motion");
 
     if (moduleConfig.detection_sensor.enabled == false)
@@ -119,7 +119,7 @@ int32_t DetectionSensorModule::runOnce()
 
 void DetectionSensorModule::sendDetectionMessage()
 {
-    LOG_DEBUG("Detected event observed. Send message\n");
+    LOG_DEBUG("Detected event observed. Send message");
 #if !defined(INTRUSION_DETECTION_POSITION)
     char *message = new char[40];
     sprintf(message, "%s detected", moduleConfig.detection_sensor.name);
@@ -132,9 +132,12 @@ void DetectionSensorModule::sendDetectionMessage()
         p->decoded.payload.bytes[p->decoded.payload.size + 1] = '\0'; // Bell character
         p->decoded.payload.size++;
     }
-    LOG_INFO("Send message id=%d, dest=%x, msg=%.*s", p->id, p->to, p->decoded.payload.size, p->decoded.payload.bytes);
     lastSentToMesh = millis();
-    service->sendToMesh(p);
+    if (!channels.isDefaultChannel(0)) {
+        LOG_INFO("Send message id=%d, dest=%x, msg=%.*s", p->id, p->to, p->decoded.payload.size, p->decoded.payload.bytes);
+        service->sendToMesh(p);
+    } else
+        LOG_ERROR("Message not allow on Public channel");
     delete[] message;
 #else
     lastSentToMesh = millis();
@@ -149,14 +152,16 @@ void DetectionSensorModule::sendCurrentStateMessage(bool state)
 {
     char *message = new char[40];
     sprintf(message, "%s state: %i", moduleConfig.detection_sensor.name, state);
-
     meshtastic_MeshPacket *p = allocDataPacket();
     p->want_ack = false;
     p->decoded.payload.size = strlen(message);
     memcpy(p->decoded.payload.bytes, message, p->decoded.payload.size);
-    LOG_INFO("Send message id=%d, dest=%x, msg=%.*s", p->id, p->to, p->decoded.payload.size, p->decoded.payload.bytes);
     lastSentToMesh = millis();
-    service->sendToMesh(p);
+    if (!channels.isDefaultChannel(0)) {
+        LOG_INFO("Send message id=%d, dest=%x, msg=%.*s", p->id, p->to, p->decoded.payload.size, p->decoded.payload.bytes);
+        service->sendToMesh(p);
+    } else
+        LOG_ERROR("Message not allow on Public channel");
     delete[] message;
 }
 
