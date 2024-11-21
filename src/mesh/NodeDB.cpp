@@ -431,8 +431,8 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #ifdef USERPREFS_USE_ADMIN_KEY_0
     // Check if USERPREFS_ADMIN_KEY_0 is non-empty
     if (sizeof(userprefs_admin_key_0) > 0) {
-        memcpy(config.security.admin_key[numAdminKeys].bytes, userprefs_admin_key_0, 32);
-        config.security.admin_key[numAdminKeys].size = 32;
+        memcpy(config.security.admin_key[0].bytes, userprefs_admin_key_0, 32);
+        config.security.admin_key[0].size = 32;
         numAdminKeys++;
     }
 #endif
@@ -440,8 +440,8 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #ifdef USERPREFS_USE_ADMIN_KEY_1
     // Check if USERPREFS_ADMIN_KEY_1 is non-empty
     if (sizeof(userprefs_admin_key_1) > 0) {
-        memcpy(config.security.admin_key[numAdminKeys].bytes, userprefs_admin_key_1, 32);
-        config.security.admin_key[numAdminKeys].size = 32;
+        memcpy(config.security.admin_key[1].bytes, userprefs_admin_key_1, 32);
+        config.security.admin_key[1].size = 32;
         numAdminKeys++;
     }
 #endif
@@ -449,8 +449,8 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #ifdef USERPREFS_USE_ADMIN_KEY_2
     // Check if USERPREFS_ADMIN_KEY_2 is non-empty
     if (sizeof(userprefs_admin_key_2) > 0) {
-        memcpy(config.security.admin_key[config.security.admin_key_count].bytes, userprefs_admin_key_2, 32);
-        config.security.admin_key[config.security.admin_key_count].size = 32;
+        memcpy(config.security.admin_key[2].bytes, userprefs_admin_key_2, 32);
+        config.security.admin_key[2].size = 32;
         numAdminKeys++;
     }
 #endif
