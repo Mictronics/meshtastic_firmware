@@ -61,8 +61,14 @@ meshtastic_LocalConfig config;
 meshtastic_LocalModuleConfig moduleConfig;
 meshtastic_ChannelFile channelFile;
 
-#ifdef USERPREFS_USE_ADMIN_KEY
-static unsigned char userprefs_admin_key[] = USERPREFS_USE_ADMIN_KEY;
+#ifdef USERPREFS_USE_ADMIN_KEY_0
+static unsigned char userprefs_admin_key_0[] = USERPREFS_USE_ADMIN_KEY_0;
+#endif
+#ifdef USERPREFS_USE_ADMIN_KEY_1
+static unsigned char userprefs_admin_key_1[] = USERPREFS_USE_ADMIN_KEY_1;
+#endif
+#ifdef USERPREFS_USE_ADMIN_KEY_2
+static unsigned char userprefs_admin_key_2[] = USERPREFS_USE_ADMIN_KEY_2;
 #endif
 
 bool meshtastic_DeviceState_callback(pb_istream_t *istream, pb_ostream_t *ostream, const pb_field_iter_t *field)
@@ -118,7 +124,7 @@ NodeDB::NodeDB()
     uint32_t channelFileCRC = crc32Buffer(&channelFile, sizeof(channelFile));
 
     int saveWhat = 0;
-    bool hasUniqueId = false;
+    // bool hasUniqueId = false;
     // Get device unique id
 #if defined(ARCH_ESP32) && defined(ESP_EFUSE_OPTIONAL_UNIQUE_ID)
     uint32_t unique_id[4];
@@ -419,11 +425,37 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #else
     config.lora.ignore_mqtt = false;
 #endif
-#ifdef USERPREFS_USE_ADMIN_KEY
-    memcpy(config.security.admin_key[0].bytes, userprefs_admin_key, 32);
-    config.security.admin_key[0].size = 32;
-    config.security.admin_key_count = 1;
+    // Initialize admin_key_count to zero
+    byte numAdminKeys = 0;
+
+#ifdef USERPREFS_USE_ADMIN_KEY_0
+    // Check if USERPREFS_ADMIN_KEY_0 is non-empty
+    if (sizeof(userprefs_admin_key_0) > 0) {
+        memcpy(config.security.admin_key[numAdminKeys].bytes, userprefs_admin_key_0, 32);
+        config.security.admin_key[numAdminKeys].size = 32;
+        numAdminKeys++;
+    }
 #endif
+
+#ifdef USERPREFS_USE_ADMIN_KEY_1
+    // Check if USERPREFS_ADMIN_KEY_1 is non-empty
+    if (sizeof(userprefs_admin_key_1) > 0) {
+        memcpy(config.security.admin_key[numAdminKeys].bytes, userprefs_admin_key_1, 32);
+        config.security.admin_key[numAdminKeys].size = 32;
+        numAdminKeys++;
+    }
+#endif
+
+#ifdef USERPREFS_USE_ADMIN_KEY_2
+    // Check if USERPREFS_ADMIN_KEY_2 is non-empty
+    if (sizeof(userprefs_admin_key_2) > 0) {
+        memcpy(config.security.admin_key[config.security.admin_key_count].bytes, userprefs_admin_key_2, 32);
+        config.security.admin_key[config.security.admin_key_count].size = 32;
+        numAdminKeys++;
+    }
+#endif
+    config.security.admin_key_count = numAdminKeys;
+
     if (shouldPreserveKey) {
         config.security.private_key.size = 32;
         memcpy(config.security.private_key.bytes, private_key_temp, config.security.private_key.size);
@@ -890,17 +922,50 @@ void NodeDB::loadFromDisk()
         }
     }
 
-#ifdef USERPREFS_USE_ADMIN_KEY
-    // Make sure we load a hard coded admin key even when the configuration file has none.
+    // Make sure we load hard coded admin keys even when the configuration file has none.
+    // Initialize admin_key_count to zero
+    byte numAdminKeys = 0;
     uint16_t sum = 0;
+#ifdef USERPREFS_USE_ADMIN_KEY_0
     for (uint8_t b = 0; b < 32; b++) {
         sum += config.security.admin_key[0].bytes[b];
     }
     if (sum == 0) {
-        LOG_INFO("Admin key zero. Loading hard coded key from user preferences.\n");
-        memcpy(config.security.admin_key[0].bytes, userprefs_admin_key, 32);
+        numAdminKeys += 1;
+        LOG_INFO("Admin 0 key zero. Loading hard coded key from user preferences.\n");
+        memcpy(config.security.admin_key[0].bytes, userprefs_admin_key_0, 32);
         config.security.admin_key[0].size = 32;
-        config.security.admin_key_count = 1;
+        config.security.admin_key_count = numAdminKeys;
+        saveToDisk(SEGMENT_CONFIG);
+    }
+#endif
+
+#ifdef USERPREFS_USE_ADMIN_KEY_1
+    sum = 0;
+    for (uint8_t b = 0; b < 32; b++) {
+        sum += config.security.admin_key[1].bytes[b];
+    }
+    if (sum == 0) {
+        numAdminKeys += 1;
+        LOG_INFO("Admin 1 key zero. Loading hard coded key from user preferences.\n");
+        memcpy(config.security.admin_key[1].bytes, userprefs_admin_key_1, 32);
+        config.security.admin_key[1].size = 32;
+        config.security.admin_key_count = numAdminKeys;
+        saveToDisk(SEGMENT_CONFIG);
+    }
+#endif
+
+#ifdef USERPREFS_USE_ADMIN_KEY_2
+    sum = 0;
+    for (uint8_t b = 0; b < 32; b++) {
+        sum += config.security.admin_key[2].bytes[b];
+    }
+    if (sum == 0) {
+        numAdminKeys += 1;
+        LOG_INFO("Admin 2 key zero. Loading hard coded key from user preferences.\n");
+        memcpy(config.security.admin_key[2].bytes, userprefs_admin_key_2, 32);
+        config.security.admin_key[2].size = 32;
+        config.security.admin_key_count = numAdminKeys;
         saveToDisk(SEGMENT_CONFIG);
     }
 #endif
