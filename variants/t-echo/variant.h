@@ -65,6 +65,10 @@ extern "C" {
  * Disable GPS lock and search time prediction algorithm
  */
 #define DISABLE_GPS_SEARCH_TIME_PREDICTION
+/*
+ * Maximum time in seconds the GPS is acquiring a position lock.
+ */
+#define GPS_SEARCH_TIME_SEC 300
 
 // Number of pins defined in PinDescription array
 #define PINS_COUNT (48)
