@@ -1347,7 +1347,7 @@ GPS *GPS::createGps()
         _serial_gps->begin(GPS_BAUDRATE, SERIAL_8N1, new_gps->rx_gpio, new_gps->tx_gpio);
 #elif defined(ARCH_RP2040)
 #ifdef RPI_PICO_WAVESHARE
-        _ serial_gps->setFIFOSize(256);
+        _serial_gps->setFIFOSize(256);
 #endif
         _serial_gps->begin(GPS_BAUDRATE);
 #else
