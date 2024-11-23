@@ -44,6 +44,7 @@ SerialConsole::SerialConsole() : StreamAPI(&Port), RedirectablePrint(&Port), con
 #ifdef RP2040_SLOW_CLOCK
     Port.setTX(SERIAL2_TX);
     Port.setRX(SERIAL2_RX);
+    Port.setFIFOSize(256);
 #endif
     Port.begin(SERIAL_BAUD);
 #if defined(ARCH_NRF52) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARCH_RP2040) ||   \
