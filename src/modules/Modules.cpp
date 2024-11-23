@@ -232,12 +232,20 @@ void setupModules()
 #endif
 #endif
     } else {
+        // Configure repeater role
 #if !MESHTASTIC_EXCLUDE_ADMIN
         adminModule = new AdminModule();
 #endif
 #if HAS_TELEMETRY
         new DeviceTelemetryModule();
 #endif
+#if defined(HAS_REPEATER_TELEMETRY)
+        new EnvironmentTelemetryModule();
+#if !MESHTASTIC_EXCLUDE_DETECTIONSENSOR
+        detectionSensorModule = new DetectionSensorModule();
+#endif
+#endif
+
 #if !MESHTASTIC_EXCLUDE_TRACEROUTE
         traceRouteModule = new TraceRouteModule();
 #endif

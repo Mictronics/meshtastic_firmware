@@ -11,6 +11,7 @@ void setBluetoothEnable(bool enable)
     // not needed
 }
 
+#if 0
 static bool awake;
 
 static void sleep_callback(void)
@@ -37,10 +38,11 @@ void debug_date(datetime_t t)
     LOG_DEBUG("%d %d %d %d %d %d %d", t.year, t.month, t.day, t.hour, t.min, t.sec, t.dotw);
     uart_default_tx_wait_blocking();
 }
+#endif
 
 void cpuDeepSleep(uint32_t msecs)
 {
-
+#if 0
     time_t seconds = (time_t)(msecs / 1000);
     datetime_t t_init, t_alarm;
 
@@ -64,9 +66,13 @@ void cpuDeepSleep(uint32_t msecs)
     /* For now, I don't know how to revert this state
         We just reboot in order to get back operational */
     rp2040.reboot();
-
+#else
+    /* Disable both PLL to avoid power dissipation */
+    pll_deinit(pll_sys);
+    pll_deinit(pll_usb);
     /* Set RP2040 in dormant mode. Will not wake up. */
-    //  xosc_dormant();
+    xosc_dormant();
+#endif
 }
 
 void updateBatteryLevel(uint8_t level)
@@ -124,8 +130,8 @@ void enterDfuMode()
 #ifdef RP2040_SLOW_CLOCK
 void initVariant()
 {
-    /* Set the system frequency to 18 MHz. */
-    set_sys_clock_khz(18 * KHZ, false);
+    /* Set the system frequency to RP2040_SLOW_CLOCK_MHZ. See variant.h */
+    set_sys_clock_khz(RP2040_SLOW_CLOCK_MHZ * KHZ, false);
     /* The previous line automatically detached clk_peri from clk_sys, and
        attached it to pll_usb. We need to attach clk_peri back to system PLL to keep SPI
        working at this low speed.
@@ -134,11 +140,12 @@ void initVariant()
     clock_configure(clk_peri,
                     0,                                                // No glitchless mux
                     CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, // System PLL on AUX mux
-                    18 * MHZ,                                         // Input frequency
-                    18 * MHZ                                          // Output (must be same as no divider)
+                    RP2040_SLOW_CLOCK_MHZ * MHZ,                      // Input frequency
+                    RP2040_SLOW_CLOCK_MHZ * MHZ                       // Output (must be same as no divider)
     );
     /* Run also ADC on lower clk_sys. */
-    clock_configure(clk_adc, 0, CLOCKS_CLK_ADC_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, 18 * MHZ, 18 * MHZ);
+    clock_configure(clk_adc, 0, CLOCKS_CLK_ADC_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, RP2040_SLOW_CLOCK_MHZ * MHZ,
+                    RP2040_SLOW_CLOCK_MHZ * MHZ);
     /* Run RTC from XOSC since USB clock is off */
     clock_configure(clk_rtc, 0, CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_XOSC_CLKSRC, 12 * MHZ, 47 * KHZ);
     /* Turn off USB PLL */
