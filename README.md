@@ -13,6 +13,10 @@ This repository contains the device firmware for the Meshtastic project.
 - **[Building Instructions](https://meshtastic.org/docs/development/firmware/build)**
 - **[Flashing Instructions](https://meshtastic.org/docs/getting-started/flashing-firmware/)**
 
+## About this branch
+
+This branch is a customized variant for the Lilygo T-Echo working as a remotely located router. Modified to minimize power consumption, removed screen support and hard coded configuration that restores router functionality even after factory reset.
+
 ## Stats
 
 ![Alt](https://repobeats.axiom.co/api/embed/a92f097d9197ae853e780ec53d7d126e545629ab.svg "Repobeats analytics image")

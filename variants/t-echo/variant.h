@@ -36,6 +36,36 @@ extern "C" {
 
 #define TTGO_T_ECHO
 
+// There will be no screen on the router
+#undef HAS_SCREEN
+#define MESHTASTIC_EXCLUDE_SCREEN 1
+// Disable shutdown functionality
+#undef HAS_CPU_SHUTDOWN
+#define HAS_CPU_SHUTDOWN 0
+
+#define MESHTASTIC_EXCLUDE_AUDIO 1
+#define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1
+#define MESHTASTIC_EXCLUDE_PAXCOUNTER 1
+#define MESHTASTIC_EXCLUDE_RANGETEST 1
+#define MESHTASTIC_EXCLUDE_REMOTEHARDWARE 1
+#define MESHTASTIC_EXCLUDE_STOREFORWARD 1
+#define MESHTASTIC_EXCLUDE_ATAK 1
+#define MESHTASTIC_EXCLUDE_CANNEDMESSAGES 1
+#define MESHTASTIC_EXCLUDE_INPUTBROKER 1
+#define MESHTASTIC_EXCLUDE_POWERSTRESS 1
+#define MESHTASTIC_EXCLUDE_MQTT 1
+#define MESHTASTIC_EXCLUDE_WIFI 1
+
+// Enable device and environment telemetry broadcast for repeater.
+// Monitoring a repeater node is essential like for any other node type.
+// This will also enable the detection sensor module, e.g. to setup a tamper switch.
+#define HAS_REPEATER_TELEMETRY
+
+/*
+ * Disable GPS lock and search time prediction algorithm
+ */
+#define DISABLE_GPS_SEARCH_TIME_PREDICTION
+
 // Number of pins defined in PinDescription array
 #define PINS_COUNT (48)
 #define NUM_DIGITAL_PINS (48)
@@ -43,10 +73,9 @@ extern "C" {
 #define NUM_ANALOG_OUTPUTS (0)
 
 // LEDs
-#define PIN_LED1 (0 + 14) // 13 red (confirmed on 1.0 board)
-// Unused(by firmware) LEDs:
-#define PIN_LED2 (0 + 15) // 14 blue
-#define PIN_LED3 (0 + 13) // 15 green
+#define PIN_LED1 (0 + 8)  // LED disabled, output on unused pin
+#define PIN_LED2 (32 + 1) // green
+#define PIN_LED3 (32 + 3) // red
 
 #define LED_RED PIN_LED3
 #define LED_BLUE PIN_LED1
@@ -66,6 +95,28 @@ extern "C" {
 
 #define BUTTON_CLICK_MS 400
 #define BUTTON_TOUCH_MS 200
+
+/*
+ * Remove touch button functionality.
+ * Pin 0.11 used for intrusion detection.
+ * Requires hardware change:
+ * - remove TTP223 and bridge its pin 1 to 3.
+ * - connect intrusion switch between touch sensor pad and GND.
+ * In configuration:
+ * - enable detection sensor module
+ * - set 'Monitor Pin' to 11
+ * - set 'Detection Triggered High' false/low
+ * - set 'Use Pullup' enabled
+ */
+#undef PIN_BUTTON_TOUCH
+#ifdef BUTTON_PIN_TOUCH
+#undef BUTTON_PIN_TOUCH
+#endif
+
+/*
+ * At intrusion detection event send last known position on primary channel.
+ */
+#define INTRUSION_DETECTION_POSITION
 
 /*
  * Analog pins
@@ -207,7 +258,7 @@ External serial flash WP25R1635FZUIL0
 
 // Battery
 // The battery sense is hooked to pin A0 (4)
-// it is defined in the anlaolgue pin section of this file
+// it is defined in the analogue pin section of this file
 // and has 12 bit resolution
 #define BATTERY_SENSE_RESOLUTION_BITS 12
 #define BATTERY_SENSE_RESOLUTION 4096.0

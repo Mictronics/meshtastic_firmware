@@ -36,6 +36,7 @@ void powerCommandsCheck()
 #endif
     }
 
+#if defined(HAS_CPU_SHUTDOWN) & HAS_CPU_SHUTDOWN == 1
 #if defined(ARCH_ESP32) || defined(ARCH_NRF52)
     if (shutdownAtMsec) {
         screen->startAlert("Shutting down...");
@@ -53,4 +54,7 @@ void powerCommandsCheck()
         LOG_WARN("FIXME implement shutdown for this platform");
 #endif
     }
+#else
+    shutdownAtMsec = 0;
+#endif
 }

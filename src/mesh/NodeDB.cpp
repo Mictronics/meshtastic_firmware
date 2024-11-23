@@ -363,7 +363,7 @@ bool NodeDB::factoryReset(bool eraseBleBonds)
         // This will erase what's in NVS including ssl keys, persistent variables and ble pairing
         nvs_flash_erase();
 #endif
-#ifdef ARCH_NRF52
+#if defined(ARCH_NRF52)
         Bluefruit.begin();
         LOG_INFO("Clear bluetooth bonds!");
         bond_print_list(BLE_GAP_ROLE_PERIPH);
@@ -399,7 +399,6 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
     config.has_bluetooth = (HAS_BLUETOOTH ? true : false);
     config.has_security = true;
     config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_ALL;
-
     config.lora.sx126x_rx_boosted_gain = true;
     config.lora.tx_enabled =
         true; // FIXME: maybe false in the future, and setting region to enable it. (unset region forces it off)
@@ -419,6 +418,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #else
     config.lora.modem_preset = meshtastic_Config_LoRaConfig_ModemPreset_LONG_FAST;
 #endif
+
     config.lora.hop_limit = HOP_RELIABLE;
 #ifdef USERPREFS_CONFIG_LORA_IGNORE_MQTT
     config.lora.ignore_mqtt = USERPREFS_CONFIG_LORA_IGNORE_MQTT;
@@ -467,6 +467,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #ifdef PIN_GPS_EN
     config.position.gps_en_gpio = PIN_GPS_EN;
 #endif
+
 #ifdef GPS_POWER_TOGGLE
     config.device.disable_triple_click = false;
 #else
@@ -484,7 +485,6 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #else
     config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
 #endif
-    config.position.position_broadcast_smart_enabled = true;
     config.position.broadcast_smart_minimum_distance = 100;
     config.position.broadcast_smart_minimum_interval_secs = 30;
     if (config.device.role != meshtastic_Config_DeviceConfig_Role_ROUTER)
@@ -580,6 +580,7 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.has_store_forward = true;
     moduleConfig.has_telemetry = true;
     moduleConfig.has_external_notification = true;
+
 #if defined(PIN_BUZZER)
     moduleConfig.external_notification.enabled = true;
     moduleConfig.external_notification.output_buzzer = PIN_BUZZER;
@@ -609,6 +610,10 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.external_notification.alert_message = true;
     moduleConfig.external_notification.output_ms = 100;
     moduleConfig.external_notification.active = true;
+#endif
+
+#ifdef TTGO_T_ECHO
+    config.display.wake_on_tap_or_motion = true; // Enable touch button for screen-on / refresh
 #endif
 #ifdef BUTTON_SECONDARY_CANNEDMESSAGES
     // Use a board's second built-in button as input source for canned messages
