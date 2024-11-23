@@ -36,6 +36,10 @@ class PositionModule : public ProtobufModule<meshtastic_Position>, private concu
     void sendOurPosition(NodeNum dest, bool wantReplies = false, uint8_t channel = 0);
     void sendOurPosition();
 
+#if defined(INTRUSION_DETECTION_POSITION)
+    void sendIntrusionPositionText();
+#endif
+
     void handleNewPosition();
 
   protected:

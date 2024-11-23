@@ -36,11 +36,17 @@ uint32_t GPSUpdateScheduling::msUntilNextSearch()
     // Target interval (seconds), between GPS updates
     uint32_t updateInterval = Default::getConfiguredOrDefaultMs(config.position.gps_update_interval, default_gps_update_interval);
 
+#ifdef DISABLE_GPS_SEARCH_TIME_PREDICTION
+    // Always use configured fix length GPS update interval
+    // Independent how long it take to get a position lock
+    uint32_t dueAtMs = searchEndedMs + updateInterval;
+    int32_t remainingMs = dueAtMs - now;
+#else
     // Check how long until we should start searching, to hopefully hit our target interval
     uint32_t dueAtMs = searchEndedMs + updateInterval;
     uint32_t compensatedStart = dueAtMs - predictedMsToGetLock;
     int32_t remainingMs = compensatedStart - now;
-
+#endif
     // If we should have already started (negative value), start ASAP
     if (remainingMs < 0)
         remainingMs = 0;
@@ -70,9 +76,13 @@ bool GPSUpdateScheduling::isUpdateDue()
 // Have we been searching for a GPS position for too long?
 bool GPSUpdateScheduling::searchedTooLong()
 {
+#ifdef DISABLE_GPS_SEARCH_TIME_PREDICTION
+    uint32_t maxSearchMs = Default::getConfiguredOrDefaultMs(GPS_SEARCH_TIME_SEC);
+#else
     uint32_t minimumOrConfiguredSecs =
         Default::getConfiguredOrMinimumValue(config.position.position_broadcast_secs, default_broadcast_interval_secs);
     uint32_t maxSearchMs = Default::getConfiguredOrDefaultMs(minimumOrConfiguredSecs, default_broadcast_interval_secs);
+#endif
     // If broadcast interval set to max, no such thing as "too long"
     if (maxSearchMs == UINT32_MAX)
         return false;

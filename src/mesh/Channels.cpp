@@ -174,7 +174,6 @@ void Channels::initDefaultChannel(ChannelIndex chIndex)
         static const uint8_t defaultpsk3[] = USERPREFS_CHANNEL_3_PSK;
         memcpy(channelSettings.psk.bytes, defaultpsk3, sizeof(defaultpsk3));
         channelSettings.psk.size = sizeof(defaultpsk3);
-
 #endif
 #ifdef USERPREFS_CHANNEL_3_NAME
         strcpy(channelSettings.name, USERPREFS_CHANNEL_3_NAME);

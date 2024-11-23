@@ -30,7 +30,7 @@
 
 #if defined(NRF52840_XXAA) || defined(NRF52833_XXAA) || defined(ARCH_ESP32) || defined(ARCH_PORTDUINO)
 HardwareSerial *GPS::_serial_gps = &Serial1;
-#elif defined(ARCH_RP2040)
+#elif defined(RPI_PICO_WAVESHARE)
 SerialUART *GPS::_serial_gps = &Serial1;
 #else
 HardwareSerial *GPS::_serial_gps = NULL;
@@ -1347,6 +1347,7 @@ GPS *GPS::createGps()
         _serial_gps->setFIFOSize(256);
         _serial_gps->begin(GPS_BAUDRATE);
 #else
+        _serial_gps->setFIFOSize(256);
         _serial_gps->begin(GPS_BAUDRATE);
 #endif
     }
@@ -1403,10 +1404,11 @@ bool GPS::factoryReset()
         uint8_t msglen = makeCASPacket(0x06, 0x02, sizeof(_message_CAS_CFG_RST_FACTORY), _message_CAS_CFG_RST_FACTORY);
         _serial_gps->write(UBXscratch, msglen);
         delay(100);
-    } else {
-        // fire this for good measure, if we have an L76B - won't harm other devices.
+    } else if (gnssModel == GNSS_MODEL_MTK_L76B) {
+        LOG_INFO("GNSS Factory Reset via PMTK104\n");
         _serial_gps->write("$PMTK104*37\r\n");
         // No PMTK_ACK for this command.
+    } else {
         delay(100);
         // send the UBLOX Factory Reset Command regardless of detect state, something is very wrong, just assume it's
         // UBLOX. Factory Reset

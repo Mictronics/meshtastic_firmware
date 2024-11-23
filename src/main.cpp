@@ -772,7 +772,27 @@ void setup()
                 } else {
                     LOG_DEBUG("Run without GPS");
                 }
+                // Disable standby in repeater mode or when not present to avoid parasite current drawn
+#ifdef PIN_GPS_STANDBY
+            } else {
+                pinMode(PIN_GPS_STANDBY, OUTPUT);
+#ifdef PIN_GPS_STANDBY_INVERTED
+                digitalWrite(PIN_GPS_STANDBY, 1);
+#else
+                digitalWrite(PIN_GPS_STANDBY, 0);
+#endif
+#endif
             }
+            // Disable standby if not exists to avoid parasite current drawn
+#ifdef PIN_GPS_STANDBY
+        } else {
+            pinMode(PIN_GPS_STANDBY, OUTPUT);
+#ifdef PIN_GPS_STANDBY_INVERTED
+            digitalWrite(PIN_GPS_STANDBY, 1);
+#else
+            digitalWrite(PIN_GPS_STANDBY, 0);
+#endif
+#endif
         }
 #ifdef SENSOR_GPS_CONFLICT
     }
