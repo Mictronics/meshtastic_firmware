@@ -175,7 +175,7 @@ static void serialEnter()
 {
     LOG_DEBUG("State: SERIAL");
     setBluetoothEnable(false);
-    screen->setOn(true);
+    // screen->setOn(true);
     screen->print("Serial connected\n");
 }
 
@@ -194,7 +194,9 @@ static void powerEnter()
         LOG_INFO("Loss of power in Powered");
         powerFSM.trigger(EVENT_POWER_DISCONNECTED);
     } else {
-        screen->setOn(true);
+        powerMon->setState(meshtastic_PowerMon_State_BT_On);
+        powerMon->setState(meshtastic_PowerMon_State_Screen_On);
+        //screen->setOn(true);
         setBluetoothEnable(true);
         // within enter() the function getState() returns the state we came from
 
@@ -217,7 +219,9 @@ static void powerIdle()
 
 static void powerExit()
 {
-    screen->setOn(true);
+    powerMon->setState(meshtastic_PowerMon_State_BT_On);
+    powerMon->setState(meshtastic_PowerMon_State_Screen_On);
+    //screen->setOn(true);
     setBluetoothEnable(true);
 
     // Mothballed: print change of power-state to device screen
