@@ -38,9 +38,23 @@ extern "C" {
 
 // There will be no screen on the router
 #undef HAS_SCREEN
+#define MESHTASTIC_EXCLUDE_SCREEN 1
 // Disable shutdown functionality
 #undef HAS_CPU_SHUTDOWN
 #define HAS_CPU_SHUTDOWN 0
+
+#define MESHTASTIC_EXCLUDE_AUDIO 1
+#define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1
+#define MESHTASTIC_EXCLUDE_PAXCOUNTER 1
+#define MESHTASTIC_EXCLUDE_RANGETEST 1
+#define MESHTASTIC_EXCLUDE_REMOTEHARDWARE 1
+#define MESHTASTIC_EXCLUDE_STOREFORWARD 1
+#define MESHTASTIC_EXCLUDE_ATAK 1
+#define MESHTASTIC_EXCLUDE_CANNEDMESSAGES 1
+#define MESHTASTIC_EXCLUDE_INPUTBROKER 1
+#define MESHTASTIC_EXCLUDE_POWERSTRESS 1
+#define MESHTASTIC_EXCLUDE_MQTT 1
+#define MESHTASTIC_EXCLUDE_WIFI 1
 
 // Enable device and environment telemetry broadcast for repeater.
 // Monitoring a repeater node is essential like for any other node type.
