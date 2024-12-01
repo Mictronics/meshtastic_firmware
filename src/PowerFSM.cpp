@@ -19,6 +19,10 @@
 #include "sleep.h"
 #include "target_specific.h"
 
+#if HAS_WIFI && !defined(ARCH_PORTDUINO)
+#include "mesh/wifi/WiFiAPClient.h"
+#endif
+
 #ifndef SLEEP_TIME
 #define SLEEP_TIME 30
 #endif
@@ -196,7 +200,7 @@ static void powerEnter()
     } else {
         powerMon->setState(meshtastic_PowerMon_State_BT_On);
         powerMon->setState(meshtastic_PowerMon_State_Screen_On);
-        //screen->setOn(true);
+        // screen->setOn(true);
         setBluetoothEnable(true);
         // within enter() the function getState() returns the state we came from
 
@@ -221,7 +225,7 @@ static void powerExit()
 {
     powerMon->setState(meshtastic_PowerMon_State_BT_On);
     powerMon->setState(meshtastic_PowerMon_State_Screen_On);
-    //screen->setOn(true);
+    // screen->setOn(true);
     setBluetoothEnable(true);
 
     // Mothballed: print change of power-state to device screen
@@ -381,9 +385,9 @@ void PowerFSM_setup()
 // We never enter light-sleep or NB states on NRF52 (because the CPU uses so little power normally)
 #ifdef ARCH_ESP32
     // See: https://github.com/meshtastic/firmware/issues/1071
-    // Don't add power saving transitions if we are a power saving tracker or sensor. Sleep will be initiated through the
-    // modules
-    if ((isRouter || config.power.is_power_saving) && !isTrackerOrSensor) {
+    // Don't add power saving transitions if we are a power saving tracker or sensor or have Wifi enabled. Sleep will be initiated
+    // through the modules
+    if ((isRouter || config.power.is_power_saving) && !isWifiAvailable() && !isTrackerOrSensor) {
         powerFSM.add_timed_transition(&stateNB, &stateLS,
                                       Default::getConfiguredOrDefaultMs(config.power.min_wake_secs, default_min_wake_secs), NULL,
                                       "Min wake timeout");
