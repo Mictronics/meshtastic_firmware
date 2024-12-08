@@ -33,3 +33,4 @@ src/mesh/raspihttp/certificate.pem
 src/mesh/raspihttp/private_key.pem
 # Don't leak user specific settings on github
 userPrefs.h
+userPrefs.jsonc
