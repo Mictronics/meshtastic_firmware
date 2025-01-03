@@ -29,11 +29,6 @@
 // Expecting the Waveshare Pico GPS hat
 #define HAS_GPS 1
 
-// Enable OLED Screen
-#define HAS_SCREEN 1
-#define USE_SH1106 1
-#define RESET_OLED 13
-
 // Redefine I2C0 pins to avoid collision with UART1/Serial2.
 #define I2C_SDA 8
 #define I2C_SCL 9
@@ -75,8 +70,8 @@
  */
 #define GPS_SEARCH_TIME_SEC 300
 
-#define BUTTON_PIN 18
-#define EXT_NOTIFY_OUT 22
+#undef EXT_NOTIFY_OUT // Not used
+#undef BUTTON_PIN     // Not used
 #define LED_PIN PIN_LED
 
 #define BATTERY_PIN 29
