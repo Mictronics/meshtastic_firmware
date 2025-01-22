@@ -1095,12 +1095,13 @@ void NodeDB::loadFromDisk()
         }
     }
 
+#if HAS_SCREEN
     state = loadProto(uiconfigFileName, meshtastic_DeviceUIConfig_size, sizeof(meshtastic_DeviceUIConfig),
                       &meshtastic_DeviceUIConfig_msg, &uiconfig);
     if (state == LoadFileResult::LOAD_SUCCESS) {
         LOG_INFO("Loaded UIConfig");
     }
-
+#endif
     // 2.4.X - configuration migration to update new default intervals
     if (moduleConfig.version < 23) {
         LOG_DEBUG("ModuleConfig version %d is stale, upgrading to new default intervals", moduleConfig.version);
