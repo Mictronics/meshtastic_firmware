@@ -62,6 +62,10 @@ extern "C" void lfs_assert(const char *reason)
     // CORRUPTED FILESYSTEM. This causes bootloop so
     // might as well try formatting now.
     LOG_ERROR("Trying FSCom.format()");
+#if defined(ARCH_NRF52)
+    // We should not call this from outside LittleFS but maybe it helps to fix the lock up case.
+    FSCom._unlockFS();
+#endif
     FSCom.format();
 #endif
 #endif
