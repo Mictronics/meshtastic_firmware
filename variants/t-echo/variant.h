@@ -56,11 +56,6 @@ extern "C" {
 #define MESHTASTIC_EXCLUDE_MQTT 1
 #define MESHTASTIC_EXCLUDE_WIFI 1
 
-// Enable device and environment telemetry broadcast for repeater.
-// Monitoring a repeater node is essential like for any other node type.
-// This will also enable the detection sensor module, e.g. to setup a tamper switch.
-#define HAS_REPEATER_TELEMETRY
-
 /*
  * Disable GPS lock and search time prediction algorithm
  */
