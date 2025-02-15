@@ -47,10 +47,6 @@ class MQTT : private concurrency::OSThread
      */
     void onSend(const meshtastic_MeshPacket &mp_encrypted, const meshtastic_MeshPacket &mp_decoded, ChannelIndex chIndex);
 
-    /** Attempt to connect to server if necessary
-     */
-    void reconnect();
-
     bool isConnectedDirectly();
 
     bool publish(const char *topic, const char *payload, bool retained);
@@ -85,7 +81,7 @@ class MQTT : private concurrency::OSThread
 #if HAS_WIFI
     using MQTTClient = WiFiClient;
 #if !defined(ARCH_PORTDUINO)
-#if (defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR < 3) || defined(RPI_PICO)
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR < 3) || defined(RPI_PICO) || defined(RPI_PICO2)
     WiFiClientSecure wifiSecureClient;
 #endif
 #endif
@@ -114,6 +110,10 @@ class MQTT : private concurrency::OSThread
     /** return true if we have a channel that wants uplink/downlink or map reporting is enabled
      */
     bool wantsLink() const;
+
+    /** Attempt to connect to server if necessary
+     */
+    void reconnect();
 
     /** Tell the server what subscriptions we want (based on channels.downlink_enabled)
      */
