@@ -8,6 +8,10 @@
 #define HAS_WIFI 1
 #endif
 
+// Build with slow system clock enabled to reduce power consumption.
+#define RP2350_SLOW_CLOCK
+#define RP2350_SLOW_CLOCK_MHZ 75
+
 // default I2C pins:
 // SDA = 4
 // SCL = 5
