@@ -2,9 +2,12 @@
 #include "hardware/xosc.h"
 #include <hardware/clocks.h>
 #include <hardware/pll.h>
-#include <pico/runtime_init.h>
 #include <pico/stdlib.h>
 #include <pico/unique_id.h>
+#ifndef RAK11310
+// RAK11310 uses an older framework due to flash limitations.
+#include <pico/runtime_init.h>
+#endif
 
 #ifdef __PLAT_RP2040__
 #include <pico/sleep.h>
