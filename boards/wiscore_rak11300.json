@@ -32,8 +32,14 @@
     "native_usb": true,
     "use_1200bps_touch": true,
     "wait_for_upload_port": false,
-    "protocol": "picotool",
-    "protocols": ["cmsis-dap", "raspberrypi-swd", "picotool", "picoprobe"]
+    "protocol": "jlink",
+    "protocols": [
+      "jlink",
+      "cmsis-dap",
+      "raspberrypi-swd",
+      "picotool",
+      "picoprobe"
+    ]
   },
   "url": "https://docs.rakwireless.com/",
   "vendor": "RAKwireless"
