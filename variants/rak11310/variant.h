@@ -1,6 +1,6 @@
 #define ARDUINO_ARCH_AVR
 
-// Define I2C pins to ensure usage of both ports
+// Define I2C pins to ensure correct usage of both ports
 #define I2C_SDA 20
 #define I2C_SCL 21
 #define I2C_SDA1 2
