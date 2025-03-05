@@ -55,6 +55,9 @@ extern "C" {
 #define MESHTASTIC_EXCLUDE_POWERSTRESS 1
 #define MESHTASTIC_EXCLUDE_MQTT 1
 #define MESHTASTIC_EXCLUDE_WIFI 1
+#define MESHTASTIC_EXCLUDE_NEIGHBORINFO 1
+#define MESHTASTIC_EXCLUDE_DETECTIONSENSOR 1
+#define MESHTASTIC_EXCLUDE_SERIAL 1
 
 /*
  * Disable GPS lock and search time prediction algorithm
@@ -136,15 +139,15 @@ static const uint8_t A0 = PIN_A0;
  */
 
 /*
-No longer populated on PCB
-*/
+ * No longer populated on PCB
+ */
 // #define PIN_SERIAL2_RX (0 + 6)
 // #define PIN_SERIAL2_TX (0 + 8)
-//  #define PIN_SERIAL2_EN (0 + 17)
+// #define PIN_SERIAL2_EN (0 + 17)
 
 /**
-    Wire Interfaces
-    */
+ * Wire Interfaces
+ */
 #define WIRE_INTERFACES_COUNT 1
 
 #define PIN_WIRE_SDA (26)
@@ -157,8 +160,8 @@ No longer populated on PCB
 #define PIN_RTC_INT (0 + 16) // Interrupt from the PCF8563 RTC
 
 /*
-External serial flash WP25R1635FZUIL0
-*/
+ *External serial flash WP25R1635FZUIL0
+ */
 
 // QSPI Pins
 #define PIN_QSPI_SCK (32 + 14)
