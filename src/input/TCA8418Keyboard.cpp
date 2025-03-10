@@ -103,8 +103,9 @@ enum {
     _TCA8418_COL9  // Pin ID for column 9
 };
 
-#define _TCA8418_ROWS 8
-#define _TCA8418_COLS 10
+// Nokia 5130 keyboard size
+#define _TCA8418_ROWS 5
+#define _TCA8418_COLS 5
 
 TCA8418Keyboard::TCA8418Keyboard() : m_wire(nullptr), m_addr(0), readCallback(nullptr), writeCallback(nullptr) {}
 
@@ -134,7 +135,11 @@ void TCA8418Keyboard::reset()
     //  set default all GIO pins to INPUT
     writeRegister(_TCA8418_REG_GPIO_DIR_1, 0x00);
     writeRegister(_TCA8418_REG_GPIO_DIR_2, 0x00);
-    writeRegister(_TCA8418_REG_GPIO_DIR_3, 0x00);
+    // Set COL8+COL9 as GPIO output
+    writeRegister(_TCA8418_REG_GPIO_DIR_3, 0x03);
+    // Enable display (COL8 = RESET = HIGH)
+    // Switch off keyboard backlight (COL9 = LOW)
+    writeRegister(_TCA8418_REG_GPIO_DAT_OUT_3, 0x01);
 
     //  add all pins to key events
     writeRegister(_TCA8418_REG_GPI_EM_1, 0xFF);
@@ -151,6 +156,7 @@ void TCA8418Keyboard::reset()
     writeRegister(_TCA8418_REG_GPIO_INT_EN_2, 0xFF);
     writeRegister(_TCA8418_REG_GPIO_INT_EN_3, 0xFF);
 
+    // Set keyboard matrix size
     matrix(_TCA8418_ROWS, _TCA8418_COLS);
     enableDebounce();
     flush();
