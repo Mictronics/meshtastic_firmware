@@ -179,6 +179,21 @@ int32_t KbI2cBase::runOnce()
                 e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_NONE;
                 e.source = this->_originName;
                 switch (key.key) {
+                case 12: // Nokia CLEAR
+                    e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_BACK;
+                    e.kbchar = key.key;
+                    break;
+                case 15: // Nokia UP
+                    e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_UP;
+                    e.kbchar = INPUT_BROKER_MSG_UP;
+                    break;
+                case 4: // Nokia DOWN
+                    e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_DOWN;
+                    e.kbchar = INPUT_BROKER_MSG_DOWN;
+                    break;
+                case 13: // Nokia NAVIKEY
+                    e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_SELECT;
+                    break;
                 default: // all other keys
                     e.inputEvent = ANYKEY;
                     e.kbchar = key.key;
