@@ -3,17 +3,29 @@
 #include "configuration.h"
 #include <Wire.h>
 
+#define _TCA8418_NONE 0x00
+#define _TCA8418_REBOOT 0x90
+#define _TCA8418_LEFT 0xb4
+#define _TCA8418_UP 0xb5
+#define _TCA8418_DOWN 0xb6
+#define _TCA8418_RIGHT 0xb7
+#define _TCA8418_ESC 0x1b
+#define _TCA8418_BSP 0x08
+#define _TCA8418_SELECT 0x0d
+
 class TCA8418Keyboard
 {
   public:
     typedef uint8_t (*i2c_com_fptr_t)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint8_t len);
 
-    enum KeyState { Idle = 0, Release, Press };
+    enum KeyState { Init = 0, Idle, Press, Held, HeldLong, Release, Busy };
 
-    struct KeyEvent {
-        char key;
-        KeyState state;
-    };
+    KeyState state;
+    int8_t last_key;
+    uint32_t last_tap;
+    uint8_t char_idx;
+
+    String queue;
 
     TCA8418Keyboard();
 
@@ -30,8 +42,14 @@ class TCA8418Keyboard
 
     //  Key events available in the internal FIFO buffer.
     uint8_t keyCount(void) const;
-    // Read key event from internal FIFO buffer
-    KeyEvent keyEvent(void) const;
+
+    void trigger(void);
+    void pressed(uint8_t key);
+    void held(uint8_t key);
+    void released(void);
+    bool hasEvent(void);
+    char dequeueEvent(void);
+    void queueEvent(char);
 
     uint8_t digitalRead(uint8_t pinnum) const;
     bool digitalWrite(uint8_t pinnum, uint8_t level);
@@ -49,6 +67,8 @@ class TCA8418Keyboard
     //  debounce keys.
     void enableDebounce();
     void disableDebounce();
+
+    void setBacklight(bool on);
 
     uint8_t readRegister(uint8_t reg) const;
     void writeRegister(uint8_t reg, uint8_t value);
