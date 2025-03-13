@@ -18,7 +18,7 @@ class TCA8418Keyboard
   public:
     typedef uint8_t (*i2c_com_fptr_t)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint8_t len);
 
-    enum KeyState { Init = 0, Idle, Press, Held, HeldLong, Release, Busy };
+    enum KeyState { Init = 0, Idle, Press, Held, Release, Busy };
 
     KeyState state;
     int8_t last_key;
@@ -45,7 +45,6 @@ class TCA8418Keyboard
 
     void trigger(void);
     void pressed(uint8_t key);
-    void held(uint8_t key);
     void released(void);
     bool hasEvent(void);
     char dequeueEvent(void);

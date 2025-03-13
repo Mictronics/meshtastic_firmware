@@ -133,7 +133,7 @@ unsigned char TCA8418TapMap[16][13] = {{_TCA8418_BSP},                          
 
 unsigned char TCA8418LongPressMap[16] = {
     _TCA8418_ESC,    // C
-    _TCA8418_REBOOT, // Navi
+    _TCA8418_NONE,   // Navi
     _TCA8418_NONE,   // Up
     _TCA8418_NONE,   // Down
     _TCA8418_NONE,   // 1
@@ -147,7 +147,7 @@ unsigned char TCA8418LongPressMap[16] = {
     _TCA8418_NONE,   // 3
     _TCA8418_RIGHT,  // 6
     _TCA8418_NONE,   // 9
-    _TCA8418_NONE,   // #
+    _TCA8418_REBOOT, // #
 };
 
 TCA8418Keyboard::TCA8418Keyboard() : m_wire(nullptr), m_addr(0), readCallback(nullptr), writeCallback(nullptr)
@@ -286,8 +286,6 @@ void TCA8418Keyboard::trigger()
         uint8_t k = readRegister(_TCA8418_REG_KEY_EVENT_A);
         uint8_t key = k & 0x7F;
         if (k & 0x80) {
-            if (state == Held || state == HeldLong)
-                held(key);
             if (state == Idle)
                 pressed(key);
             return;
@@ -345,46 +343,6 @@ void TCA8418Keyboard::pressed(uint8_t key)
     state = Held;
 }
 
-void TCA8418Keyboard::held(uint8_t key)
-{
-    if (state == Init || state == Busy) {
-        return;
-    }
-    LOG_DEBUG("Held");
-    uint8_t next_key = 0;
-    if (key > 40) {          // 3, 6, 9, #
-        next_key = key - 30; // TCA8418_TapMap[12...15]
-    } else if (key > 30) {   // 2, 5, 8, 0
-        next_key = key - 24; // TCA8418_TapMap[8...11]
-    } else if (key > 20) {   // 1, 4, 7, *
-        next_key = key - 18; // TCA8418_TapMap[4..7]
-    } else if (key == 12) {  // Clear
-        next_key = 0;        // TCA8418_TapMap[0]
-    } else if (key == 13) {  // Navi
-        next_key = 1;        // TCA8418_TapMap[1]
-    } else if (key == 15) {  // Up
-        next_key = 2;        // TCA8418_TapMap[2]
-    } else if (key == 4) {   // Down
-        next_key = 3;        // TCA8418_TapMap[3]
-    }
-    uint32_t now = millis();
-    int32_t held_interval = now - last_tap;
-    if (held_interval < 0 || next_key != last_key) {
-        // long running, millis has overflowed, or a key has been switched quickly...
-        last_tap = 0;
-        state = Busy;
-        return;
-    }
-    if (held_interval > _TCA8418_LONG_PRESS_THRESHOLD) {
-        // Set state to heldlong, send a longpress, and reset the timer...
-        state = HeldLong; // heldlong will allow this function to still fire, but prevent a "release"
-        queueEvent(TCA8418LongPressMap[last_key]);
-        last_tap = now;
-        LOG_DEBUG("Long Press Key: %i Map: %i", last_key, TCA8418LongPressMap[last_key]);
-    }
-    return;
-}
-
 void TCA8418Keyboard::released()
 {
     if (state != Held) {
@@ -396,9 +354,18 @@ void TCA8418Keyboard::released()
         state = Idle;
         return;
     }
-    queueEvent(TCA8418TapMap[last_key][(char_idx % TCA8418TapMod[last_key])]);
-    // LOG_DEBUG("Key Press: %i Index:%i if %i Map: %c", last_key, char_idx, TCA8418TapMod[last_key],
-    //           TCA8418TapMap[last_key][(char_idx % TCA8418TapMod[last_key])]);
+    uint32_t now = millis();
+    int32_t held_interval = now - last_tap;
+    if (held_interval > _TCA8418_LONG_PRESS_THRESHOLD) {
+        // Set state to heldlong, send a longpress, and reset the timer...
+        queueEvent(TCA8418LongPressMap[last_key]);
+        last_tap = now;
+        // LOG_DEBUG("Long Press Key: %i Map: %i", last_key, TCA8418LongPressMap[last_key]);
+    } else {
+        queueEvent(TCA8418TapMap[last_key][(char_idx % TCA8418TapMod[last_key])]);
+        // LOG_DEBUG("Key Press: %i Index:%i if %i Map: %c", last_key, char_idx, TCA8418TapMod[last_key],
+        //           TCA8418TapMap[last_key][(char_idx % TCA8418TapMod[last_key])]);
+    }
 }
 
 uint8_t TCA8418Keyboard::flush()
