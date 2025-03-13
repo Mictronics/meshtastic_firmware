@@ -226,7 +226,7 @@ int32_t KbI2cBase::runOnce()
                 break;
             }
             if (e.inputEvent != meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_NONE) {
-                LOG_DEBUG("TCA8418 Notifying: %i Char: %c", e.inputEvent, e.kbchar);
+                // LOG_DEBUG("TCA8418 Notifying: %i Char: %c", e.inputEvent, e.kbchar);
                 this->notifyObservers(&e);
             }
         }
@@ -467,5 +467,5 @@ int32_t KbI2cBase::runOnce()
     default:
         LOG_WARN("Unknown kb_model 0x%02x", kb_model);
     }
-    return 300;
+    return 100;
 }
