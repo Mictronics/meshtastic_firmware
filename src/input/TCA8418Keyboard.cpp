@@ -1,4 +1,4 @@
-// Based on the BBQ10 Keyboard and Adafruit TCA8418 library
+// Based on the MPR121 Keyboard and Adafruit TCA8418 library
 
 #include "TCA8418Keyboard.h"
 #include "configuration.h"
@@ -371,15 +371,15 @@ void TCA8418Keyboard::released()
 
 uint8_t TCA8418Keyboard::flush()
 {
-    //  Flush key events
+    // Flush key events
     uint8_t count = 0;
     while (readRegister(_TCA8418_REG_KEY_EVENT_A) != 0)
         count++;
-    //  Flush gpio events
+    // Flush gpio events
     readRegister(_TCA8418_REG_GPIO_INT_STAT_1);
     readRegister(_TCA8418_REG_GPIO_INT_STAT_2);
     readRegister(_TCA8418_REG_GPIO_INT_STAT_3);
-    //  Clear INT_STAT register
+    // Clear INT_STAT register
     writeRegister(_TCA8418_REG_INT_STAT, 3);
     return count;
 }
@@ -421,7 +421,6 @@ bool TCA8418Keyboard::pinMode(uint8_t pinnum, uint8_t mode)
 {
     if (pinnum > _TCA8418_COL9)
         return false;
-    // if (mode > INPUT_PULLUP) return false; ?s
 
     uint8_t idx = pinnum / 8;
     uint8_t reg = _TCA8418_REG_GPIO_DIR_1 + idx;
