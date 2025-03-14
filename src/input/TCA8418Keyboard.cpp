@@ -110,6 +110,7 @@ enum {
 
 #define _TCA8418_LONG_PRESS_THRESHOLD 2000
 #define _TCA8418_MULTI_TAP_THRESHOLD 750
+#define _TCA8418_BACKLIGHT_TIME 3000
 
 uint8_t TCA8418TapMod[16] = {1, 1, 1, 1, 13, 7, 9, 2,
                              7, 7, 7, 2, 7,  7, 9, 2}; // Num chars per key, Modulus for rotating through characters
@@ -185,15 +186,12 @@ void TCA8418Keyboard::reset()
     //  set default all GIO pins to INPUT
     writeRegister(_TCA8418_REG_GPIO_DIR_1, 0x00);
     writeRegister(_TCA8418_REG_GPIO_DIR_2, 0x00);
-    // Set COL9 as GPIO output
-    writeRegister(_TCA8418_REG_GPIO_DIR_3, 0x02);
-    // Switch off keyboard backlight (COL9 = LOW)
-    writeRegister(_TCA8418_REG_GPIO_DAT_OUT_3, 0x00);
+    writeRegister(_TCA8418_REG_GPIO_DIR_3, 0x00);
 
     //  add all pins to key events
     writeRegister(_TCA8418_REG_GPI_EM_1, 0xFF);
     writeRegister(_TCA8418_REG_GPI_EM_2, 0xFF);
-    writeRegister(_TCA8418_REG_GPI_EM_3, 0xFF);
+    writeRegister(_TCA8418_REG_GPI_EM_3, 0x01);
 
     //  set all pins to FALLING interrupts
     writeRegister(_TCA8418_REG_GPIO_INT_LVL_1, 0x00);
@@ -203,12 +201,15 @@ void TCA8418Keyboard::reset()
     //  add all pins to interrupts
     writeRegister(_TCA8418_REG_GPIO_INT_EN_1, 0xFF);
     writeRegister(_TCA8418_REG_GPIO_INT_EN_2, 0xFF);
-    writeRegister(_TCA8418_REG_GPIO_INT_EN_3, 0xFF);
+    writeRegister(_TCA8418_REG_GPIO_INT_EN_3, 0x01);
 
     // Set keyboard matrix size
     matrix(_TCA8418_ROWS, _TCA8418_COLS);
     enableDebounce();
     flush();
+    pinMode(_TCA8418_COL9, OUTPUT);
+    digitalWrite(_TCA8418_COL9, LOW);
+    backlight_on = false;
     state = Idle;
 }
 
@@ -278,7 +279,12 @@ char TCA8418Keyboard::dequeueEvent()
 
 void TCA8418Keyboard::trigger()
 {
+    uint32_t now = millis();
+    int32_t backlight = now - last_tap;
     if (keyCount() == 0) {
+        if (backlight_on && backlight > _TCA8418_BACKLIGHT_TIME) {
+            setBacklight(false);
+        }
         return;
     }
     if (state != Init) {
@@ -286,8 +292,10 @@ void TCA8418Keyboard::trigger()
         uint8_t k = readRegister(_TCA8418_REG_KEY_EVENT_A);
         uint8_t key = k & 0x7F;
         if (k & 0x80) {
-            if (state == Idle)
+            if (state == Idle) {
+                setBacklight(true);
                 pressed(key);
+            }
             return;
         } else {
             if (state == Held) {
@@ -523,6 +531,7 @@ void TCA8418Keyboard::setBacklight(bool on)
     } else {
         digitalWrite(_TCA8418_COL9, LOW);
     }
+    backlight_on = on;
 }
 
 uint8_t TCA8418Keyboard::readRegister(uint8_t reg) const

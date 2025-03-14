@@ -25,6 +25,7 @@ class TCA8418Keyboard
     uint32_t last_tap;
     uint8_t char_idx;
     int32_t tap_interval;
+    bool backlight_on;
 
     String queue;
 
