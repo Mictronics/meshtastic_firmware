@@ -109,7 +109,7 @@ enum {
 #define _TCA8418_NUM_KEYS 16
 
 #define _TCA8418_LONG_PRESS_THRESHOLD 2000
-#define _TCA8418_MULTI_TAP_THRESHOLD 2000
+#define _TCA8418_MULTI_TAP_THRESHOLD 750
 
 uint8_t TCA8418TapMod[16] = {1, 1, 1, 1, 13, 7, 9, 2,
                              7, 7, 7, 2, 7,  7, 9, 2}; // Num chars per key, Modulus for rotating through characters
@@ -324,9 +324,9 @@ void TCA8418Keyboard::pressed(uint8_t key)
     }
 
     // LOG_DEBUG("TCA8418: %u %u", key, next_key);
-    state = Press;
+    state = Held;
     uint32_t now = millis();
-    int32_t tap_interval = now - last_tap;
+    tap_interval = now - last_tap;
     if (tap_interval < 0) {
         // long running, millis has overflowed.
         last_tap = 0;
@@ -340,7 +340,6 @@ void TCA8418Keyboard::pressed(uint8_t key)
     }
     last_key = next_key;
     last_tap = now;
-    state = Held;
 }
 
 void TCA8418Keyboard::released()
@@ -356,10 +355,12 @@ void TCA8418Keyboard::released()
     }
     uint32_t now = millis();
     int32_t held_interval = now - last_tap;
+    last_tap = now;
+    if (tap_interval < _TCA8418_MULTI_TAP_THRESHOLD) {
+        queueEvent(_TCA8418_BSP);
+    }
     if (held_interval > _TCA8418_LONG_PRESS_THRESHOLD) {
-        // Set state to heldlong, send a longpress, and reset the timer...
         queueEvent(TCA8418LongPressMap[last_key]);
-        last_tap = now;
         // LOG_DEBUG("Long Press Key: %i Map: %i", last_key, TCA8418LongPressMap[last_key]);
     } else {
         queueEvent(TCA8418TapMap[last_key][(char_idx % TCA8418TapMod[last_key])]);

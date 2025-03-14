@@ -18,12 +18,13 @@ class TCA8418Keyboard
   public:
     typedef uint8_t (*i2c_com_fptr_t)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint8_t len);
 
-    enum KeyState { Init = 0, Idle, Press, Held, Release, Busy };
+    enum KeyState { Init = 0, Idle, Held, Busy };
 
     KeyState state;
     int8_t last_key;
     uint32_t last_tap;
     uint8_t char_idx;
+    int32_t tap_interval;
 
     String queue;
 
