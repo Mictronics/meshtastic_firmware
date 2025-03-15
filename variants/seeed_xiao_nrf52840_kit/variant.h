@@ -43,10 +43,6 @@ extern "C" {
  * Buttons
  */
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 1640fb105dad55a1d227d3978da1342fb8059ec5
 // Digital PINs
 #define D0 (0ul)
 #define D1 (1ul)
@@ -60,10 +56,6 @@ extern "C" {
 #define D9 (9ul)
 #define D10 (10ul)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 1640fb105dad55a1d227d3978da1342fb8059ec5
 #define BUTTON_PIN D0 // This is the Program Button
 // #define BUTTON_NEED_PULLUP   1
 #define BUTTON_ACTIVE_LOW true
@@ -88,10 +80,6 @@ static const uint8_t A4 = PIN_A4;
 static const uint8_t A5 = PIN_A5;
 #define ADC_RESOLUTION 12
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 1640fb105dad55a1d227d3978da1342fb8059ec5
 #define PIN_SERIAL2_RX (-1)
 #define PIN_SERIAL2_TX (-1)
 
@@ -104,10 +92,6 @@ static const uint8_t A5 = PIN_A5;
 #define PIN_SPI_MOSI (10)
 #define PIN_SPI_SCK (8)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 1640fb105dad55a1d227d3978da1342fb8059ec5
 static const uint8_t SS = D4;
 static const uint8_t MOSI = PIN_SPI_MOSI;
 static const uint8_t MISO = PIN_SPI_MISO;

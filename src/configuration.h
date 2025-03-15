@@ -115,6 +115,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TDECK_KB_ADDR 0x55
 #define BBQ10_KB_ADDR 0x1F
 #define MPR121_KB_ADDR 0x5A
+#define TCA8418_KB_ADDR 0x34
 
 // -----------------------------------------------------------------------------
 // SENSOR
