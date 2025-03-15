@@ -158,6 +158,8 @@ TCA8418Keyboard::TCA8418Keyboard() : m_wire(nullptr), m_addr(0), readCallback(nu
     last_tap = 0L;
     char_idx = 0;
     queue = "";
+    tap_interval = 0;
+    backlight_on = false;
 }
 
 void TCA8418Keyboard::begin(uint8_t addr, TwoWire *wire)
