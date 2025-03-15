@@ -1,8 +1,8 @@
 #include "variant.h"
-#include "configuration.h"
 #include "nrf.h"
 #include "wiring_constants.h"
 #include "wiring_digital.h"
+#include "configuration.h"
 #include <map>
 #include <memory>
 #include <stddef.h>
@@ -58,6 +58,8 @@ const uint32_t g_ADigitalPinMap[] = {
     31, // D32 is P0.10 (VBAT)
 };
 
+
+
 /*
   Copyright (c) 2014-2015 Arduino LLC.  All right reserved.
   Copyright (c) 2016 Sandeep Mistry All right reserved.
@@ -78,6 +80,10 @@ const uint32_t g_ADigitalPinMap[] = {
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1640fb105dad55a1d227d3978da1342fb8059ec5
 void initVariant()
 {
     // LED1 & LED2
