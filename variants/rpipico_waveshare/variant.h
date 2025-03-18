@@ -18,6 +18,11 @@
 #define log_d(...) Serial2.printf(__VA_ARGS__)
 #endif
 
+// Enable external ATtiny10 watchdog
+#define HAS_EXT_WATCHDOG 1
+// External watchdog trigger output pin
+#define EXT_WATCHDOG_TRIGGER 22
+
 // At intrusion detection event send last known position on primary channel.
 #define INTRUSION_DETECTION_POSITION
 
