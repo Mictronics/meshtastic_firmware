@@ -55,15 +55,8 @@ extern "C" {
 
 #define LED_STATE_ON 1 // State when LED is litted
 
-/*
- * Buttons
- */
-
-#define PIN_BUTTON1 9 // Pin for button on E-ink button module or IO expansion
-#define BUTTON_NEED_PULLUP
-#define PIN_BUTTON2 12
-#define PIN_BUTTON3 24
-#define PIN_BUTTON4 25
+#define HAS_SCREEN 1
+#define USE_SH1106 1
 
 /*
  * Analog pins
@@ -121,22 +114,6 @@ static const uint8_t SS = 42;
 static const uint8_t MOSI = PIN_SPI_MOSI;
 static const uint8_t MISO = PIN_SPI_MISO;
 static const uint8_t SCK = PIN_SPI_SCK;
-
-/*
- * eink display pins
- */
-
-#define PIN_EINK_CS (0 + 26)
-#define PIN_EINK_BUSY (0 + 4)
-#define PIN_EINK_DC (0 + 17)
-#define PIN_EINK_RES (-1)
-#define PIN_EINK_SCLK (0 + 3)
-#define PIN_EINK_MOSI (0 + 30) // also called SDI
-
-// #define USE_EINK
-
-// RAKRGB
-#define HAS_NCP5623
 
 /*
  * Wire Interfaces
@@ -197,8 +174,6 @@ SO GPIO 39/TXEN MAY NOT BE DEFINED FOR SUCCESSFUL OPERATION OF THE SX1262 - TG
 
 */
 
-#define DETECTION_SENSOR_EN 4
-
 #define USE_SX1262
 #define SX126X_CS (42)
 #define SX126X_DIO1 (47)
@@ -207,7 +182,7 @@ SO GPIO 39/TXEN MAY NOT BE DEFINED FOR SUCCESSFUL OPERATION OF THE SX1262 - TG
 // #define SX126X_TXEN (39)
 // #define SX126X_RXEN (37)
 #define SX126X_POWER_EN (37)
-// DIO2 controlls an antenna switch and the TCXO voltage is controlled by DIO3
+// DIO2 controls an antenna switch and the TCXO voltage is controlled by DIO3
 #define SX126X_DIO2_AS_RF_SWITCH
 #define SX126X_DIO3_TCXO_VOLTAGE 1.8
 
@@ -217,28 +192,6 @@ SO GPIO 39/TXEN MAY NOT BE DEFINED FOR SUCCESSFUL OPERATION OF THE SX1262 - TG
 // enables 3.3V periphery like GPS or IO Module
 // Do not toggle this for GPS power savings
 #define PIN_3V3_EN (34)
-
-// RAK1910 GPS module
-// If using the wisblock GPS module and pluged into Port A on WisBlock base
-// IO1 is hooked to PPS (pin 12 on header) = gpio 17
-// IO2 is hooked to GPS RESET = gpio 34, but it can not be used to this because IO2 is ALSO used to control 3V3_S power (1 is on).
-// Therefore must be 1 to keep peripherals powered
-// Power is on the controllable 3V3_S rail
-// #define PIN_GPS_RESET (34)
-// #define PIN_GPS_EN PIN_3V3_EN
-#define PIN_GPS_PPS (17) // Pulse per second input from the GPS
-
-#define GPS_RX_PIN PIN_SERIAL1_RX
-#define GPS_TX_PIN PIN_SERIAL1_TX
-
-// Define pin to enable GPS toggle (set GPIO to LOW) via user button triple press
-
-// RAK12002 RTC Module
-#define RV3028_RTC (uint8_t)0b1010010
-
-// RAK18001 Buzzer in Slot C
-// #define PIN_BUZZER 21 // IO3 is PWM2
-// NEW: set this via protobuf instead!
 
 // Battery
 // The battery sense is hooked to pin A0 (5)
@@ -253,14 +206,22 @@ SO GPIO 39/TXEN MAY NOT BE DEFINED FOR SUCCESSFUL OPERATION OF THE SX1262 - TG
 
 #define HAS_RTC 1
 
-#define HAS_ETHERNET 1
-
-#define RAK_4631 1
-
-#define PIN_ETHERNET_RESET 21
-#define PIN_ETHERNET_SS PIN_EINK_CS
-#define ETH_SPI_PORT SPI1
-#define AQ_SET_PIN 10
+#define MESHTASTIC_EXCLUDE_WIFI 1
+#define MESHTASTIC_EXCLUDE_WEBSERVER 1
+#define MESHTASTIC_EXCLUDE_MQTT 1
+#define MESHTASTIC_EXCLUDE_AUDIO 1
+#define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1
+#define MESHTASTIC_EXCLUDE_PAXCOUNTER 1
+#define MESHTASTIC_EXCLUDE_RANGETEST 1
+#define MESHTASTIC_EXCLUDE_REMOTEHARDWARE 1
+#define MESHTASTIC_EXCLUDE_STOREFORWARD 1
+#define MESHTASTIC_EXCLUDE_ATAK 1
+#define MESHTASTIC_EXCLUDE_WAYPOINT 1
+#define MESHTASTIC_EXCLUDE_POWERSTRESS 1
+#define MESHTASTIC_EXCLUDE_GPS 1
+#define MESHTASTIC_EXCLUDE_NEIGHBORINFO 1
+#define MESHTASTIC_EXCLUDE_DETECTIONSENSOR 1
+#define MESHTASTIC_EXCLUDE_SERIAL 1
 
 #ifdef __cplusplus
 }
