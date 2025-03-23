@@ -14,6 +14,11 @@
 #define log_d(...) Serial2.printf(__VA_ARGS__)
 #endif
 
+// Enable external ATtiny10 watchdog
+#define HAS_EXT_WATCHDOG 1
+// External watchdog trigger output pin
+#define EXT_WATCHDOG_TRIGGER 22
+
 // Redefine I2C0 pins to avoid collision with UART1/Serial2.
 #define I2C_SDA 8
 #define I2C_SCL 9

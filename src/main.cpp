@@ -680,6 +680,12 @@ void setup()
     rp2040Setup();
 #endif
 
+#if HAS_EXT_WATCHDOG && defined(EXT_WATCHDOG_TRIGGER)
+    // Setup GPIO as external watchdog trigger output
+    pinMode(EXT_WATCHDOG_TRIGGER, OUTPUT);
+    digitalWrite(EXT_WATCHDOG_TRIGGER, LOW);
+#endif
+
     // We do this as early as possible because this loads preferences from flash
     // but we need to do this after main cpu init (esp32setup), because we need the random seed set
     nodeDB = new NodeDB;
@@ -846,6 +852,11 @@ void setup()
 #ifdef HAS_UDP_MULTICAST
     LOG_DEBUG("Start multicast thread");
     udpThread = new UdpMulticastThread();
+#ifdef ARCH_PORTDUINO
+    // FIXME: portduino does not ever call onNetworkConnected so call it here because I don't know what happen if I call
+    // onNetworkConnected there
+    udpThread->start();
+#endif
 #endif
     service = new MeshService();
     service->init();
@@ -1294,6 +1305,11 @@ void scannerToSensorsMap(const std::unique_ptr<ScanI2CTwoWire> &i2cScanner, Scan
 void loop()
 {
     runASAP = false;
+
+#if HAS_EXT_WATCHDOG && defined(EXT_WATCHDOG_TRIGGER)
+    // Reset external watchdog via pin change
+    digitalWrite(EXT_WATCHDOG_TRIGGER, !digitalRead(EXT_WATCHDOG_TRIGGER));
+#endif
 
 #ifdef ARCH_ESP32
     esp32Loop();
