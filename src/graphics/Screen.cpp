@@ -2078,7 +2078,6 @@ void Screen::setFrames(FrameFocus focus)
     uint8_t originalPosition = ui->getUiState()->currentFrame;
     FramesetInfo fsi; // Location of specific frames, for applying focus parameter
 
-    LOG_DEBUG("Show standard frames");
     showingNormalScreen = true;
 
 #ifdef USE_EINK
@@ -2091,10 +2090,8 @@ void Screen::setFrames(FrameFocus focus)
 #endif
 
     moduleFrames = MeshModule::GetMeshModulesWithUIFrames();
-    LOG_DEBUG("Show %d module frames", moduleFrames.size());
 #ifdef DEBUG_PORT
     int totalFrameCount = MAX_NUM_NODES + NUM_EXTRA_FRAMES + moduleFrames.size();
-    LOG_DEBUG("Total frame count: %d", totalFrameCount);
 #endif
 
     // We don't show the node info of our node (if we have it yet - we should)
@@ -2127,8 +2124,6 @@ void Screen::setFrames(FrameFocus focus)
 
         numframes++;
     }
-
-    LOG_DEBUG("Added modules.  numframes: %d", numframes);
 
     // If we have a critical fault, show it first
     fsi.positions.fault = numframes;
@@ -2173,7 +2168,6 @@ void Screen::setFrames(FrameFocus focus)
 #endif
 
     fsi.frameCount = numframes; // Total framecount is used to apply FOCUS_PRESERVE
-    LOG_DEBUG("Finished build frames. numframes: %d", numframes);
 
     ui->setFrames(normalFrames, numframes);
     ui->enableAllIndicators();
