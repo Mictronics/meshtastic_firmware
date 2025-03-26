@@ -12,6 +12,7 @@
 #define _TCA8418_ESC 0x1b
 #define _TCA8418_BSP 0x08
 #define _TCA8418_SELECT 0x0d
+#define _TCA8418_POWER 0xb8
 
 class TCA8418Keyboard
 {

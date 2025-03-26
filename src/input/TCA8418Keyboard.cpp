@@ -106,49 +106,53 @@ enum {
 // Nokia 5130 keyboard size
 #define _TCA8418_ROWS 5
 #define _TCA8418_COLS 5
-#define _TCA8418_NUM_KEYS 16
+#define _TCA8418_NUM_KEYS 17
 
 #define _TCA8418_LONG_PRESS_THRESHOLD 2000
 #define _TCA8418_MULTI_TAP_THRESHOLD 750
 #define _TCA8418_BACKLIGHT_TIME 3000
 
-uint8_t TCA8418TapMod[16] = {1, 1, 1, 1, 13, 7, 9, 2,
-                             7, 7, 7, 2, 7,  7, 9, 2}; // Num chars per key, Modulus for rotating through characters
+uint8_t TCA8418TapMod[_TCA8418_NUM_KEYS] = {
+    1, 1, 1, 1, 13, 7, 9, 2, 7, 7, 7, 2, 7, 7, 9, 2, 1}; // Num chars per key, Modulus for rotating through characters
 
-unsigned char TCA8418TapMap[16][13] = {{_TCA8418_BSP},                                                     // C
-                                       {_TCA8418_SELECT},                                                  // Navi
-                                       {_TCA8418_UP},                                                      // Up
-                                       {_TCA8418_DOWN},                                                    // Down
-                                       {'1', '.', ',', '?', '!', ':', ';', '-', '_', '\\', '/', '(', ')'}, // 1
-                                       {'4', 'g', 'h', 'i', 'G', 'H', 'I'},                                // 4
-                                       {'7', 'p', 'q', 'r', 's', 'P', 'Q', 'R', 'S'},                      // 7
-                                       {'*', '+'},                                                         // *
-                                       {'2', 'a', 'b', 'c', 'A', 'B', 'C'},                                // 2
-                                       {'5', 'j', 'k', 'l', 'J', 'K', 'L'},                                // 5
-                                       {'8', 't', 'u', 'v', 'T', 'U', 'V'},                                // 8
-                                       {'0', ' '},                                                         // 0
-                                       {'3', 'd', 'e', 'f', 'D', 'E', 'F'},                                // 3
-                                       {'6', 'm', 'n', 'o', 'M', 'N', 'O'},                                // 6
-                                       {'9', 'w', 'x', 'y', 'z', 'W', 'X', 'Y', 'Z'},                      // 9
-                                       {'#', '@'}};                                                        // #
+unsigned char TCA8418TapMap[_TCA8418_NUM_KEYS][13] = {
+    {_TCA8418_BSP},                                                     // C
+    {_TCA8418_SELECT},                                                  // Navi
+    {_TCA8418_UP},                                                      // Up
+    {_TCA8418_DOWN},                                                    // Down
+    {'1', '.', ',', '?', '!', ':', ';', '-', '_', '\\', '/', '(', ')'}, // 1
+    {'4', 'g', 'h', 'i', 'G', 'H', 'I'},                                // 4
+    {'7', 'p', 'q', 'r', 's', 'P', 'Q', 'R', 'S'},                      // 7
+    {'*', '+'},                                                         // *
+    {'2', 'a', 'b', 'c', 'A', 'B', 'C'},                                // 2
+    {'5', 'j', 'k', 'l', 'J', 'K', 'L'},                                // 5
+    {'8', 't', 'u', 'v', 'T', 'U', 'V'},                                // 8
+    {'0', ' '},                                                         // 0
+    {'3', 'd', 'e', 'f', 'D', 'E', 'F'},                                // 3
+    {'6', 'm', 'n', 'o', 'M', 'N', 'O'},                                // 6
+    {'9', 'w', 'x', 'y', 'z', 'W', 'X', 'Y', 'Z'},                      // 9
+    {'#', '@'},                                                         // #
+    {_TCA8418_REBOOT},                                                  // Power
+};
 
-unsigned char TCA8418LongPressMap[16] = {
-    _TCA8418_ESC,    // C
-    _TCA8418_NONE,   // Navi
-    _TCA8418_NONE,   // Up
-    _TCA8418_NONE,   // Down
-    _TCA8418_NONE,   // 1
-    _TCA8418_LEFT,   // 4
-    _TCA8418_NONE,   // 7
-    _TCA8418_NONE,   // *
-    _TCA8418_UP,     // 2
-    _TCA8418_NONE,   // 5
-    _TCA8418_DOWN,   // 8
-    _TCA8418_NONE,   // 0
-    _TCA8418_NONE,   // 3
-    _TCA8418_RIGHT,  // 6
-    _TCA8418_NONE,   // 9
-    _TCA8418_REBOOT, // #
+unsigned char TCA8418LongPressMap[_TCA8418_NUM_KEYS] = {
+    _TCA8418_ESC,   // C
+    _TCA8418_NONE,  // Navi
+    _TCA8418_NONE,  // Up
+    _TCA8418_NONE,  // Down
+    _TCA8418_NONE,  // 1
+    _TCA8418_LEFT,  // 4
+    _TCA8418_NONE,  // 7
+    _TCA8418_NONE,  // *
+    _TCA8418_UP,    // 2
+    _TCA8418_NONE,  // 5
+    _TCA8418_DOWN,  // 8
+    _TCA8418_NONE,  // 0
+    _TCA8418_NONE,  // 3
+    _TCA8418_RIGHT, // 6
+    _TCA8418_NONE,  // 9
+    _TCA8418_NONE,  // #
+    _TCA8418_POWER, // Power
 };
 
 TCA8418Keyboard::TCA8418Keyboard() : m_wire(nullptr), m_addr(0), readCallback(nullptr), writeCallback(nullptr)
@@ -317,7 +321,9 @@ void TCA8418Keyboard::pressed(uint8_t key)
         return;
     }
     uint8_t next_key = 0;
-    if (key > 40) {          // 3, 6, 9, #
+    if (key == 110) {        // Power
+        next_key = 16;       // TCA8418_TapMap[16]
+    } else if (key > 40) {   // 3, 6, 9, #
         next_key = key - 30; // TCA8418_TapMap[12...15]
     } else if (key > 30) {   // 2, 5, 8, 0
         next_key = key - 24; // TCA8418_TapMap[8...11]
