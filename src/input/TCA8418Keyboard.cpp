@@ -350,12 +350,14 @@ void TCA8418Keyboard::pressed(uint8_t key)
         state = Busy;
         return;
     }
-    bsp = true; // Allow backspace on same key
     if (next_key != last_key || tap_interval > _TCA8418_MULTI_TAP_THRESHOLD) {
         char_idx = 0;
         bsp = false; // Dont backspace on new key
     } else {
         char_idx += 1;
+        if (next_key > 3) {
+            bsp = true; // Allow backspace on same key but not function keys
+        }
     }
     last_key = next_key;
     last_tap = now;
