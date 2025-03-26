@@ -164,6 +164,7 @@ TCA8418Keyboard::TCA8418Keyboard() : m_wire(nullptr), m_addr(0), readCallback(nu
     queue = "";
     tap_interval = 0;
     backlight_on = false;
+    bsp = false;
 }
 
 void TCA8418Keyboard::begin(uint8_t addr, TwoWire *wire)
@@ -349,8 +350,10 @@ void TCA8418Keyboard::pressed(uint8_t key)
         state = Busy;
         return;
     }
+    bsp = true; // Allow backspace on same key
     if (next_key != last_key || tap_interval > _TCA8418_MULTI_TAP_THRESHOLD) {
         char_idx = 0;
+        bsp = false; // Dont backspace on new key
     } else {
         char_idx += 1;
     }
@@ -372,7 +375,7 @@ void TCA8418Keyboard::released()
     uint32_t now = millis();
     int32_t held_interval = now - last_tap;
     last_tap = now;
-    if (tap_interval < _TCA8418_MULTI_TAP_THRESHOLD) {
+    if (tap_interval < _TCA8418_MULTI_TAP_THRESHOLD && bsp) {
         queueEvent(_TCA8418_BSP);
     }
     if (held_interval > _TCA8418_LONG_PRESS_THRESHOLD) {
