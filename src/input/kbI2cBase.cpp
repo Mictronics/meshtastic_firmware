@@ -183,6 +183,10 @@ int32_t KbI2cBase::runOnce()
                 e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_NONE;
                 e.kbchar = 0x00;
                 break;
+            case _TCA8418_POWER:
+                e.inputEvent = ANYKEY;
+                e.kbchar = INPUT_BROKER_MSG_SHUTDOWN;
+                break;
             case _TCA8418_REBOOT:
                 e.inputEvent = ANYKEY;
                 e.kbchar = INPUT_BROKER_MSG_REBOOT;
