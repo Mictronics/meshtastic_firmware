@@ -217,7 +217,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         rebootAtMsec = (s < 0) ? 0 : (millis() + s * 1000);
         break;
     }
-#if defined(HAS_CPU_SHUTDOWN) & HAS_CPU_SHUTDOWN == 1
+#if 0
     case meshtastic_AdminMessage_shutdown_seconds_tag: {
         int32_t s = r->shutdown_seconds;
         LOG_INFO("Shutdown in %d seconds", s);
@@ -361,6 +361,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         perhapsSetRTC(RTCQualityNTP, &tv, false);
         break;
     }
+    case meshtastic_AdminMessage_shutdown_seconds_tag:
     case meshtastic_AdminMessage_enter_dfu_mode_request_tag: {
         LOG_INFO("Client requesting to enter DFU mode");
 #if defined(ARCH_NRF52) || defined(ARCH_RP2040)
