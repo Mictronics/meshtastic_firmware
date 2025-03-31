@@ -39,9 +39,6 @@ extern "C" {
 // There will be no screen on the router
 #undef HAS_SCREEN
 #define MESHTASTIC_EXCLUDE_SCREEN 1
-// Disable shutdown functionality
-#undef HAS_CPU_SHUTDOWN
-#define HAS_CPU_SHUTDOWN 0
 
 #define MESHTASTIC_EXCLUDE_AUDIO 1
 #define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1
