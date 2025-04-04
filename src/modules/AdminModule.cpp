@@ -217,7 +217,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         rebootAtMsec = (s < 0) ? 0 : (millis() + s * 1000);
         break;
     }
-#if defined(HAS_CPU_SHUTDOWN) & HAS_CPU_SHUTDOWN == 1
+#if 0
     case meshtastic_AdminMessage_shutdown_seconds_tag: {
         int32_t s = r->shutdown_seconds;
         LOG_INFO("Shutdown in %d seconds", s);
@@ -267,7 +267,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         disableBluetooth();
         LOG_INFO("Commit transaction for edited settings");
         hasOpenEditTransaction = false;
-        saveChanges(SEGMENT_CONFIG | SEGMENT_MODULECONFIG | SEGMENT_DEVICESTATE | SEGMENT_CHANNELS);
+        saveChanges(SEGMENT_CONFIG | SEGMENT_MODULECONFIG | SEGMENT_DEVICESTATE | SEGMENT_CHANNELS | SEGMENT_NODEDATABASE);
         break;
     }
     case meshtastic_AdminMessage_get_device_connection_status_request_tag: {
@@ -336,7 +336,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         node->position = TypeConversions::ConvertToPositionLite(r->set_fixed_position);
         nodeDB->setLocalPosition(r->set_fixed_position);
         config.position.fixed_position = true;
-        saveChanges(SEGMENT_DEVICESTATE | SEGMENT_NODEDATABASE | SEGMENT_CONFIG, false);
+        saveChanges(SEGMENT_NODEDATABASE | SEGMENT_CONFIG, false);
 #if !MESHTASTIC_EXCLUDE_GPS
         if (gps != nullptr)
             gps->enable();
@@ -349,7 +349,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         LOG_INFO("Client received remove_fixed_position command");
         nodeDB->clearLocalPosition();
         config.position.fixed_position = false;
-        saveChanges(SEGMENT_DEVICESTATE | SEGMENT_NODEDATABASE | SEGMENT_CONFIG, false);
+        saveChanges(SEGMENT_NODEDATABASE | SEGMENT_CONFIG, false);
         break;
     }
     case meshtastic_AdminMessage_set_time_only_tag: {
@@ -361,6 +361,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         perhapsSetRTC(RTCQualityNTP, &tv, false);
         break;
     }
+    case meshtastic_AdminMessage_shutdown_seconds_tag:
     case meshtastic_AdminMessage_enter_dfu_mode_request_tag: {
         LOG_INFO("Client requesting to enter DFU mode");
 #if defined(ARCH_NRF52) || defined(ARCH_RP2040)
@@ -576,7 +577,6 @@ void AdminModule::handleSetConfig(const meshtastic_Config &c)
         config.has_position = true;
         config.position = c.payload_variant.position;
         // Save nodedb as well in case we got a fixed position packet
-        saveChanges(SEGMENT_DEVICESTATE, false);
         break;
     case meshtastic_Config_power_tag:
         LOG_INFO("Set config: Power");

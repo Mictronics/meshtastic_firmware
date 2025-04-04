@@ -1641,6 +1641,11 @@ void Screen::handleSetOn(bool on, FrameCallback einkScreensaver)
             setScreensaverFrames(einkScreensaver);
 #endif
             LOG_INFO("Turn off screen");
+#ifdef ELECROW_ThinkNode_M1
+            if (digitalRead(PIN_EINK_EN) == HIGH) {
+                digitalWrite(PIN_EINK_EN, LOW);
+            }
+#endif
             dispdev->displayOff();
 #ifdef USE_ST7789
             SPI1.end();
@@ -2078,7 +2083,6 @@ void Screen::setFrames(FrameFocus focus)
     uint8_t originalPosition = ui->getUiState()->currentFrame;
     FramesetInfo fsi; // Location of specific frames, for applying focus parameter
 
-    LOG_DEBUG("Show standard frames");
     showingNormalScreen = true;
 
 #ifdef USE_EINK
@@ -2091,10 +2095,8 @@ void Screen::setFrames(FrameFocus focus)
 #endif
 
     moduleFrames = MeshModule::GetMeshModulesWithUIFrames();
-    LOG_DEBUG("Show %d module frames", moduleFrames.size());
 #ifdef DEBUG_PORT
     int totalFrameCount = MAX_NUM_NODES + NUM_EXTRA_FRAMES + moduleFrames.size();
-    LOG_DEBUG("Total frame count: %d", totalFrameCount);
 #endif
 
     // We don't show the node info of our node (if we have it yet - we should)
@@ -2127,8 +2129,6 @@ void Screen::setFrames(FrameFocus focus)
 
         numframes++;
     }
-
-    LOG_DEBUG("Added modules.  numframes: %d", numframes);
 
     // If we have a critical fault, show it first
     fsi.positions.fault = numframes;
@@ -2173,7 +2173,6 @@ void Screen::setFrames(FrameFocus focus)
 #endif
 
     fsi.frameCount = numframes; // Total framecount is used to apply FOCUS_PRESERVE
-    LOG_DEBUG("Finished build frames. numframes: %d", numframes);
 
     ui->setFrames(normalFrames, numframes);
     ui->enableAllIndicators();
@@ -2664,13 +2663,18 @@ void DebugInfo::drawFrameSettings(OLEDDisplay *display, OLEDDisplayUiState *stat
     // minutes %= 60;
     // hours %= 24;
 
+    // Show uptime as days, hours, minutes OR seconds
+    std::string uptime = screen->drawTimeDelta(days, hours, minutes, seconds);
+
+    // Line 1 (Still)
+    display->drawString(x + SCREEN_WIDTH - display->getStringWidth(uptime.c_str()), y, uptime.c_str());
+    if (config.display.heading_bold)
+        display->drawString(x - 1 + SCREEN_WIDTH - display->getStringWidth(uptime.c_str()), y, uptime.c_str());
+
     display->setColor(WHITE);
 
     // Setup string to assemble analogClock string
     std::string analogClock = "";
-
-    // Show uptime as days, hours, minutes OR seconds
-    std::string uptime = screen->drawTimeDelta(days, hours, minutes, seconds);
 
     uint32_t rtc_sec = getValidTime(RTCQuality::RTCQualityDevice, true); // Display local timezone
     if (rtc_sec > 0) {
@@ -2704,9 +2708,6 @@ void DebugInfo::drawFrameSettings(OLEDDisplay *display, OLEDDisplayUiState *stat
         analogClock += timebuf;
     }
 
-    // Line 1
-    display->drawString(x + SCREEN_WIDTH - display->getStringWidth(uptime.c_str()), y, uptime.c_str());
-
     // Line 2
     display->drawString(x, y + FONT_HEIGHT_SMALL * 1, analogClock.c_str());
 
@@ -2728,7 +2729,7 @@ void DebugInfo::drawFrameSettings(OLEDDisplay *display, OLEDDisplayUiState *stat
         drawGPSpowerstat(display, x, y + FONT_HEIGHT_SMALL * 2, gpsStatus);
     }
 #endif
-    /* Display a heartbeat pixel that blinks every time the frame is redrawn */
+/* Display a heartbeat pixel that blinks every time the frame is redrawn */
 #ifdef SHOW_REDRAWS
     if (heartbeat)
         display->setPixel(0, 0);
