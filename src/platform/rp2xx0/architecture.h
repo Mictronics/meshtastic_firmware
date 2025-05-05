@@ -20,6 +20,9 @@
 #ifndef HAS_RADIO
 #define HAS_RADIO 1
 #endif
+#ifndef HAS_CPU_SHUTDOWN
+#define HAS_CPU_SHUTDOWN 1
+#endif
 
 #if defined(RPI_PICO)
 #define HW_VENDOR meshtastic_HardwareModel_RPI_PICO
