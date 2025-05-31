@@ -1001,7 +1001,11 @@ void NodeDB::installDefaultDeviceState()
     snprintf(owner.id, sizeof(owner.id), "!%08x", getNodeNum()); // Default node ID now based on nodenum
     memcpy(owner.macaddr, ourMacAddr, sizeof(owner.macaddr));
     owner.has_is_unmessagable = true;
+#ifdef USERPREFS_CONFIG_OWNER_UNMESSAGEABLE
+    owner.is_unmessagable = USERPREFS_CONFIG_OWNER_UNMESSAGEABLE;
+#else
     owner.is_unmessagable = false;
+#endif
 }
 
 // We reserve a few nodenums for future use
