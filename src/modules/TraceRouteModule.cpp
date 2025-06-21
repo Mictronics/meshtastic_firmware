@@ -110,20 +110,20 @@ void TraceRouteModule::printRoute(meshtastic_RouteDiscovery *r, uint32_t origin,
 {
 #ifdef DEBUG_PORT
     std::string route = "Route traced:\n";
-    route += vformat("#Start 0x%08x > ", origin);
+    route += vformat("#Start %08x > ", origin);
     for (uint8_t i = 0; i < r->route_count; i++) {
         if (i < r->snr_towards_count && r->snr_towards[i] != INT8_MIN)
-            route += vformat("0x%08x (%.2fdB) > ", r->route[i], (float)r->snr_towards[i] / 4);
+            route += vformat("%08x (%.2fdB) > ", r->route[i], (float)r->snr_towards[i] / 4);
         else
-            route += vformat("0x%08x (?dB) > ", r->route[i]);
+            route += vformat("%08x (?dB) > ", r->route[i]);
     }
     // If we are the destination, or it has already reached the destination, print it
     if (dest == nodeDB->getNodeNum() || !isTowardsDestination) {
         if (r->snr_towards_count > 0 && r->snr_towards[r->snr_towards_count - 1] != INT8_MIN)
-            route += vformat("0x%08x (%.2fdB) End", dest, (float)r->snr_towards[r->snr_towards_count - 1] / 4);
+            route += vformat("%08x (%.2fdB) End", dest, (float)r->snr_towards[r->snr_towards_count - 1] / 4);
 
         else
-            route += vformat("0x%08x (?dB) End", dest);
+            route += vformat("%08x (?dB) End", dest);
     } else
         route += "|";
 
@@ -131,17 +131,17 @@ void TraceRouteModule::printRoute(meshtastic_RouteDiscovery *r, uint32_t origin,
     if (r->route_back_count > 0 || origin == nodeDB->getNodeNum()) {
         route += "\n";
         if (r->snr_towards_count > 0 && origin == nodeDB->getNodeNum())
-            route += vformat("#Back 0x%08x (%.2fdB) < ", (float)r->snr_back[r->snr_back_count - 1] / 4, origin);
+            route += vformat("#Back %08x (%.2fdB) < ", (float)r->snr_back[r->snr_back_count - 1] / 4, origin);
         else
             route += "|";
 
         for (int8_t i = r->route_back_count - 1; i >= 0; i--) {
             if (i < r->snr_back_count && r->snr_back[i] != INT8_MIN)
-                route += vformat("0x%08x (%.2fdB) < ", (float)r->snr_back[i] / 4, r->route_back[i]);
+                route += vformat("%08x (%.2fdB) < ", (float)r->snr_back[i] / 4, r->route_back[i]);
             else
-                route += vformat("0x%08x (?dB) < ", r->route_back[i]);
+                route += vformat("%08x (?dB) < ", r->route_back[i]);
         }
-        route += vformat("0x%08x End", dest);
+        route += vformat("%08x End", dest);
     }
     LOG_INFO(route.c_str());
 #endif
