@@ -1598,7 +1598,7 @@ void NodeDB::addFromContact(meshtastic_SharedContact contact)
         // Mark the node's key as manually verified to indicate trustworthiness.
         updateGUIforNode = info;
         // powerFSM.trigger(EVENT_NODEDB_UPDATED); This event has been retired
-        sortMeshDB();
+        // sortMeshDB();
         notifyObservers(true); // Force an update whether or not our node counts have changed
     }
     saveNodeDatabaseToDisk();
@@ -1699,7 +1699,7 @@ void NodeDB::updateFrom(const meshtastic_MeshPacket &mp)
             info->has_hops_away = true;
             info->hops_away = mp.hop_start - mp.hop_limit;
         }
-        sortMeshDB();
+        // sortMeshDB();
     }
 }
 
