@@ -118,8 +118,8 @@ uint8_t TCA8418TapMod[_TCA8418_NUM_KEYS] = {
 unsigned char TCA8418TapMap[_TCA8418_NUM_KEYS][13] = {
     {_TCA8418_BSP},                                                     // C
     {_TCA8418_SELECT},                                                  // Navi
-    {_TCA8418_UP},                                                      // Up
-    {_TCA8418_DOWN},                                                    // Down
+    {_TCA8418_LEFT},                                                    // Up
+    {_TCA8418_RIGHT},                                                   // Down
     {'1', '.', ',', '?', '!', ':', ';', '-', '_', '\\', '/', '(', ')'}, // 1
     {'4', 'g', 'h', 'i', 'G', 'H', 'I'},                                // 4
     {'7', 'p', 'q', 'r', 's', 'P', 'Q', 'R', 'S'},                      // 7
