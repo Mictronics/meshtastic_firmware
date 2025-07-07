@@ -23,5 +23,5 @@ rm -rf debian/changelog
 dch --create --distribution "$SERIES" --package "$package" --newversion "$PKG_VERSION~$SERIES" \
 	"GitHub Actions Automatic packaging for $PKG_VERSION~$SERIES"
 
-# Build the source deb
-debuild -S -nc --no-sign
+# Build the binary deb
+debuild -b -nc --no-sign
