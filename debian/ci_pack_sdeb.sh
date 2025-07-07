@@ -16,6 +16,9 @@ curl -L "https://github.com/meshtastic/web/releases/download/v$web_ver/build.tar
 
 package=$(dpkg-parsechangelog --show-field Source)
 
+SERIES="unstable"
+PKG_VERSION=$(./bin/buildinfo.py deb)
+
 rm -rf debian/changelog
 dch --create --distribution "$SERIES" --package "$package" --newversion "$PKG_VERSION~$SERIES" \
 	"GitHub Actions Automatic packaging for $PKG_VERSION~$SERIES"
