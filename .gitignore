@@ -41,3 +41,6 @@ src/mesh/raspihttp/private_key.pem
 # Don't leak user specific settings on github
 userPrefs.h
 userPrefs.jsonc
+
+# Ignore logo (set at build time with platformio-custom.py)
+data/boot/logo.*
