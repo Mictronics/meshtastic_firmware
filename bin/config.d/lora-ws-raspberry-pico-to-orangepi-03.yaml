@@ -1,0 +1,27 @@
+# https://www.waveshare.com/pico-lora-sx1262-868m.htm
+# http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-3.html
+#
+# See Orange Pi Zero3 manual, chapter 3.16, page 124 for 26-pin header pinout
+# GPIO S/N to be used here 
+#
+# Pin Connection
+# Waveshare   Orange Pi Zero3
+#   36    3.3V        17
+#   15    MOSI        19
+#   16    MISO        21  
+#   14    CLK         23
+#   38    GND         25
+#   4     BUSY        18
+#   20    RESET       22
+#   5     CS          24
+#   26    DIO1/IRQ    26
+
+Lora:
+  Module: sx1262  # Waveshare Raspberry Pico to Orange Pi Zero3
+  DIO2_AS_RF_SWITCH: true
+  DIO3_TCXO_VOLTAGE: true
+  spidev: spidev1.1 # See Orange Pi Zero3 manual, chapter 3.18.3, page 130
+  CS: 233
+  IRQ: 74
+  Busy: 78
+  Reset: 71
