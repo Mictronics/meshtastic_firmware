@@ -20,8 +20,33 @@ Lora:
   Module: sx1262  # Waveshare Raspberry Pico to Orange Pi Zero3
   DIO2_AS_RF_SWITCH: true
   DIO3_TCXO_VOLTAGE: true
+  # Specify either the spidev1_1 or the CS below, not both!
   spidev: spidev1.1 # See Orange Pi Zero3 manual, chapter 3.18.3, page 130
-  CS: 233
-  IRQ: 74
-  Busy: 78
-  Reset: 71
+#  CS:             # CS     PIN_24 -> chip 1, line 233
+#    pin: 24
+#    gpiochip: 1
+#    line: 233
+  SCK:            # SCK     PIN_23 -> chip 1, line 230
+    pin: 23
+    gpiochip: 1
+    line: 230
+  Busy:           # BUSY    PIN_18 -> chip 1, line 78
+    pin: 18
+    gpiochip: 1
+    line: 78
+  MOSI:           # MOSI    PIN_19 -> chip 1, line 231
+    pin: 19
+    gpiochip: 1
+    line: 231
+  MISO:           # MISO    PIN_21 -> chip 1, line 232
+    pin: 21
+    gpiochip: 1
+    line: 232
+  Reset:          # NRST    PIN_22 -> chip 1, line 71
+    pin: 22
+    gpiochip: 1
+    line: 71
+  IRQ:            # DIO1    PIN_26 -> chip 1, line 74
+    pin: 26
+    gpiochip: 1
+    line: 74
