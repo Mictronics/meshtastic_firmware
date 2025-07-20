@@ -4,6 +4,9 @@ export PLATFORMIO_LIBDEPS_DIR=pio/libdeps
 export PLATFORMIO_PACKAGES_DIR=pio/packages
 export PLATFORMIO_CORE_DIR=pio/core
 
+# Cleanup from previous package build
+dh_clean
+
 # Download libraries to `pio`
 ~/.local/bin/platformio pkg install -e native-tft
 ~/.local/bin/platformio pkg install -e native-tft -t platformio/tool-scons@4.40502.0
