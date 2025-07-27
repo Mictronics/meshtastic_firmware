@@ -3,10 +3,26 @@
 #include "detect/ScanI2C.h"
 #include "detect/ScanI2CTwoWire.h"
 
+#if defined(T_DECK_PRO)
+#include "TDeckProKeyboard.h"
+#elif defined(T_LORA_PAGER)
+#include "TLoraPagerKeyboard.h"
+#else
+#include "TCA8418Keyboard.h"
+#endif
+
 extern ScanI2C::DeviceAddress cardkb_found;
 extern uint8_t kb_model;
 
-KbI2cBase::KbI2cBase(const char *name) : concurrency::OSThread(name)
+KbI2cBase::KbI2cBase(const char *name)
+    : concurrency::OSThread(name),
+#if defined(T_DECK_PRO)
+      TCAKeyboard(*(new TDeckProKeyboard()))
+#elif defined(T_LORA_PAGER)
+      TCAKeyboard(*(new TLoraPagerKeyboard()))
+#else
+      TCAKeyboard(*(new TCA8418Keyboard()))
+#endif
 {
     this->_originName = name;
 }
@@ -169,74 +185,6 @@ int32_t KbI2cBase::runOnce()
         }
         break;
     }
-
-    case 0x84: { // Adafruit TCA8418
-        TCAKeyboard.trigger();
-        InputEvent e;
-        while (TCAKeyboard.hasEvent()) {
-            char nextEvent = TCAKeyboard.dequeueEvent();
-            e.inputEvent = INPUT_BROKER_ANYKEY;
-            e.kbchar = 0x00;
-            e.source = this->_originName;
-            switch (nextEvent) {
-            case _TCA8418_NONE:
-                e.inputEvent = INPUT_BROKER_NONE;
-                e.kbchar = 0x00;
-                break;
-            case _TCA8418_POWER:
-                e.inputEvent = INPUT_BROKER_ANYKEY;
-                e.kbchar = INPUT_BROKER_SHUTDOWN;
-                break;
-            case _TCA8418_REBOOT:
-                e.inputEvent = INPUT_BROKER_ANYKEY;
-                e.kbchar = INPUT_BROKER_MSG_REBOOT;
-                break;
-            case _TCA8418_LEFT:
-                e.inputEvent = INPUT_BROKER_LEFT;
-                e.kbchar = 0x00;
-                break;
-            case _TCA8418_UP:
-                e.inputEvent = INPUT_BROKER_UP;
-                e.kbchar = 0x00;
-                break;
-            case _TCA8418_DOWN:
-                e.inputEvent = INPUT_BROKER_DOWN;
-                e.kbchar = 0x00;
-                break;
-            case _TCA8418_RIGHT:
-                e.inputEvent = INPUT_BROKER_RIGHT;
-                e.kbchar = 0x00;
-                break;
-            case _TCA8418_BSP:
-                e.inputEvent = INPUT_BROKER_BACK;
-                e.kbchar = 0x08;
-                break;
-            case _TCA8418_SELECT:
-                e.inputEvent = INPUT_BROKER_SELECT;
-                e.kbchar = 0x0d;
-                break;
-            case _TCA8418_ESC:
-                e.inputEvent = INPUT_BROKER_CANCEL;
-                e.kbchar = 0x1b;
-                break;
-            default:
-                if (nextEvent > 127) {
-                    e.inputEvent = INPUT_BROKER_NONE;
-                    e.kbchar = 0x00;
-                    break;
-                }
-                e.inputEvent = INPUT_BROKER_ANYKEY;
-                e.kbchar = nextEvent;
-                break;
-            }
-            if (e.inputEvent != INPUT_BROKER_NONE) {
-                // LOG_DEBUG("TCA8418 Notifying: %i Char: %c", e.inputEvent, e.kbchar);
-                this->notifyObservers(&e);
-            }
-        }
-        break;
-    }
-
     case 0x37: { // MPR121
         MPRkeyboard.trigger();
         InputEvent e;
@@ -297,6 +245,93 @@ int32_t KbI2cBase::runOnce()
                 LOG_DEBUG("MP121 Notifying: %i Char: %i", e.inputEvent, e.kbchar);
                 this->notifyObservers(&e);
             }
+        }
+        break;
+    }
+    case 0x84: { // Adafruit TCA8418
+        TCAKeyboard.trigger();
+        InputEvent e;
+        while (TCAKeyboard.hasEvent()) {
+            char nextEvent = TCAKeyboard.dequeueEvent();
+            e.inputEvent = INPUT_BROKER_ANYKEY;
+            e.kbchar = 0x00;
+            e.source = this->_originName;
+            switch (nextEvent) {
+            case TCA8418KeyboardBase::NONE:
+                e.inputEvent = INPUT_BROKER_NONE;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::REBOOT:
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = INPUT_BROKER_MSG_REBOOT;
+                break;
+            case TCA8418KeyboardBase::LEFT:
+                e.inputEvent = INPUT_BROKER_LEFT;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::UP:
+                e.inputEvent = INPUT_BROKER_UP;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::DOWN:
+                e.inputEvent = INPUT_BROKER_DOWN;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::RIGHT:
+                e.inputEvent = INPUT_BROKER_RIGHT;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::BSP:
+                e.inputEvent = INPUT_BROKER_BACK;
+                e.kbchar = 0x08;
+                break;
+            case TCA8418KeyboardBase::SELECT:
+                e.inputEvent = INPUT_BROKER_SELECT;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::ESC:
+                e.inputEvent = INPUT_BROKER_CANCEL;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::GPS_TOGGLE:
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = INPUT_BROKER_GPS_TOGGLE;
+                break;
+            case TCA8418KeyboardBase::SEND_PING:
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = INPUT_BROKER_SEND_PING;
+                break;
+            case TCA8418KeyboardBase::MUTE_TOGGLE:
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = INPUT_BROKER_MSG_MUTE_TOGGLE;
+                break;
+            case TCA8418KeyboardBase::BT_TOGGLE:
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = INPUT_BROKER_MSG_BLUETOOTH_TOGGLE;
+                break;
+            case TCA8418KeyboardBase::BL_TOGGLE:
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = INPUT_BROKER_MSG_BLUETOOTH_TOGGLE;
+                break;
+            case TCA8418KeyboardBase::TAB:
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = INPUT_BROKER_MSG_TAB;
+                break;
+            default:
+                if (nextEvent > 127) {
+                    e.inputEvent = INPUT_BROKER_NONE;
+                    e.kbchar = 0x00;
+                    break;
+                }
+                e.inputEvent = INPUT_BROKER_ANYKEY;
+                e.kbchar = nextEvent;
+                break;
+            }
+            if (e.inputEvent != INPUT_BROKER_NONE) {
+                LOG_DEBUG("TCA8418 Notifying: %i Char: %c", e.inputEvent, e.kbchar);
+                this->notifyObservers(&e);
+            }
+            TCAKeyboard.trigger();
         }
         break;
     }
@@ -483,5 +518,5 @@ int32_t KbI2cBase::runOnce()
     default:
         LOG_WARN("Unknown kb_model 0x%02x", kb_model);
     }
-    return 100;
+    return 300;
 }
