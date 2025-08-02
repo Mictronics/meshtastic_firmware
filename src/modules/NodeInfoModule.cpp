@@ -22,6 +22,8 @@ bool NodeInfoModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mes
     // Coerce user.id to be derived from the node number
     snprintf(p.id, sizeof(p.id), "!%08x", getFrom(&mp));
 
+    LOG_INFO("Role %08x = %d, HW = %d", getFrom(&mp), p.role, p.hw_model);
+
     bool hasChanged = nodeDB->updateUser(getFrom(&mp), p, mp.channel);
 
     bool wasBroadcast = isBroadcast(mp.to);
