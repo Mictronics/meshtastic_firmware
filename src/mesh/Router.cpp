@@ -653,9 +653,9 @@ void Router::handleReceived(meshtastic_MeshPacket *p, RxSource src)
 #endif
 #if defined(LIMIT_CORE_PORT_NUMBERS) // If we are limiting to core port numbers due to abuse of settings and meshsense apps
         if (shouldIgnoreNonstandardPorts && p->which_payload_variant == meshtastic_MeshPacket_decoded_tag &&
-            !IS_ONE_OF(p->decoded.portnum, meshtastic_PortNum_TEXT_MESSAGE_APP, meshtastic_PortNum_POSITION_APP,
-                       meshtastic_PortNum_NODEINFO_APP, meshtastic_PortNum_ROUTING_APP, meshtastic_PortNum_TELEMETRY_APP,
-                       meshtastic_PortNum_ADMIN_APP, meshtastic_PortNum_KEY_VERIFICATION_APP))
+            !IS_ONE_OF(p->decoded.portnum, meshtastic_PortNum_TEXT_MESSAGE_APP, meshtastic_PortNum_NODEINFO_APP,
+                       meshtastic_PortNum_ROUTING_APP, meshtastic_PortNum_TELEMETRY_APP, meshtastic_PortNum_ADMIN_APP,
+                       meshtastic_PortNum_KEY_VERIFICATION_APP))
 #else
         if (shouldIgnoreNonstandardPorts && p->which_payload_variant == meshtastic_MeshPacket_decoded_tag &&
             !IS_ONE_OF(p->decoded.portnum, meshtastic_PortNum_TEXT_MESSAGE_APP, meshtastic_PortNum_TEXT_MESSAGE_COMPRESSED_APP,
