@@ -7,6 +7,8 @@
 #include "TDeckProKeyboard.h"
 #elif defined(T_LORA_PAGER)
 #include "TLoraPagerKeyboard.h"
+#elif defined(NOKIA5130)
+#include "Nokia5130Keyboard.h"
 #else
 #include "TCA8418Keyboard.h"
 #endif
@@ -20,6 +22,8 @@ KbI2cBase::KbI2cBase(const char *name)
       TCAKeyboard(*(new TDeckProKeyboard()))
 #elif defined(T_LORA_PAGER)
       TCAKeyboard(*(new TLoraPagerKeyboard()))
+#elif defined(NOKIA5130)
+      TCAKeyboard(*(new Nokia5130Keyboard()))
 #else
       TCAKeyboard(*(new TCA8418Keyboard()))
 #endif
@@ -259,6 +263,10 @@ int32_t KbI2cBase::runOnce()
             switch (nextEvent) {
             case TCA8418KeyboardBase::NONE:
                 e.inputEvent = INPUT_BROKER_NONE;
+                e.kbchar = 0x00;
+                break;
+            case TCA8418KeyboardBase::POWER:
+                e.inputEvent = INPUT_BROKER_SHUTDOWN;
                 e.kbchar = 0x00;
                 break;
             case TCA8418KeyboardBase::REBOOT:
