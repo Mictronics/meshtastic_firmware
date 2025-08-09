@@ -17,8 +17,8 @@ uint8_t Nokia5130TapMod[NOKIA5130_NUM_KEYS] = {
 unsigned char Nokia5130TapMap[NOKIA5130_NUM_KEYS][13] = {
     {Key::BSP},                                                         // C
     {Key::SELECT},                                                      // Navi
-    {Key::UP},                                                          // Up
-    {Key::DOWN},                                                        // Down
+    {Key::LEFT},                                                        // Up
+    {Key::RIGHT},                                                       // Down
     {'1', '.', ',', '?', '!', ':', ';', '-', '_', '\\', '/', '(', ')'}, // 1
     {'4', 'g', 'h', 'i', 'G', 'H', 'I'},                                // 4
     {'7', 'p', 'q', 'r', 's', 'P', 'Q', 'R', 'S'},                      // 7
