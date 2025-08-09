@@ -60,6 +60,38 @@ Nokia5130Keyboard::Nokia5130Keyboard()
 {
 }
 
+void Nokia5130Keyboard::trigger()
+{
+    uint32_t now = millis();
+    int32_t backlight = now - last_tap;
+    if (keyCount() == 0) {
+        if (backlight_on && backlight > NOKIA5130_BACKLIGHT_TIME) {
+            setBacklight(false);
+        }
+        return;
+    }
+    if (state != Init) {
+        // Read the key register
+        uint8_t k = readRegister(TCA8418_REG_KEY_EVENT_A);
+        uint8_t key = k & 0x7F;
+        if (k & 0x80) {
+            if (state == Idle) {
+                setBacklight(true);
+                pressed(key);
+            }
+            return;
+        } else {
+            if (state == Held) {
+                released();
+            }
+            state = Idle;
+            return;
+        }
+    } else {
+        reset();
+    }
+}
+
 void Nokia5130Keyboard::reset()
 {
     TCA8418KeyboardBase::reset();

@@ -7,6 +7,7 @@ class Nokia5130Keyboard : public TCA8418KeyboardBase
 {
   public:
     Nokia5130Keyboard();
+    void trigger(void) override;
     void reset(void) override;
     void setBacklight(bool on) override;
 
