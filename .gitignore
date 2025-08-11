@@ -44,3 +44,7 @@ userPrefs.jsonc
 
 # Ignore logo (set at build time with platformio-custom.py)
 data/boot/logo.*
+
+# Ignore build script
+.builds
+build_all.sh
