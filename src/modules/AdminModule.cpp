@@ -508,7 +508,9 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
     if (mp.decoded.want_response && !myReply) {
         myReply = allocErrorResponse(meshtastic_Routing_Error_NONE, &mp);
     }
-
+    if (mp.pki_encrypted && myReply) {
+        myReply->pki_encrypted = true;
+    }
     return handled;
 }
 
@@ -720,6 +722,13 @@ void AdminModule::handleSetConfig(const meshtastic_Config &c)
             config.lora.sx126x_rx_boosted_gain == c.payload_variant.lora.sx126x_rx_boosted_gain) {
             requiresReboot = false;
         }
+
+#if defined(ARCH_PORTDUINO)
+        // If running on portduino and using SimRadio, do not require reboot
+        if (SimRadio::instance) {
+            requiresReboot = false;
+        }
+#endif
 
 #ifdef RF95_FAN_EN
         // Turn PA off if disabled by config
@@ -937,6 +946,9 @@ void AdminModule::handleGetOwner(const meshtastic_MeshPacket &req)
         res.which_payload_variant = meshtastic_AdminMessage_get_owner_response_tag;
         setPassKey(&res);
         myReply = allocDataProtobuf(res);
+        if (req.pki_encrypted) {
+            myReply->pki_encrypted = true;
+        }
     }
 }
 
@@ -1008,6 +1020,9 @@ void AdminModule::handleGetConfig(const meshtastic_MeshPacket &req, const uint32
         res.which_payload_variant = meshtastic_AdminMessage_get_config_response_tag;
         setPassKey(&res);
         myReply = allocDataProtobuf(res);
+        if (req.pki_encrypted) {
+            myReply->pki_encrypted = true;
+        }
     }
 }
 
@@ -1095,6 +1110,9 @@ void AdminModule::handleGetModuleConfig(const meshtastic_MeshPacket &req, const 
         res.which_payload_variant = meshtastic_AdminMessage_get_module_config_response_tag;
         setPassKey(&res);
         myReply = allocDataProtobuf(res);
+        if (req.pki_encrypted) {
+            myReply->pki_encrypted = true;
+        }
     }
 }
 
@@ -1119,6 +1137,9 @@ void AdminModule::handleGetNodeRemoteHardwarePins(const meshtastic_MeshPacket &r
     }
     setPassKey(&r);
     myReply = allocDataProtobuf(r);
+    if (req.pki_encrypted) {
+        myReply->pki_encrypted = true;
+    }
 }
 
 void AdminModule::handleGetDeviceMetadata(const meshtastic_MeshPacket &req)
@@ -1128,6 +1149,9 @@ void AdminModule::handleGetDeviceMetadata(const meshtastic_MeshPacket &req)
     r.which_payload_variant = meshtastic_AdminMessage_get_device_metadata_response_tag;
     setPassKey(&r);
     myReply = allocDataProtobuf(r);
+    if (req.pki_encrypted) {
+        myReply->pki_encrypted = true;
+    }
 }
 
 void AdminModule::handleGetDeviceConnectionStatus(const meshtastic_MeshPacket &req)
@@ -1196,6 +1220,9 @@ void AdminModule::handleGetDeviceConnectionStatus(const meshtastic_MeshPacket &r
     r.which_payload_variant = meshtastic_AdminMessage_get_device_connection_status_response_tag;
     setPassKey(&r);
     myReply = allocDataProtobuf(r);
+    if (req.pki_encrypted) {
+        myReply->pki_encrypted = true;
+    }
 }
 
 void AdminModule::handleGetChannel(const meshtastic_MeshPacket &req, uint32_t channelIndex)
@@ -1207,6 +1234,9 @@ void AdminModule::handleGetChannel(const meshtastic_MeshPacket &req, uint32_t ch
         r.which_payload_variant = meshtastic_AdminMessage_get_channel_response_tag;
         setPassKey(&r);
         myReply = allocDataProtobuf(r);
+        if (req.pki_encrypted) {
+            myReply->pki_encrypted = true;
+        }
     }
 }
 
@@ -1216,6 +1246,9 @@ void AdminModule::handleGetDeviceUIConfig(const meshtastic_MeshPacket &req)
     r.which_payload_variant = meshtastic_AdminMessage_get_ui_config_response_tag;
     r.get_ui_config_response = uiconfig;
     myReply = allocDataProtobuf(r);
+    if (req.pki_encrypted) {
+        myReply->pki_encrypted = true;
+    }
 }
 
 void AdminModule::reboot(int32_t seconds)
