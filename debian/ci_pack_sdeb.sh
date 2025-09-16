@@ -8,8 +8,8 @@ export PLATFORMIO_CORE_DIR=pio/core
 dh_clean
 
 # Download libraries to `pio`
-~/.local/bin/platformio pkg install -e native-tft
-~/.local/bin/platformio pkg install -e native-tft -t platformio/tool-scons@4.40502.0
+~/.local/bin/platformio pkg install -e native
+~/.local/bin/platformio pkg install -e native -t platformio/tool-scons@4.40502.0
 # Compress `pio` directory to prevent dh_clean from sanitizing it
 tar -cf pio.tar pio/
 rm -rf pio
