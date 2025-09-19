@@ -12,9 +12,6 @@
 #ifdef HAS_QMA6100P
 #include "QMA6100PSensor.h"
 #endif
-#ifdef HAS_STK8XXX
-#include "STK8XXXSensor.h"
-#endif
 
 extern ScanI2C::DeviceAddress accelerometer_found;
 
@@ -78,11 +75,6 @@ class AccelerometerThread : public concurrency::OSThread
         case ScanI2C::DeviceType::MPU6050:
             sensor = new MPU6050Sensor(device);
             break;
-#ifdef HAS_STK8XXX
-        case ScanI2C::DeviceType::STK8BAXX:
-            sensor = new STK8XXXSensor(device);
-            break;
-#endif
 #ifdef HAS_QMA6100P
         case ScanI2C::DeviceType::QMA6100P:
             sensor = new QMA6100PSensor(device);
