@@ -1,6 +1,5 @@
 #include "configuration.h"
 #if !MESHTASTIC_EXCLUDE_INPUTBROKER
-#include "buzz/BuzzerFeedbackThread.h"
 #include "input/ExpressLRSFiveWay.h"
 #include "input/InputBroker.h"
 #include "input/RotaryEncoderImpl.h"
@@ -117,7 +116,6 @@ void setupModules()
         if (config.display.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
             inputBroker = new InputBroker();
             systemCommandsModule = new SystemCommandsModule();
-            buzzerFeedbackThread = new BuzzerFeedbackThread();
         }
 #endif
 #if !MESHTASTIC_EXCLUDE_ADMIN

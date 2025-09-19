@@ -22,9 +22,6 @@
 #include "graphics/niche/Drivers/EInk/GDEY0154D67.h"
 #include "graphics/niche/Inputs/TwoButton.h"
 
-// Button feedback
-#include "buzz.h"
-
 void setupNicheGraphics()
 {
     using namespace NicheGraphics;

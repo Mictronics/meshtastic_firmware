@@ -42,7 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #if !MESHTASTIC_EXCLUDE_GPS
 #include "GPS.h"
-#include "buzz.h"
 #endif
 #include "FSCommon.h"
 #include "MeshService.h"

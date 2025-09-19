@@ -6,7 +6,6 @@
 #include "MeshRadio.h"
 #include "MeshService.h"
 #include "NodeDB.h"
-#include "buzz.h"
 #include "graphics/Screen.h"
 #include "graphics/SharedUIDisplay.h"
 #include "graphics/draw/UIRenderer.h"

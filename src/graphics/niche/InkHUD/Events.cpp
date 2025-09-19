@@ -3,7 +3,6 @@
 #include "./Events.h"
 
 #include "RTC.h"
-#include "buzz.h"
 #include "modules/ExternalNotificationModule.h"
 #include "modules/TextMessageModule.h"
 #include "sleep.h"

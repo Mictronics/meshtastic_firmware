@@ -18,7 +18,6 @@
 #include "NodeDB.h"
 #include "RTC.h"
 #include "Router.h"
-#include "buzz/buzz.h"
 #include "configuration.h"
 #include "main.h"
 #include "mesh/generated/meshtastic/rtttl.pb.h"

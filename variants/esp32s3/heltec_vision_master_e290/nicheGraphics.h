@@ -34,9 +34,6 @@ Different NicheGraphics UIs and different hardware variants will each have their
 #include "graphics/niche/Drivers/EInk/DEPG0290BNS800.h"
 #include "graphics/niche/Inputs/TwoButton.h"
 
-// Button feedback
-#include "buzz.h"
-
 void setupNicheGraphics()
 {
     using namespace NicheGraphics;

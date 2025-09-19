@@ -2,7 +2,6 @@
 #include "MeshService.h"
 #include "NodeDB.h"
 #include "PowerFSM.h"
-#include "buzz.h"
 #include "configuration.h"
 #include "graphics/Screen.h"
 TextMessageModule *textMessageModule;

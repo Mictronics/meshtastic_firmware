@@ -22,7 +22,6 @@
 #include "graphics/niche/Drivers/EInk/LCMEN2R13EFC1.h"
 #include "graphics/niche/Inputs/TwoButton.h"
 
-#include "buzz.h"       // Button feedback
 #include "einkDetect.h" // Detect display model at runtime
 
 void setupNicheGraphics()

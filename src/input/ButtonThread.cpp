@@ -7,7 +7,6 @@
 #endif
 #include "MeshService.h"
 #include "RadioLibInterface.h"
-#include "buzz.h"
 #include "input/InputBroker.h"
 #include "main.h"
 #include "modules/CannedMessageModule.h"
@@ -136,32 +135,11 @@ int32_t ButtonThread::runOnce()
         buttonPressStartTime = millis();
         leadUpPlayed = false;
         leadUpSequenceActive = false;
-        resetLeadUpSequence();
-    }
-
-    // Progressive lead-up sound system
-    if (buttonCurrentlyPressed && (millis() - buttonPressStartTime) >= BUTTON_LEADUP_MS) {
-
-        // Start the progressive sequence if not already active
-        if (!leadUpSequenceActive) {
-            leadUpSequenceActive = true;
-            lastLeadUpNoteTime = millis();
-            playNextLeadUpNote(); // Play the first note immediately
-        }
-        // Continue playing notes at intervals
-        else if ((millis() - lastLeadUpNoteTime) >= 400) { // 400ms interval between notes
-            if (playNextLeadUpNote()) {
-                lastLeadUpNoteTime = millis();
-            } else {
-                leadUpPlayed = true;
-            }
-        }
     }
 
     // Reset when button is released
     if (!buttonCurrentlyPressed && buttonWasPressed) {
         leadUpSequenceActive = false;
-        resetLeadUpSequence();
     }
 
     buttonWasPressed = buttonCurrentlyPressed;
@@ -198,9 +176,6 @@ int32_t ButtonThread::runOnce()
                 evt.inputEvent = _shortLong;
                 // evt.kbchar = _shortLong;
                 this->notifyObservers(&evt);
-                // Play the combination tune
-                playComboTune();
-
                 break;
             }
             if (_longPress != INPUT_BROKER_NONE) {
@@ -223,8 +198,6 @@ int32_t ButtonThread::runOnce()
             evt.inputEvent = _doublePress;
             // evt.kbchar = _doublePress;
             this->notifyObservers(&evt);
-            playComboTune();
-
             break;
         }
 
@@ -239,7 +212,6 @@ int32_t ButtonThread::runOnce()
                 evt.inputEvent = _triplePress;
                 // evt.kbchar = _triplePress;
                 this->notifyObservers(&evt);
-                playComboTune();
                 break;
 
             // No valid multipress action

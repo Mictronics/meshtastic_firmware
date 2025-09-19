@@ -14,7 +14,6 @@
 #include "NodeDB.h"
 #include "PowerFSM.h"
 #include "Throttle.h"
-#include "buzz/buzz.h"
 #include "configuration.h"
 #include "main.h"
 #include "meshUtils.h"
@@ -751,9 +750,6 @@ void Power::shutdown()
         screen->showSimpleBanner("Shutting Down...", 0); // stays on screen
 #endif
     }
-#endif
-#if !defined(ARCH_STM32WL)
-    playShutdownMelody();
 #endif
     nodeDB->saveToDisk();
 

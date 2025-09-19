@@ -6,7 +6,6 @@
 
 #include "MeshService.h"
 #include "RadioLibInterface.h"
-#include "buzz.h"
 #include "input/InputBroker.h"
 #include "main.h"
 #include "modules/CannedMessageModule.h"
