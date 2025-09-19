@@ -64,7 +64,6 @@ extern "C" {
 #define PIN_WIRE_SDA (0 + 26)      // P0.26
 #define PIN_WIRE_SCL (0 + 27)      // P0.27
 #define I2C_NO_RESCAN              // I2C is a bit finicky, don't scan too much
-#define HAS_QMA6100P               // very rare beast, only on this board.
 #define QMA_6100P_INT_PIN (32 + 2) // P1.02
 
 /*

@@ -178,7 +178,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SHT31_4x_ADDR 0x44
 #define SHT31_4x_ADDR_ALT 0x45
 #define PMSA0031_ADDR 0x12
-#define QMA6100P_ADDR 0x12
 #define AHT10_ADDR 0x38
 #define RCWL9620_ADDR 0x57
 #define VEML7700_ADDR 0x10
@@ -199,11 +198,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BQ27220_ADDR 0x55 // same address as TDECK_KB
 #define BQ25896_ADDR 0x6B
 #define LTR553ALS_ADDR 0x23
-
-// -----------------------------------------------------------------------------
-// ACCELEROMETER
-// -----------------------------------------------------------------------------
-#define BHI260AP_ADDR 0x28
 
 // -----------------------------------------------------------------------------
 // LED

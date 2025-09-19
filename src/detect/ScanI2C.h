@@ -38,7 +38,6 @@ class ScanI2C
         QMC5883L,
         HMC5883L,
         PMSA0031,
-        QMA6100P,
         BQ24295,
         TCA9535,
         TCA9555,
@@ -124,8 +123,6 @@ class ScanI2C
     FoundDevice firstRTC() const;
 
     FoundDevice firstKeyboard() const;
-
-    FoundDevice firstAccelerometer() const;
 
     FoundDevice firstAQI() const;
 

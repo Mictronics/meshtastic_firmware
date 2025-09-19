@@ -35,12 +35,6 @@ ScanI2C::FoundDevice ScanI2C::firstKeyboard() const
     return firstOfOrNONE(6, types);
 }
 
-ScanI2C::FoundDevice ScanI2C::firstAccelerometer() const
-{
-    ScanI2C::DeviceType types[] = {QMA6100P};
-    return firstOfOrNONE(9, types);
-}
-
 ScanI2C::FoundDevice ScanI2C::firstAQI() const
 {
     ScanI2C::DeviceType types[] = {PMSA0031, SCD4X};

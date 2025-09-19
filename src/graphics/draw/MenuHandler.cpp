@@ -642,11 +642,6 @@ void menuHandler::positionBaseMenu()
     static int optionsEnumArray[enumEnd] = {Back, GPSToggle, GPSFormat, CompassMenu};
     int options = 4;
 
-    if (accelerometerThread) {
-        optionsArray[options] = "Compass Calibrate";
-        optionsEnumArray[options++] = CompassCalibrate;
-    }
-
     BannerOverlayOptions bannerOptions;
     bannerOptions.message = "Position Action";
     bannerOptions.optionsArrayPtr = optionsArray;
@@ -667,8 +662,6 @@ void menuHandler::positionBaseMenu()
 #endif
             menuQueue = compass_point_north_menu;
             screen->runNow();
-        } else if (selected == CompassCalibrate) {
-            accelerometerThread->calibrate(30);
         }
     };
     screen->showOverlayBanner(bannerOptions);

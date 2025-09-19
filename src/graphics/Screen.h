@@ -331,7 +331,6 @@ class Screen : public concurrency::OSThread
         enqueueCmd(cmd);
     }
 
-    // Function to allow the AccelerometerThread to set the heading if a sensor provides it
     // Mutex needed?
     void setHeading(long _heading)
     {
