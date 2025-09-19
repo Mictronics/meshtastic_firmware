@@ -136,9 +136,6 @@ static const uint8_t SCK = PIN_SPI_SCK;
 // Sense version has IMU and PDM Mic
 // #define XIAO_SENSE
 #ifndef XIAO_SENSE
-// 6 DoF IMU
-#define PIN_LSM6DS3TR_C_POWER (15)
-#define PIN_LSM6DS3TR_C_INT1 (18)
 // PDM Interfaces
 // ---------------
 #define PIN_PDM_PWR (19)

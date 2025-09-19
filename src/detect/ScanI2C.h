@@ -41,7 +41,6 @@ class ScanI2C
         QMA6100P,
         MPU6050,
         BQ24295,
-        LSM6DS3,
         TCA9535,
         TCA9555,
         VEML7700,

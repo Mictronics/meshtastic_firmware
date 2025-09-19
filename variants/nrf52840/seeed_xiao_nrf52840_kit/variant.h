@@ -187,10 +187,6 @@ static const uint8_t SCK = PIN_SPI_SCK;
 // If D6 and D7 are free, I2C is probably the most versatile assignment
 #define PIN_WIRE_SDA D6
 #define PIN_WIRE_SCL D7
-#else
-// Internal LSM6DS3TR on XIAO nRF52840 Series
-#define PIN_WIRE_SDA (17)
-#define PIN_WIRE_SCL (16)
 #endif
 
 static const uint8_t SDA = PIN_WIRE_SDA;

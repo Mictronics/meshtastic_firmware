@@ -416,10 +416,7 @@ void ScanI2CTwoWire::scanPort(I2CPort port, uint8_t *address, uint8_t asize)
                     break;
                 }
                 registerValue = getRegisterValue(ScanI2CTwoWire::RegisterLocation(addr, 0x0F), 1); // get ID
-                if (registerValue == 0x6A) {
-                    type = LSM6DS3;
-                    logFoundDevice("LSM6DS3", (uint8_t)addr.address);
-                } else {
+                if (registerValue != 0x6A) {
                     type = QMI8658;
                     logFoundDevice("QMI8658", (uint8_t)addr.address);
                 }
@@ -446,7 +443,6 @@ void ScanI2CTwoWire::scanPort(I2CPort port, uint8_t *address, uint8_t asize)
 
                 break;
 
-                SCAN_SIMPLE_CASE(LSM6DS3_ADDR, LSM6DS3, "LSM6DS3", (uint8_t)addr.address);
                 SCAN_SIMPLE_CASE(TCA9555_ADDR, TCA9555, "TCA9555", (uint8_t)addr.address);
                 SCAN_SIMPLE_CASE(VEML7700_ADDR, VEML7700, "VEML7700", (uint8_t)addr.address);
             case TSL25911_ADDR:
