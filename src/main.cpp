@@ -26,8 +26,6 @@
 #include <Wire.h>
 #endif
 #include "detect/einkScan.h"
-#include "graphics/RAKled.h"
-#include "graphics/Screen.h"
 #include "main.h"
 #include "mesh/generated/meshtastic/config.pb.h"
 #include "meshUtils.h"
@@ -100,27 +98,6 @@ NRF52Bluetooth *nrf52Bluetooth = nullptr;
 #include <string>
 #endif
 
-#if HAS_BUTTON || defined(ARCH_PORTDUINO)
-#include "input/ButtonThread.h"
-
-#if defined(BUTTON_PIN_TOUCH)
-ButtonThread *TouchButtonThread = nullptr;
-#endif
-
-#if defined(BUTTON_PIN) || defined(ARCH_PORTDUINO)
-ButtonThread *UserButtonThread = nullptr;
-#endif
-
-#if defined(ALT_BUTTON_PIN)
-ButtonThread *BackButtonThread = nullptr;
-#endif
-
-#if defined(CANCEL_BUTTON_PIN)
-ButtonThread *CancelButtonThread = nullptr;
-#endif
-
-#endif
-
 #include "AmbientLightingThread.h"
 #include "PowerFSMThread.h"
 
@@ -159,9 +136,6 @@ SPIClass SPI1(HSPI);
 using namespace concurrency;
 
 volatile static const char slipstreamTZString[] = {USERPREFS_TZ_STRING};
-
-// We always create a screen object, but we only init it if we find the hardware
-graphics::Screen *screen = nullptr;
 
 // Global power status
 meshtastic::PowerStatus *powerStatus = new meshtastic::PowerStatus();
@@ -386,10 +360,6 @@ void setup()
     SPISettings spiSettings(4000000, MSBFIRST, SPI_MODE0);
 #endif
 
-    meshtastic_Config_DisplayConfig_OledType screen_model =
-        meshtastic_Config_DisplayConfig_OledType::meshtastic_Config_DisplayConfig_OledType_OLED_AUTO;
-    OLEDDISPLAY_GEOMETRY screen_geometry = GEOMETRY_128_64;
-
 #ifdef USE_SEGGER
     auto mode = false ? SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL : SEGGER_RTT_MODE_NO_BLOCK_TRIM;
 #ifdef NRF52840_XXAA
@@ -606,66 +576,6 @@ void setup()
     }
 #endif
 
-    auto screenInfo = i2cScanner->firstScreen();
-    screen_found = screenInfo.type != ScanI2C::DeviceType::NONE ? screenInfo.address : ScanI2C::ADDRESS_NONE;
-
-    if (screen_found.port != ScanI2C::I2CPort::NO_I2C) {
-        switch (screenInfo.type) {
-        case ScanI2C::DeviceType::SCREEN_SH1106:
-            screen_model = meshtastic_Config_DisplayConfig_OledType::meshtastic_Config_DisplayConfig_OledType_OLED_SH1106;
-            break;
-        case ScanI2C::DeviceType::SCREEN_SSD1306:
-            screen_model = meshtastic_Config_DisplayConfig_OledType::meshtastic_Config_DisplayConfig_OledType_OLED_SSD1306;
-            break;
-        case ScanI2C::DeviceType::SCREEN_ST7567:
-        case ScanI2C::DeviceType::SCREEN_UNKNOWN:
-        default:
-            screen_model = meshtastic_Config_DisplayConfig_OledType::meshtastic_Config_DisplayConfig_OledType_OLED_AUTO;
-        }
-    }
-
-#define UPDATE_FROM_SCANNER(FIND_FN)
-#if defined(USE_VIRTUAL_KEYBOARD)
-    kb_found = true;
-#endif
-    auto rtc_info = i2cScanner->firstRTC();
-    rtc_found = rtc_info.type != ScanI2C::DeviceType::NONE ? rtc_info.address : rtc_found;
-
-    auto kb_info = i2cScanner->firstKeyboard();
-
-    if (kb_info.type != ScanI2C::DeviceType::NONE) {
-        kb_found = true;
-        cardkb_found = kb_info.address;
-        switch (kb_info.type) {
-        case ScanI2C::DeviceType::RAK14004:
-            kb_model = 0x02;
-            break;
-        case ScanI2C::DeviceType::CARDKB:
-            kb_model = 0x00;
-            break;
-        case ScanI2C::DeviceType::TDECKKB:
-            // assign an arbitrary value to distinguish from other models
-            kb_model = 0x10;
-            break;
-        case ScanI2C::DeviceType::BBQ10KB:
-            // assign an arbitrary value to distinguish from other models
-            kb_model = 0x11;
-            break;
-        case ScanI2C::DeviceType::MPR121KB:
-            // assign an arbitrary value to distinguish from other models
-            kb_model = 0x37;
-            break;
-        case ScanI2C::DeviceType::TCA8418KB:
-            // assign an arbitrary value to distinguish from other models
-            kb_model = 0x84;
-            break;
-        default:
-            // use this as default since it's also just zero
-            LOG_WARN("kb_info.type is unknown(0x%02x), setting kb_model=0x00", kb_info.type);
-            kb_model = 0x00;
-        }
-    }
-
     pmu_found = i2cScanner->exists(ScanI2C::DeviceType::PMU_AXP192_AXP2101);
 
     auto aqiInfo = i2cScanner->firstAQI();
@@ -798,10 +708,6 @@ void setup()
                   meshtastic_Config_DeviceConfig_Role_TAK_TRACKER, meshtastic_Config_DeviceConfig_Role_SENSOR))
         LOG_DEBUG("Tracker/Sensor: Skip start melody");
 
-    // fixed screen override?
-    if (config.display.oled != meshtastic_Config_DisplayConfig_OledType_OLED_AUTO)
-        screen_model = config.display.oled;
-
 #if defined(USE_SH1107)
     screen_model = meshtastic_Config_DisplayConfig_OledType_OLED_SH1107; // set dimension of 128x128
     screen_geometry = GEOMETRY_128_128;
@@ -861,26 +767,6 @@ void setup()
     SPI.setFrequency(4000000);
 #endif
 #endif
-
-    // Initialize the screen first so we can show the logo while we start up everything else.
-#if HAS_SCREEN
-    if (config.display.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
-
-#if defined(ST7701_CS) || defined(ST7735_CS) || defined(USE_EINK) || defined(ILI9341_DRIVER) || defined(ILI9342_DRIVER) ||       \
-    defined(ST7789_CS) || defined(HX8357_CS) || defined(USE_ST7789) || defined(ILI9488_CS) || defined(ST7796_CS) ||              \
-    defined(USE_SPISSD1306)
-        screen = new graphics::Screen(screen_found, screen_model, screen_geometry);
-#elif defined(ARCH_PORTDUINO)
-        if ((screen_found.port != ScanI2C::I2CPort::NO_I2C || portduino_config.displayPanel) &&
-            config.display.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
-            screen = new graphics::Screen(screen_found, screen_model, screen_geometry);
-        }
-#else
-        if (screen_found.port != ScanI2C::I2CPort::NO_I2C)
-            screen = new graphics::Screen(screen_found, screen_model, screen_geometry);
-#endif
-    }
-#endif // HAS_SCREEN
 
     // setup TZ prior to time actions.
 #if !MESHTASTIC_EXCLUDE_TZ
@@ -979,157 +865,6 @@ void setup()
         nodeDB->hasWarned = true;
     }
 
-// buttons are now inputBroker, so have to come after setupModules
-#if HAS_BUTTON
-    int pullup_sense = 0;
-#ifdef INPUT_PULLUP_SENSE
-    // Some platforms (nrf52) have a SENSE variant which allows wake from sleep - override what OneButton did
-#ifdef BUTTON_SENSE_TYPE
-    pullup_sense = BUTTON_SENSE_TYPE;
-#else
-    pullup_sense = INPUT_PULLUP_SENSE;
-#endif
-#endif
-#if defined(ARCH_PORTDUINO)
-
-    if (portduino_config.userButtonPin.enabled) {
-
-        LOG_DEBUG("Use GPIO%02d for button", portduino_config.userButtonPin.pin);
-        UserButtonThread = new ButtonThread("UserButton");
-        if (screen) {
-            ButtonConfig config;
-            config.pinNumber = (uint8_t)portduino_config.userButtonPin.pin;
-            config.activeLow = true;
-            config.activePullup = true;
-            config.pullupSense = INPUT_PULLUP;
-            config.intRoutine = []() {
-                UserButtonThread->userButton.tick();
-                runASAP = true;
-                BaseType_t higherWake = 0;
-                mainDelay.interruptFromISR(&higherWake);
-            };
-            config.singlePress = INPUT_BROKER_USER_PRESS;
-            config.longPress = INPUT_BROKER_SELECT;
-            UserButtonThread->initButton(config);
-        }
-    }
-#endif
-
-#ifdef BUTTON_PIN_TOUCH
-    TouchButtonThread = new ButtonThread("BackButton");
-    ButtonConfig touchConfig;
-    touchConfig.pinNumber = BUTTON_PIN_TOUCH;
-    touchConfig.activeLow = true;
-    touchConfig.activePullup = true;
-    touchConfig.pullupSense = pullup_sense;
-    touchConfig.intRoutine = []() {
-        TouchButtonThread->userButton.tick();
-        runASAP = true;
-        BaseType_t higherWake = 0;
-        mainDelay.interruptFromISR(&higherWake);
-    };
-    touchConfig.singlePress = INPUT_BROKER_NONE;
-    touchConfig.longPress = INPUT_BROKER_BACK;
-    TouchButtonThread->initButton(touchConfig);
-#endif
-
-#if defined(CANCEL_BUTTON_PIN)
-    // Buttons. Moved here cause we need NodeDB to be initialized
-    CancelButtonThread = new ButtonThread("CancelButton");
-    ButtonConfig cancelConfig;
-    cancelConfig.pinNumber = CANCEL_BUTTON_PIN;
-    cancelConfig.activeLow = CANCEL_BUTTON_ACTIVE_LOW;
-    cancelConfig.activePullup = CANCEL_BUTTON_ACTIVE_PULLUP;
-    cancelConfig.pullupSense = pullup_sense;
-    cancelConfig.intRoutine = []() {
-        CancelButtonThread->userButton.tick();
-        runASAP = true;
-        BaseType_t higherWake = 0;
-        mainDelay.interruptFromISR(&higherWake);
-    };
-    cancelConfig.singlePress = INPUT_BROKER_CANCEL;
-    cancelConfig.longPress = INPUT_BROKER_SHUTDOWN;
-    cancelConfig.longPressTime = 4000;
-    CancelButtonThread->initButton(cancelConfig);
-#endif
-
-#if defined(ALT_BUTTON_PIN)
-    // Buttons. Moved here cause we need NodeDB to be initialized
-    BackButtonThread = new ButtonThread("BackButton");
-    ButtonConfig backConfig;
-    backConfig.pinNumber = ALT_BUTTON_PIN;
-    backConfig.activeLow = ALT_BUTTON_ACTIVE_LOW;
-    backConfig.activePullup = ALT_BUTTON_ACTIVE_PULLUP;
-    backConfig.pullupSense = pullup_sense;
-    backConfig.intRoutine = []() {
-        BackButtonThread->userButton.tick();
-        runASAP = true;
-        BaseType_t higherWake = 0;
-        mainDelay.interruptFromISR(&higherWake);
-    };
-    backConfig.singlePress = INPUT_BROKER_ALT_PRESS;
-    backConfig.longPress = INPUT_BROKER_ALT_LONG;
-    backConfig.longPressTime = 500;
-    BackButtonThread->initButton(backConfig);
-#endif
-
-#if defined(BUTTON_PIN)
-#if defined(USERPREFS_BUTTON_PIN)
-    int _pinNum = config.device.button_gpio ? config.device.button_gpio : USERPREFS_BUTTON_PIN;
-#else
-    int _pinNum = config.device.button_gpio ? config.device.button_gpio : BUTTON_PIN;
-#endif
-#ifndef BUTTON_ACTIVE_LOW
-#define BUTTON_ACTIVE_LOW true
-#endif
-#ifndef BUTTON_ACTIVE_PULLUP
-#define BUTTON_ACTIVE_PULLUP true
-#endif
-
-    // Buttons. Moved here cause we need NodeDB to be initialized
-    // If your variant.h has a BUTTON_PIN defined, go ahead and define BUTTON_ACTIVE_LOW and BUTTON_ACTIVE_PULLUP
-    UserButtonThread = new ButtonThread("UserButton");
-    if (screen) {
-        ButtonConfig userConfig;
-        userConfig.pinNumber = (uint8_t)_pinNum;
-        userConfig.activeLow = BUTTON_ACTIVE_LOW;
-        userConfig.activePullup = BUTTON_ACTIVE_PULLUP;
-        userConfig.pullupSense = pullup_sense;
-        userConfig.intRoutine = []() {
-            UserButtonThread->userButton.tick();
-            runASAP = true;
-            BaseType_t higherWake = 0;
-            mainDelay.interruptFromISR(&higherWake);
-        };
-        userConfig.singlePress = INPUT_BROKER_USER_PRESS;
-        userConfig.longPress = INPUT_BROKER_SELECT;
-        userConfig.longPressTime = 500;
-        userConfig.longLongPress = INPUT_BROKER_SHUTDOWN;
-        UserButtonThread->initButton(userConfig);
-    } else {
-        ButtonConfig userConfigNoScreen;
-        userConfigNoScreen.pinNumber = (uint8_t)_pinNum;
-        userConfigNoScreen.activeLow = BUTTON_ACTIVE_LOW;
-        userConfigNoScreen.activePullup = BUTTON_ACTIVE_PULLUP;
-        userConfigNoScreen.pullupSense = pullup_sense;
-        userConfigNoScreen.intRoutine = []() {
-            UserButtonThread->userButton.tick();
-            runASAP = true;
-            BaseType_t higherWake = 0;
-            mainDelay.interruptFromISR(&higherWake);
-        };
-        userConfigNoScreen.singlePress = INPUT_BROKER_USER_PRESS;
-        userConfigNoScreen.longPress = INPUT_BROKER_NONE;
-        userConfigNoScreen.longPressTime = 500;
-        userConfigNoScreen.longLongPress = INPUT_BROKER_SHUTDOWN;
-        userConfigNoScreen.doublePress = INPUT_BROKER_SEND_PING;
-        userConfigNoScreen.triplePress = INPUT_BROKER_GPS_TOGGLE;
-        UserButtonThread->initButton(userConfigNoScreen);
-    }
-#endif
-
-#endif
-
 #ifdef MESHTASTIC_INCLUDE_NICHE_GRAPHICS
     // After modules are setup, so we can observe modules
     setupNicheGraphics();
@@ -1145,25 +880,6 @@ void setup()
 #ifdef HAS_PMU
     if (!pmu_found)
         RECORD_CRITICALERROR(meshtastic_CriticalErrorCode_NO_AXP192); // Record a hardware fault for missing hardware
-#endif
-
-#if !MESHTASTIC_EXCLUDE_I2C
-// Don't call screen setup until after nodedb is setup (because we need
-// the current region name)
-#if defined(ST7701_CS) || defined(ST7735_CS) || defined(USE_EINK) || defined(ILI9341_DRIVER) || defined(ILI9342_DRIVER) ||       \
-    defined(ST7789_CS) || defined(HX8357_CS) || defined(USE_ST7789) || defined(ILI9488_CS) || defined(ST7796_CS) ||              \
-    defined(USE_SPISSD1306)
-    if (screen)
-        screen->setup();
-#elif defined(ARCH_PORTDUINO)
-    if ((screen_found.port != ScanI2C::I2CPort::NO_I2C || portduino_config.displayPanel) &&
-        config.display.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
-        screen->setup();
-    }
-#else
-    if (screen_found.port != ScanI2C::I2CPort::NO_I2C && screen)
-        screen->setup();
-#endif
 #endif
 
 #ifdef PIN_PWR_DELAY_MS
@@ -1411,9 +1127,6 @@ void setup()
 
         if (!rIf->reconfigure()) {
             LOG_WARN("Reconfigure failed, rebooting");
-            if (screen) {
-                screen->showSimpleBanner("Rebooting...");
-            }
             rebootAtMsec = millis() + 5000;
         }
     }
@@ -1603,13 +1316,6 @@ void loop()
 #endif
 
     service->loop();
-#if defined(LGFX_SDL)
-    if (screen) {
-        auto dispdev = screen->getDisplayDevice();
-        if (dispdev)
-            static_cast<TFTDisplay *>(dispdev)->sdlLoop();
-    }
-#endif
     long delayMsec = mainController.runOrDelay();
 
     // We want to sleep as long as possible here - because it saves power

@@ -24,14 +24,6 @@ class HealthTelemetryModule : private concurrency::OSThread, public ProtobufModu
         setIntervalFromNow(10 * 1000);
     }
 
-#if !HAS_SCREEN
-    void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
-#else
-    virtual void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) override;
-#endif
-
-    virtual bool wantUIFrame() override;
-
   protected:
     /** Called to handle a particular incoming message
     @return true if you've guaranteed you've handled this message and no other handlers should be considered for it

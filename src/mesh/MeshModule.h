@@ -4,11 +4,6 @@
 #include "mesh/MeshTypes.h"
 #include <vector>
 
-#if HAS_SCREEN
-#include <OLEDDisplay.h>
-#include <OLEDDisplayUi.h>
-#endif
-
 #define MESHMODULE_MIN_BROADCAST_DELAY_MS 30 * 1000 // Min. delay after boot before sending first broadcast by any module
 #define MESHMODULE_BROADCAST_SPACING_MS 15 * 1000   // Initial spacing between broadcasts of different modules
 
@@ -80,11 +75,7 @@ class MeshModule
     static AdminMessageHandleResult handleAdminMessageForAllModules(const meshtastic_MeshPacket &mp,
                                                                     meshtastic_AdminMessage *request,
                                                                     meshtastic_AdminMessage *response);
-#if HAS_SCREEN
-    virtual void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) { return; }
-    virtual bool isRequestingFocus();                          // Checked by screen, when regenerating frameset
-    virtual bool interceptingKeyboardInput() { return false; } // Can screen use keyboard for nav, or is module handling input?
-#endif
+
   protected:
     const char *name;
 
@@ -192,19 +183,6 @@ class MeshModule
     {
         return AdminMessageHandleResult::NOT_HANDLED;
     };
-
-#if HAS_SCREEN
-    /** Request that our module's screen frame be focused when Screen::setFrames runs
-     * Only considered if Screen::setFrames is triggered via a UIFrameEvent
-     *
-     * Having this as a separate call, instead of part of the UIFrameEvent, allows the module to delay decision
-     * until drawFrame() is called. This required less restructuring.
-     */
-    bool _requestingFocus = false;
-    void requestFocus() { _requestingFocus = true; }
-#else
-    void requestFocus(){}; // No-op
-#endif
 
   private:
     /**

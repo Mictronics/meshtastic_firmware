@@ -55,9 +55,6 @@ extern "C" {
 
 #define LED_STATE_ON 1 // State when LED is litted
 
-#define HAS_SCREEN 1
-#define USE_SH1106 1
-
 /*
  * Analog pins
  */

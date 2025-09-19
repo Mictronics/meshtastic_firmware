@@ -3,9 +3,6 @@
 #include "Default.h"
 #include "MeshService.h"
 #include "PaxcounterModule.h"
-#include "graphics/ScreenFonts.h"
-#include "graphics/SharedUIDisplay.h"
-#include "graphics/images.h"
 #include <assert.h>
 
 PaxcounterModule *paxcounterModule;
@@ -111,37 +108,5 @@ int32_t PaxcounterModule::runOnce()
         return disable();
     }
 }
-
-#if HAS_SCREEN
-
-#include "graphics/ScreenFonts.h"
-#include "graphics/SharedUIDisplay.h"
-
-void PaxcounterModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
-{
-    display->clear();
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
-    display->setFont(FONT_SMALL);
-    int line = 1;
-
-    // === Set Title
-    const char *titleStr = "Pax";
-
-    // === Header ===
-    graphics::drawCommonHeader(display, x, y, titleStr);
-
-    char buffer[50];
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
-    display->setFont(FONT_SMALL);
-
-    libpax_counter_count(&count_from_libpax);
-
-    display->setTextAlignment(TEXT_ALIGN_CENTER);
-    display->setFont(FONT_SMALL);
-    display->drawStringf(display->getWidth() / 2 + x, graphics::getTextPositions(display)[line++], buffer,
-                         "WiFi: %d\nBLE: %d\nUptime: %ds", count_from_libpax.wifi_count, count_from_libpax.ble_count,
-                         millis() / 1000);
-}
-#endif // HAS_SCREEN
 
 #endif

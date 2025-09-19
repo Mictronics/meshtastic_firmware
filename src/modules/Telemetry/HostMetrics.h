@@ -17,7 +17,6 @@ class HostMetricsModule : private concurrency::OSThread, public ProtobufModule<m
         nodeStatusObserver.observe(&nodeStatus->onNewStatus);
         setIntervalFromNow(setStartDelay()); // Wait until NodeInfo is sent
     }
-    virtual bool wantUIFrame() { return false; }
 
   protected:
     /** Called to handle a particular incoming message

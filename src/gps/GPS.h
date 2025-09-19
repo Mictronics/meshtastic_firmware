@@ -7,8 +7,6 @@
 #include "Observer.h"
 #include "TinyGPS++.h"
 #include "concurrency/OSThread.h"
-#include "input/RotaryEncoderInterruptImpl1.h"
-#include "input/UpDownInterruptImpl1.h"
 #include "modules/PositionModule.h"
 
 // Allow defining the polarity of the ENABLE output.  default is active high

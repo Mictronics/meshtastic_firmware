@@ -60,12 +60,6 @@ int32_t AirQualityTelemetryModule::runOnce()
 #endif
                 i2cScanner->scanPort(ScanI2C::I2CPort::WIRE, i2caddr_scan, i2caddr_asize);
                 auto found = i2cScanner->find(ScanI2C::DeviceType::PMSA0031);
-                if (found.type != ScanI2C::DeviceType::NONE) {
-                    nodeTelemetrySensorsMap[meshtastic_TelemetrySensorType_PMSA003I].first = found.address.address;
-                    nodeTelemetrySensorsMap[meshtastic_TelemetrySensorType_PMSA003I].second =
-                        i2cScanner->fetchI2CBus(found.address);
-                    return setStartDelay();
-                }
 #endif
                 return disable();
             }

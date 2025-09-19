@@ -1,21 +1,6 @@
 #include "Observer.h"
 #include "configuration.h"
 
-#ifdef HAS_NCP5623
-#include <graphics/RAKled.h>
-NCP5623 rgb;
-#endif
-
-#ifdef HAS_LP5562
-#include <graphics/NomadStarLED.h>
-LP5562 rgbw;
-#endif
-
-#ifdef HAS_NEOPIXEL
-#include <graphics/NeoPixel.h>
-Adafruit_NeoPixel pixels(NEOPIXEL_COUNT, NEOPIXEL_DATA, NEOPIXEL_TYPE);
-#endif
-
 #ifdef UNPHONE
 #include "unPhone.h"
 extern unPhone unphone;

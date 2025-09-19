@@ -11,10 +11,7 @@
 #include "RTC.h"
 #include "Router.h"
 #include "UnitConversions.h"
-#include "graphics/SharedUIDisplay.h"
-#include "graphics/images.h"
 #include "main.h"
-#include "modules/ExternalNotificationModule.h"
 #include "power.h"
 #include "sleep.h"
 #include "target_specific.h"
@@ -208,7 +205,6 @@ NullSensor tsl2561Sensor;
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
 #define DISPLAY_RECEIVEID_MEASUREMENTS_ON_SCREEN true
 
-#include "graphics/ScreenFonts.h"
 #include <Throttle.h>
 
 int32_t EnvironmentTelemetryModule::runOnce()
@@ -351,156 +347,6 @@ int32_t EnvironmentTelemetryModule::runOnce()
         }
     }
     return min(sendToPhoneIntervalMs, result);
-}
-
-bool EnvironmentTelemetryModule::wantUIFrame()
-{
-    return moduleConfig.telemetry.environment_screen_enabled;
-}
-
-void EnvironmentTelemetryModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
-{
-    // === Setup display ===
-    display->clear();
-    display->setFont(FONT_SMALL);
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
-    int line = 1;
-
-    // === Set Title
-    const char *titleStr = (graphics::isHighResolution) ? "Environment" : "Env.";
-
-    // === Header ===
-    graphics::drawCommonHeader(display, x, y, titleStr);
-
-    // === Row spacing setup ===
-    const int rowHeight = FONT_HEIGHT_SMALL - 4;
-    int currentY = graphics::getTextPositions(display)[line++];
-
-    // === Show "No Telemetry" if no data available ===
-    if (!lastMeasurementPacket) {
-        display->drawString(x, currentY, "No Telemetry");
-        return;
-    }
-
-    // Decode the telemetry message from the latest received packet
-    const meshtastic_Data &p = lastMeasurementPacket->decoded;
-    meshtastic_Telemetry telemetry;
-    if (!pb_decode_from_bytes(p.payload.bytes, p.payload.size, &meshtastic_Telemetry_msg, &telemetry)) {
-        display->drawString(x, currentY, "No Telemetry");
-        return;
-    }
-
-    const auto &m = telemetry.variant.environment_metrics;
-
-    // Check if any telemetry field has valid data
-    bool hasAny = m.has_temperature || m.has_relative_humidity || m.barometric_pressure != 0 || m.iaq != 0 || m.voltage != 0 ||
-                  m.current != 0 || m.lux != 0 || m.white_lux != 0 || m.weight != 0 || m.distance != 0 || m.radiation != 0;
-
-    if (!hasAny) {
-        display->drawString(x, currentY, "No Telemetry");
-        return;
-    }
-
-    // === First line: Show sender name + time since received (left), and first metric (right) ===
-    const char *sender = getSenderShortName(*lastMeasurementPacket);
-    uint32_t agoSecs = service->GetTimeSinceMeshPacket(lastMeasurementPacket);
-    String agoStr = (agoSecs > 864000) ? "?"
-                    : (agoSecs > 3600) ? String(agoSecs / 3600) + "h"
-                    : (agoSecs > 60)   ? String(agoSecs / 60) + "m"
-                                       : String(agoSecs) + "s";
-
-    String leftStr = String(sender) + " (" + agoStr + ")";
-    display->drawString(x, currentY, leftStr); // Left side: who and when
-
-    // === Collect sensor readings as label strings (no icons) ===
-    std::vector<String> entries;
-
-    if (m.has_temperature) {
-        String tempStr = moduleConfig.telemetry.environment_display_fahrenheit
-                             ? "Tmp: " + String(UnitConversions::CelsiusToFahrenheit(m.temperature), 1) + "°F"
-                             : "Tmp: " + String(m.temperature, 1) + "°C";
-        entries.push_back(tempStr);
-    }
-    if (m.has_relative_humidity)
-        entries.push_back("Hum: " + String(m.relative_humidity, 0) + "%");
-    if (m.barometric_pressure != 0)
-        entries.push_back("Prss: " + String(m.barometric_pressure, 0) + " hPa");
-    if (m.iaq != 0) {
-        String aqi = "IAQ: " + String(m.iaq);
-        const char *bannerMsg = nullptr; // Default: no banner
-
-        if (m.iaq <= 25)
-            aqi += " (Excellent)";
-        else if (m.iaq <= 50)
-            aqi += " (Good)";
-        else if (m.iaq <= 100)
-            aqi += " (Moderate)";
-        else if (m.iaq <= 150)
-            aqi += " (Poor)";
-        else if (m.iaq <= 200) {
-            aqi += " (Unhealthy)";
-            bannerMsg = "Unhealthy IAQ";
-        } else if (m.iaq <= 300) {
-            aqi += " (Very Unhealthy)";
-            bannerMsg = "Very Unhealthy IAQ";
-        } else {
-            aqi += " (Hazardous)";
-            bannerMsg = "Hazardous IAQ";
-        }
-
-        entries.push_back(aqi);
-
-        // === IAQ alert logic ===
-        static uint32_t lastAlertTime = 0;
-        uint32_t now = millis();
-
-        bool isOwnTelemetry = lastMeasurementPacket->from == nodeDB->getNodeNum();
-        bool isCooldownOver = (now - lastAlertTime > 60000);
-
-        if (isOwnTelemetry && bannerMsg && isCooldownOver) {
-            LOG_INFO("drawFrame: IAQ %d (own) — showing banner: %s", m.iaq, bannerMsg);
-            screen->showSimpleBanner(bannerMsg, 3000);
-
-            lastAlertTime = now;
-        }
-    }
-    if (m.voltage != 0 || m.current != 0)
-        entries.push_back(String(m.voltage, 1) + "V / " + String(m.current, 0) + "mA");
-    if (m.lux != 0)
-        entries.push_back("Light: " + String(m.lux, 0) + "lx");
-    if (m.white_lux != 0)
-        entries.push_back("White: " + String(m.white_lux, 0) + "lx");
-    if (m.weight != 0)
-        entries.push_back("Weight: " + String(m.weight, 0) + "kg");
-    if (m.distance != 0)
-        entries.push_back("Level: " + String(m.distance, 0) + "mm");
-    if (m.radiation != 0)
-        entries.push_back("Rad: " + String(m.radiation, 2) + " µR/h");
-
-    // === Show first available metric on top-right of first line ===
-    if (!entries.empty()) {
-        String valueStr = entries.front();
-        int rightX = SCREEN_WIDTH - display->getStringWidth(valueStr);
-        display->drawString(rightX, currentY, valueStr);
-        entries.erase(entries.begin()); // Remove from queue
-    }
-
-    // === Advance to next line for remaining telemetry entries ===
-    currentY += rowHeight;
-
-    // === Draw remaining entries in 2-column format (left and right) ===
-    for (size_t i = 0; i < entries.size(); i += 2) {
-        // Left column
-        display->drawString(x, currentY, entries[i]);
-
-        // Right column if it exists
-        if (i + 1 < entries.size()) {
-            int rightX = SCREEN_WIDTH / 2;
-            display->drawString(rightX, currentY, entries[i + 1]);
-        }
-
-        currentY += rowHeight;
-    }
 }
 
 bool EnvironmentTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_Telemetry *t)

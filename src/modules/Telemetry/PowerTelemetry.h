@@ -24,12 +24,6 @@ class PowerTelemetryModule : private concurrency::OSThread, public ProtobufModul
         nodeStatusObserver.observe(&nodeStatus->onNewStatus);
         setIntervalFromNow(10 * 1000);
     }
-    virtual bool wantUIFrame() override;
-#if !HAS_SCREEN
-    void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
-#else
-    virtual void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) override;
-#endif
 
   protected:
     /** Called to handle a particular incoming message

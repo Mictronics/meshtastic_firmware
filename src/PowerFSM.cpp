@@ -14,7 +14,6 @@
 #include "NodeDB.h"
 #include "PowerMon.h"
 #include "configuration.h"
-#include "graphics/Screen.h"
 #include "main.h"
 #include "sleep.h"
 #include "target_specific.h"
@@ -67,7 +66,6 @@ static void lowBattSDSEnter()
     LOG_DEBUG("State: Lower batt SDS");
     doDeepSleep(Default::getConfiguredOrDefaultMs(config.power.sds_secs), false, true);
 }
-extern Power *power;
 
 static void shutdownEnter()
 {
@@ -82,8 +80,6 @@ static uint32_t secsSlept;
 static void lsEnter()
 {
     LOG_INFO("lsEnter begin, ls_secs=%u", config.power.ls_secs);
-    if (screen)
-        screen->setOn(false);
     secsSlept = 0; // How long have we been sleeping this time
 
     // LOG_INFO("lsEnter end");
@@ -161,8 +157,6 @@ static void lsExit()
 static void nbEnter()
 {
     LOG_DEBUG("State: NB");
-    if (screen)
-        screen->setOn(false);
 #ifdef ARCH_ESP32
     // Only ESP32 should turn off bluetooth
     setBluetoothEnable(false);
@@ -174,17 +168,12 @@ static void nbEnter()
 static void darkEnter()
 {
     setBluetoothEnable(true);
-    if (screen)
-        screen->setOn(false);
 }
 
 static void serialEnter()
 {
     LOG_DEBUG("State: SERIAL");
     setBluetoothEnable(false);
-    if (screen) {
-//        screen->setOn(true);
-    }
 }
 
 static void serialExit()
@@ -201,8 +190,6 @@ static void powerEnter()
         LOG_INFO("Loss of power in Powered");
         powerFSM.trigger(EVENT_POWER_DISCONNECTED);
     } else {
-        if (screen)
-//            screen->setOn(true);
         setBluetoothEnable(true);
         // within enter() the function getState() returns the state we came from
     }
@@ -219,16 +206,12 @@ static void powerIdle()
 
 static void powerExit()
 {
-    if (screen)
-//        screen->setOn(true);
     setBluetoothEnable(true);
 }
 
 static void onEnter()
 {
     LOG_DEBUG("State: ON");
-    if (screen)
-        screen->setOn(true);
     setBluetoothEnable(true);
 }
 

@@ -21,7 +21,6 @@
 
 #if defined(ARCH_PORTDUINO)
 #include "api/WiFiServerAPI.h"
-#include "input/LinuxInputImpl.h"
 #endif
 
 // Working USB detection for powered/charging states on the RAK platform
@@ -720,15 +719,9 @@ void Power::reboot()
     rp2040.reboot();
 #elif defined(ARCH_PORTDUINO)
     deInitApiServer();
-    if (aLinuxInputImpl)
-        aLinuxInputImpl->deInit();
     SPI.end();
     Wire.end();
     Serial1.end();
-    if (screen) {
-        delete screen;
-        screen = nullptr;
-    }
     LOG_DEBUG("final reboot!");
     ::reboot();
 #elif defined(ARCH_STM32WL)
@@ -741,16 +734,6 @@ void Power::reboot()
 
 void Power::shutdown()
 {
-
-#if HAS_SCREEN
-    if (screen) {
-#ifdef T_DECK_PRO
-        screen->showSimpleBanner("Device is powered off.\nConnect USB to start!", 0); // T-Deck Pro has no power button
-#else
-        screen->showSimpleBanner("Shutting Down...", 0); // stays on screen
-#endif
-    }
-#endif
     nodeDB->saveToDisk();
 
 #if defined(ARCH_NRF52) || defined(ARCH_ESP32) || defined(ARCH_RP2040)
@@ -941,8 +924,6 @@ int32_t Power::runOnce()
 #ifndef T_WATCH_S3 // FIXME - why is this triggering on the T-Watch S3?
         if (PMU->isPekeyLongPressIrq()) {
             LOG_DEBUG("PEK long button press");
-            if (screen)
-                screen->setOn(false);
         }
 #endif
 

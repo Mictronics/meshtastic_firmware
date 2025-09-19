@@ -5,7 +5,6 @@
 #include "PowerFSM.h"
 #include "RTC.h"
 #include "SPILock.h"
-#include "input/InputBroker.h"
 #include "meshUtils.h"
 #include <FSCommon.h>
 #include <ctype.h> // for better whitespace handling
@@ -229,16 +228,12 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
 #if defined(ARCH_ESP32)
 #if !MESHTASTIC_EXCLUDE_BLUETOOTH
         if (!BleOta::getOtaAppVersion().isEmpty()) {
-            if (screen)
-                screen->startFirmwareUpdateScreen();
             BleOta::switchToOtaApp();
             LOG_INFO("Rebooting to BLE OTA");
         }
 #endif
 #if !MESHTASTIC_EXCLUDE_WIFI
         if (WiFiOTA::trySwitchToOTA()) {
-            if (screen)
-                screen->startFirmwareUpdateScreen();
             WiFiOTA::saveConfig(&config.network);
             LOG_INFO("Rebooting to WiFi OTA");
         }
@@ -330,8 +325,6 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         if (node != NULL) {
             node->is_favorite = true;
             saveChanges(SEGMENT_NODEDATABASE, false);
-            if (screen)
-                screen->setFrames(graphics::Screen::FOCUS_PRESERVE); // <-- Rebuild screens
         }
         break;
     }
@@ -341,8 +334,6 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         if (node != NULL) {
             node->is_favorite = false;
             saveChanges(SEGMENT_NODEDATABASE, false);
-            if (screen)
-                screen->setFrames(graphics::Screen::FOCUS_PRESERVE); // <-- Rebuild screens
         }
         break;
     }
@@ -456,11 +447,6 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
             LOG_ERROR("SD backup removal not implemented yet");
         }
 #endif
-        break;
-    }
-    case meshtastic_AdminMessage_send_input_event_tag: {
-        LOG_INFO("Client requesting to send input event");
-        handleSendInputEvent(r->send_input_event);
         break;
     }
 #ifdef ARCH_PORTDUINO
@@ -1239,8 +1225,6 @@ void AdminModule::handleGetDeviceUIConfig(const meshtastic_MeshPacket &req)
 void AdminModule::reboot(int32_t seconds)
 {
     LOG_INFO("Reboot in %d seconds", seconds);
-    if (screen)
-        screen->showSimpleBanner("Rebooting...", 0); // stays on screen
     rebootAtMsec = (seconds < 0) ? 0 : (millis() + seconds * 1000);
 }
 
@@ -1369,33 +1353,6 @@ bool AdminModule::messageIsRequest(const meshtastic_AdminMessage *r)
         return true;
     else
         return false;
-}
-
-void AdminModule::handleSendInputEvent(const meshtastic_AdminMessage_InputEvent &inputEvent)
-{
-    LOG_DEBUG("Processing input event: event_code=%u, kb_char=%u, touch_x=%u, touch_y=%u", inputEvent.event_code,
-              inputEvent.kb_char, inputEvent.touch_x, inputEvent.touch_y);
-
-    // Create InputEvent for injection
-    InputEvent event = {.inputEvent = (input_broker_event)inputEvent.event_code,
-                        .kbchar = (unsigned char)inputEvent.kb_char,
-                        .touchX = inputEvent.touch_x,
-                        .touchY = inputEvent.touch_y};
-
-    // Log the event being injected
-    LOG_INFO("Injecting input event from admin: source=%s, event=%u, char=%c(%u), touch=(%u,%u)", event.source, event.inputEvent,
-             (event.kbchar >= 32 && event.kbchar <= 126) ? event.kbchar : '?', event.kbchar, event.touchX, event.touchY);
-
-    // Wake the device if asleep
-    powerFSM.trigger(EVENT_INPUT);
-#if !defined(MESHTASTIC_EXCLUDE_INPUTBROKER)
-    // Inject the event through InputBroker
-    if (inputBroker) {
-        inputBroker->injectInputEvent(&event);
-    } else {
-        LOG_ERROR("InputBroker not available for event injection");
-    }
-#endif
 }
 
 void AdminModule::sendWarning(const char *message)

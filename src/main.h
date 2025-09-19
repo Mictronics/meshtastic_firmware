@@ -5,7 +5,6 @@
 #include "NodeStatus.h"
 #include "PowerStatus.h"
 #include "detect/ScanI2C.h"
-#include "graphics/Screen.h"
 #include "memGet.h"
 #include "mesh/generated/meshtastic/config.pb.h"
 #include "mesh/generated/meshtastic/telemetry.pb.h"
@@ -60,9 +59,6 @@ extern PCA9557 io;
 #include "mesh/udp/UdpMulticastHandler.h"
 extern UdpMulticastHandler *udpHandler;
 #endif
-
-// Global Screen singleton.
-extern graphics::Screen *screen;
 
 extern bool isVibrating;
 

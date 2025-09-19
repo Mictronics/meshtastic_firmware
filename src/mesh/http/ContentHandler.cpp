@@ -923,11 +923,6 @@ void handleBlinkLED(HTTPRequest *req, HTTPResponse *res)
             delay(50);
             count = count - 1;
         }
-    } else {
-#if HAS_SCREEN
-        if (screen)
-            screen->blink();
-#endif
     }
 
     JSONObject jsonObjOuter;

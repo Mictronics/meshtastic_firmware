@@ -10,7 +10,6 @@
 #include "PowerTelemetry.h"
 #include "RTC.h"
 #include "Router.h"
-#include "graphics/SharedUIDisplay.h"
 #include "main.h"
 #include "power.h"
 #include "sleep.h"
@@ -19,7 +18,6 @@
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
 #define DISPLAY_RECEIVEID_MEASUREMENTS_ON_SCREEN true
 
-#include "graphics/ScreenFonts.h"
 #include <Throttle.h>
 
 namespace graphics
@@ -101,69 +99,6 @@ int32_t PowerTelemetryModule::runOnce()
         }
     }
     return min(sendToPhoneIntervalMs, sendToMeshIntervalMs);
-}
-
-bool PowerTelemetryModule::wantUIFrame()
-{
-    return moduleConfig.telemetry.power_screen_enabled;
-}
-
-void PowerTelemetryModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
-{
-    display->clear();
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
-    display->setFont(FONT_SMALL);
-    int line = 1;
-
-    // === Set Title
-    const char *titleStr = (graphics::isHighResolution) ? "Power Telem." : "Power";
-
-    // === Header ===
-    graphics::drawCommonHeader(display, x, y, titleStr);
-
-    if (lastMeasurementPacket == nullptr) {
-        // In case of no valid packet, display "Power Telemetry", "No measurement"
-        display->drawString(x, graphics::getTextPositions(display)[line++], "No measurement");
-        return;
-    }
-
-    // Decode the last power packet
-    meshtastic_Telemetry lastMeasurement;
-    uint32_t agoSecs = service->GetTimeSinceMeshPacket(lastMeasurementPacket);
-    const char *lastSender = getSenderShortName(*lastMeasurementPacket);
-
-    const meshtastic_Data &p = lastMeasurementPacket->decoded;
-    if (!pb_decode_from_bytes(p.payload.bytes, p.payload.size, &meshtastic_Telemetry_msg, &lastMeasurement)) {
-        display->drawString(x, graphics::getTextPositions(display)[line++], "Measurement Error");
-        LOG_ERROR("Unable to decode last packet");
-        return;
-    }
-
-    // Display "Pow. From: ..."
-    char fromStr[64];
-    snprintf(fromStr, sizeof(fromStr), "Pow. From: %s (%us)", lastSender, agoSecs);
-    display->drawString(x, graphics::getTextPositions(display)[line++], fromStr);
-
-    // Display current and voltage based on ...power_metrics.has_[channel/voltage/current]... flags
-    const auto &m = lastMeasurement.variant.power_metrics;
-    int lineY = textSecondLine;
-
-    auto drawLine = [&](const char *label, float voltage, float current) {
-        char lineStr[64];
-        snprintf(lineStr, sizeof(lineStr), "%s: %.2fV %.0fmA", label, voltage, current);
-        display->drawString(x, lineY, lineStr);
-        lineY += _fontHeight(FONT_SMALL);
-    };
-
-    if (m.has_ch1_voltage || m.has_ch1_current) {
-        drawLine("Ch1", m.ch1_voltage, m.ch1_current);
-    }
-    if (m.has_ch2_voltage || m.has_ch2_current) {
-        drawLine("Ch2", m.ch2_voltage, m.ch2_current);
-    }
-    if (m.has_ch3_voltage || m.has_ch3_current) {
-        drawLine("Ch3", m.ch3_voltage, m.ch3_current);
-    }
 }
 
 bool PowerTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_Telemetry *t)

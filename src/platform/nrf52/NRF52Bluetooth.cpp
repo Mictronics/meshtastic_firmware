@@ -331,35 +331,6 @@ bool NRF52Bluetooth::onPairingPasskey(uint16_t conn_handle, uint8_t const passke
     meshtastic::BluetoothStatus newStatus(textkey);
     bluetoothStatus->updateStatus(&newStatus);
 
-#if !defined(MESHTASTIC_EXCLUDE_SCREEN) // Todo: migrate this display code back into Screen class, and observe bluetoothStatus
-    if (screen) {
-        screen->startAlert([](OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) -> void {
-            char btPIN[16] = "888888";
-            snprintf(btPIN, sizeof(btPIN), "%06u", configuredPasskey);
-            int x_offset = display->width() / 2;
-            int y_offset = display->height() <= 80 ? 0 : 12;
-            display->setTextAlignment(TEXT_ALIGN_CENTER);
-            display->setFont(FONT_MEDIUM);
-            display->drawString(x_offset + x, y_offset + y, "Bluetooth");
-
-            display->setFont(FONT_SMALL);
-            y_offset = display->height() == 64 ? y_offset + FONT_HEIGHT_MEDIUM - 4 : y_offset + FONT_HEIGHT_MEDIUM + 5;
-            display->drawString(x_offset + x, y_offset + y, "Enter this code");
-
-            display->setFont(FONT_LARGE);
-            String displayPin(btPIN);
-            String pin = displayPin.substring(0, 3) + " " + displayPin.substring(3, 6);
-            y_offset = display->height() == 64 ? y_offset + FONT_HEIGHT_SMALL - 5 : y_offset + FONT_HEIGHT_SMALL + 5;
-            display->drawString(x_offset + x, y_offset + y, pin);
-
-            display->setFont(FONT_SMALL);
-            String deviceName = "Name: ";
-            deviceName.concat(getDeviceName());
-            y_offset = display->height() == 64 ? y_offset + FONT_HEIGHT_LARGE - 6 : y_offset + FONT_HEIGHT_LARGE + 5;
-            display->drawString(x_offset + x, y_offset + y, deviceName);
-        });
-    }
-#endif
     if (match_request) {
         uint32_t start_time = millis();
         while (millis() < start_time + 30000) {
@@ -408,11 +379,6 @@ void NRF52Bluetooth::onPairingCompleted(uint16_t conn_handle, uint8_t auth_statu
         // Notify UI (or any other interested firmware components)
         meshtastic::BluetoothStatus newDisconnectedStatus(meshtastic::BluetoothStatus::ConnectionState::DISCONNECTED);
         bluetoothStatus->updateStatus(&newDisconnectedStatus);
-    }
-
-    // Todo: migrate this display code back into Screen class, and observe bluetoothStatus
-    if (screen) {
-        screen->endAlert();
     }
 }
 

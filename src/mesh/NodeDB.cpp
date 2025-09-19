@@ -682,22 +682,11 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #endif
 #elif ARCH_PORTDUINO
     bool hasScreen = false;
-    if (portduino_config.displayPanel)
-        hasScreen = true;
-    else
-        hasScreen = screen_found.port != ScanI2C::I2CPort::NO_I2C;
-#elif MESHTASTIC_INCLUDE_NICHE_GRAPHICS // See "src/graphics/niche"
-    bool hasScreen = true; // Use random pin for Bluetooth pairing
-#else
-    bool hasScreen = screen_found.port != ScanI2C::I2CPort::NO_I2C;
 #endif
 
 #ifdef USERPREFS_FIXED_BLUETOOTH
     config.bluetooth.fixed_pin = USERPREFS_FIXED_BLUETOOTH;
     config.bluetooth.mode = meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
-#else
-    config.bluetooth.mode = hasScreen ? meshtastic_Config_BluetoothConfig_PairingMode_RANDOM_PIN
-                                      : meshtastic_Config_BluetoothConfig_PairingMode_FIXED_PIN;
 #endif
     // for backward compat, default position flags are ALT+MSL
     config.position.position_flags =
@@ -840,15 +829,6 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.external_notification.alert_message = true;
     moduleConfig.external_notification.output_ms = 1000;
     moduleConfig.external_notification.nag_timeout = 60;
-#endif
-#ifdef T_LORA_PAGER
-    moduleConfig.canned_message.updown1_enabled = true;
-    moduleConfig.canned_message.inputbroker_pin_a = ROTARY_A;
-    moduleConfig.canned_message.inputbroker_pin_b = ROTARY_B;
-    moduleConfig.canned_message.inputbroker_pin_press = ROTARY_PRESS;
-    moduleConfig.canned_message.inputbroker_event_cw = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar(28);
-    moduleConfig.canned_message.inputbroker_event_ccw = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar(29);
-    moduleConfig.canned_message.inputbroker_event_press = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_SELECT;
 #endif
     moduleConfig.has_canned_message = true;
 #if USERPREFS_MQTT_ENABLED && !MESHTASTIC_EXCLUDE_MQTT
@@ -1321,13 +1301,6 @@ void NodeDB::loadFromDisk()
         }
     }
 
-#if HAS_SCREEN
-    state = loadProto(uiconfigFileName, meshtastic_DeviceUIConfig_size, sizeof(meshtastic_DeviceUIConfig),
-                      &meshtastic_DeviceUIConfig_msg, &uiconfig);
-    if (state == LoadFileResult::LOAD_SUCCESS) {
-        LOG_INFO("Loaded UIConfig");
-    }
-#endif
     // 2.4.X - configuration migration to update new default intervals
     if (moduleConfig.version < 23) {
         LOG_DEBUG("ModuleConfig version %d is stale, upgrading to new default intervals", moduleConfig.version);

@@ -67,14 +67,6 @@ class AudioModule : public SinglePortModule, public Observable<const UIFrameEven
 
     virtual meshtastic_MeshPacket *allocReply() override;
 
-    virtual bool wantUIFrame() override { return this->shouldDraw(); }
-    virtual Observable<const UIFrameEvent *> *getUIFrameObservable() override { return this; }
-#if !HAS_SCREEN
-    void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
-#else
-    virtual void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) override;
-#endif
-
     /** Called to handle a particular incoming message
      * @return ProcessMessage::STOP if you've guaranteed you've handled this message and no other handlers should be considered
      * for it

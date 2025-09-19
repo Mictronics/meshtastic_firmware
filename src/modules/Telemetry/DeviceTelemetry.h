@@ -20,7 +20,6 @@ class DeviceTelemetryModule : private concurrency::OSThread, public ProtobufModu
         nodeStatusObserver.observe(&nodeStatus->onNewStatus);
         setIntervalFromNow(setStartDelay()); // Wait until NodeInfo is sent
     }
-    virtual bool wantUIFrame() { return false; }
 
   protected:
     /** Called to handle a particular incoming message

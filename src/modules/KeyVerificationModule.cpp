@@ -2,7 +2,6 @@
 #include "KeyVerificationModule.h"
 #include "MeshService.h"
 #include "RTC.h"
-#include "graphics/draw/MenuHandler.h"
 #include "main.h"
 #include "meshUtils.h"
 #include "modules/AdminModule.h"
@@ -63,10 +62,6 @@ bool KeyVerificationModule::handleReceivedProtobuf(const meshtastic_MeshPacket &
     if (currentState == KEY_VERIFICATION_SENDER_HAS_INITIATED && r->nonce == currentNonce && r->hash2.size == 32 &&
         r->hash1.size == 0) {
         memcpy(hash2, r->hash2.bytes, 32);
-        IF_SCREEN(screen->showNumberPicker("Enter Security Number", 60000, 6, [](int number_picked) -> void {
-            keyVerificationModule->processSecurityNumber(number_picked);
-        });)
-
         meshtastic_ClientNotification *cn = clientNotificationPool.allocZeroed();
         cn->level = meshtastic_LogRecord_Level_WARNING;
         sprintf(cn->message, "Enter Security Number for Key Verification");
@@ -87,18 +82,6 @@ bool KeyVerificationModule::handleReceivedProtobuf(const meshtastic_MeshPacket &
             generateVerificationCode(message + 15);
             LOG_INFO("Hash1 matches!");
             static const char *optionsArray[] = {"Reject", "Accept"};
-            // Don't try to put the array definition in the macro. Does not work with curly braces.
-            IF_SCREEN(graphics::BannerOverlayOptions options; options.message = message; options.durationMs = 30000;
-                      options.optionsArrayPtr = optionsArray; options.optionsCount = 2;
-                      options.notificationType = graphics::notificationTypeEnum::selection_picker;
-                      options.bannerCallback =
-                          [=](int selected) {
-                              if (selected == 1) {
-                                  auto remoteNodePtr = nodeDB->getMeshNode(currentRemoteNode);
-                                  remoteNodePtr->bitfield |= NODEINFO_BITFIELD_IS_KEY_MANUALLY_VERIFIED_MASK;
-                              }
-                          };
-                      screen->showOverlayBanner(options);)
             meshtastic_ClientNotification *cn = clientNotificationPool.allocZeroed();
             cn->level = meshtastic_LogRecord_Level_WARNING;
             sprintf(cn->message, "Final confirmation for incoming manual key verification %s", message);
@@ -123,7 +106,6 @@ bool KeyVerificationModule::sendInitialRequest(NodeNum remoteNode)
     // generate nonce
     updateState();
     if (currentState != KEY_VERIFICATION_IDLE) {
-        IF_SCREEN(graphics::menuHandler::menuQueue = graphics::menuHandler::throttle_message;)
         return false;
     }
     currentNonce = random();
@@ -194,8 +176,6 @@ meshtastic_MeshPacket *KeyVerificationModule::allocReply()
     responsePacket = allocDataProtobuf(response);
 
     responsePacket->pki_encrypted = true;
-    IF_SCREEN(snprintf(message, 25, "Security Number \n%03u %03u", currentSecurityNumber / 1000, currentSecurityNumber % 1000);
-              screen->showSimpleBanner(message, 30000); LOG_WARN("%s", message);)
     meshtastic_ClientNotification *cn = clientNotificationPool.allocZeroed();
     cn->level = meshtastic_LogRecord_Level_WARNING;
     sprintf(cn->message, "Incoming Key Verification.\nSecurity Number\n%03u %03u", currentSecurityNumber / 1000,
@@ -259,7 +239,6 @@ void KeyVerificationModule::processSecurityNumber(uint32_t incomingNumber)
     p->priority = meshtastic_MeshPacket_Priority_HIGH;
     service->sendToMesh(p, RX_SRC_LOCAL, true);
     currentState = KEY_VERIFICATION_SENDER_AWAITING_USER;
-    IF_SCREEN(screen->requestMenu(graphics::menuHandler::key_verification_final_prompt);)
     meshtastic_ClientNotification *cn = clientNotificationPool.allocZeroed();
     cn->level = meshtastic_LogRecord_Level_WARNING;
     sprintf(cn->message, "Final confirmation for outgoing manual key verification %s", message);

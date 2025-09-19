@@ -1,7 +1,6 @@
 #include "configuration.h"
 #if !MESHTASTIC_EXCLUDE_WEBSERVER
 #include "NodeDB.h"
-#include "graphics/Screen.h"
 #include "main.h"
 #include "mesh/http/WebServer.h"
 #include "mesh/wifi/WiFiAPClient.h"
@@ -152,12 +151,6 @@ void createSSLCert()
 
                     yield();
                     esp_task_wdt_reset();
-#if HAS_SCREEN
-                    if (millis() / 1000 >= 3) {
-                        if (screen)
-                            screen->setSSLFrames();
-                    }
-#endif
                 }
                 runLoop = false;
             } else {

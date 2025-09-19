@@ -12,9 +12,7 @@ class WaypointModule : public SinglePortModule, public Observable<const UIFrameE
      * name is for debugging output
      */
     WaypointModule() : SinglePortModule("waypoint", meshtastic_PortNum_WAYPOINT_APP) {}
-#if HAS_SCREEN
-    bool shouldDraw();
-#endif
+
   protected:
     /** Called to handle a particular incoming message
 
@@ -23,10 +21,6 @@ class WaypointModule : public SinglePortModule, public Observable<const UIFrameE
     */
 
     virtual Observable<const UIFrameEvent *> *getUIFrameObservable() override { return this; }
-#if HAS_SCREEN
-    virtual bool wantUIFrame() override { return this->shouldDraw(); }
-    virtual void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) override;
-#endif
     virtual ProcessMessage handleReceived(const meshtastic_MeshPacket &mp) override;
 };
 

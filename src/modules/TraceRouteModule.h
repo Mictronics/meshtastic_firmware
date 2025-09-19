@@ -1,12 +1,6 @@
 #pragma once
 #include "ProtobufModule.h"
 #include "concurrency/OSThread.h"
-#include "graphics/Screen.h"
-#include "graphics/SharedUIDisplay.h"
-#include "input/InputBroker.h"
-#if HAS_SCREEN
-#include "OLEDDisplayUi.h"
-#endif
 
 #define ROUTE_SIZE sizeof(((meshtastic_RouteDiscovery *)0)->route) / sizeof(((meshtastic_RouteDiscovery *)0)->route[0])
 
@@ -25,15 +19,7 @@ class TraceRouteModule : public ProtobufModule<meshtastic_RouteDiscovery>,
     bool startTraceRoute(NodeNum node);
     void launch(NodeNum node);
     void handleTraceRouteResult(const String &result);
-    bool shouldDraw();
-#if HAS_SCREEN
-    virtual void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) override;
-#endif
-
     const char *getNodeName(NodeNum node);
-
-    virtual bool wantUIFrame() override { return shouldDraw(); }
-    virtual Observable<const UIFrameEvent *> *getUIFrameObservable() override { return this; }
 
   protected:
     bool handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_RouteDiscovery *r) override;

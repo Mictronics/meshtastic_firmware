@@ -39,8 +39,6 @@ AudioModule *audioModule;
 #define YIELD_FROM_ISR(x) portYIELD_FROM_ISR(x)
 #endif
 
-#include "graphics/ScreenFonts.h"
-
 void run_codec2(void *parameter)
 {
     // 4 bytes of header in each frame hex c0 de c2 plus the bitrate

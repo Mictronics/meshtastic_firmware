@@ -28,9 +28,6 @@ MLX90614Sensor mlx90614Sensor;
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
 #define DISPLAY_RECEIVEID_MEASUREMENTS_ON_SCREEN true
 
-#if (HAS_SCREEN)
-#include "graphics/ScreenFonts.h"
-#endif
 #include <Throttle.h>
 
 int32_t HealthTelemetryModule::runOnce()

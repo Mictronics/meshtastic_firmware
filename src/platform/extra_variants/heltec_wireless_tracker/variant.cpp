@@ -4,7 +4,6 @@
 
 #include "GPS.h"
 #include "GpioLogic.h"
-#include "graphics/TFTDisplay.h"
 
 // Heltec tracker specific init
 void lateInitVariant()

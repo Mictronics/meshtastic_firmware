@@ -1,13 +1,8 @@
 #include "TraceRouteModule.h"
 #include "MeshService.h"
-#include "graphics/Screen.h"
-#include "graphics/ScreenFonts.h"
-#include "graphics/SharedUIDisplay.h"
 #include "mesh/Router.h"
 #include "meshUtils.h"
 #include <vector>
-
-extern graphics::Screen *screen;
 
 TraceRouteModule *traceRouteModule;
 
@@ -331,11 +326,6 @@ bool TraceRouteModule::startTraceRoute(NodeNum node)
         resultText = "Invalid node";
         resultShowTime = millis();
         tracingNode = 0;
-
-        requestFocus();
-        UIFrameEvent e;
-        e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e);
         return false;
     }
 
@@ -345,11 +335,6 @@ bool TraceRouteModule::startTraceRoute(NodeNum node)
         resultText = "Cannot trace self";
         resultShowTime = millis();
         tracingNode = 0;
-
-        requestFocus();
-        UIFrameEvent e;
-        e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e);
         return false;
     }
 
@@ -369,11 +354,6 @@ bool TraceRouteModule::startTraceRoute(NodeNum node)
         unsigned long wait = (cooldownMs - (now - lastTraceRouteTime)) / 1000;
         bannerText = String("Wait for ") + String(wait) + String("s");
         runState = TRACEROUTE_STATE_COOLDOWN;
-
-        requestFocus();
-        UIFrameEvent e;
-        e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e);
         LOG_INFO("Cooldown active, please wait %lu seconds before starting a new trace route.", wait);
         return false;
     }
@@ -384,12 +364,6 @@ bool TraceRouteModule::startTraceRoute(NodeNum node)
     bannerText = String("Tracing ") + getNodeName(node);
 
     LOG_INFO("TraceRoute UI: Starting trace route to node 0x%08x, requesting focus", node);
-
-    // 请求焦点，然后触发UI更新事件
-    requestFocus();
-    UIFrameEvent e;
-    e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-    notifyObservers(&e);
 
     // 设置定时器来处理超时检查
     setIntervalFromNow(1000); // 每秒检查一次状态
@@ -423,11 +397,6 @@ bool TraceRouteModule::startTraceRoute(NodeNum node)
             resultText = "Service unavailable";
             resultShowTime = millis();
             tracingNode = 0;
-
-            requestFocus();
-            UIFrameEvent e2;
-            e2.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-            notifyObservers(&e2);
             return false;
         }
     } else {
@@ -436,11 +405,6 @@ bool TraceRouteModule::startTraceRoute(NodeNum node)
         resultText = "Failed to send";
         resultShowTime = millis();
         tracingNode = 0;
-
-        requestFocus();
-        UIFrameEvent e2;
-        e2.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e2);
         return false;
     }
     return true;
@@ -454,11 +418,6 @@ void TraceRouteModule::launch(NodeNum node)
         resultText = "Invalid node";
         resultShowTime = millis();
         tracingNode = 0;
-
-        requestFocus();
-        UIFrameEvent e;
-        e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e);
         return;
     }
 
@@ -468,11 +427,6 @@ void TraceRouteModule::launch(NodeNum node)
         resultText = "Cannot trace self";
         resultShowTime = millis();
         tracingNode = 0;
-
-        requestFocus();
-        UIFrameEvent e;
-        e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e);
         return;
     }
 
@@ -487,11 +441,6 @@ void TraceRouteModule::launch(NodeNum node)
         unsigned long wait = (cooldownMs - (now - lastTraceRouteTime)) / 1000;
         bannerText = String("Wait for ") + String(wait) + String("s");
         runState = TRACEROUTE_STATE_COOLDOWN;
-
-        requestFocus();
-        UIFrameEvent e;
-        e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e);
         LOG_INFO("Cooldown active, please wait %lu seconds before starting a new trace route.", wait);
         return;
     }
@@ -500,12 +449,6 @@ void TraceRouteModule::launch(NodeNum node)
     tracingNode = node;
     lastTraceRouteTime = now;
     bannerText = String("Tracing ") + getNodeName(node);
-
-    requestFocus();
-
-    UIFrameEvent e;
-    e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-    notifyObservers(&e);
 
     setIntervalFromNow(1000);
 
@@ -553,136 +496,9 @@ void TraceRouteModule::handleTraceRouteResult(const String &result)
     LOG_INFO("TraceRoute result ready, requesting focus. Result: %s", result.c_str());
 
     setIntervalFromNow(1000);
-
-    requestFocus();
-    UIFrameEvent e;
-    e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-    notifyObservers(&e);
-
     LOG_INFO("=== TraceRoute handleTraceRouteResult END ===");
 }
 
-bool TraceRouteModule::shouldDraw()
-{
-    bool draw = (runState != TRACEROUTE_STATE_IDLE);
-    static TraceRouteRunState lastLoggedState = TRACEROUTE_STATE_IDLE;
-    if (runState != lastLoggedState) {
-        LOG_INFO("TraceRoute shouldDraw: runState=%d, draw=%d", runState, draw);
-        lastLoggedState = runState;
-    }
-    return draw;
-}
-#if HAS_SCREEN
-void TraceRouteModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
-{
-    LOG_DEBUG("TraceRoute drawFrame called: runState=%d", runState);
-
-    display->setTextAlignment(TEXT_ALIGN_CENTER);
-
-    if (runState == TRACEROUTE_STATE_TRACKING) {
-        display->setFont(FONT_MEDIUM);
-        int centerY = y + (display->getHeight() / 2) - (FONT_HEIGHT_MEDIUM / 2);
-        display->drawString(display->getWidth() / 2 + x, centerY, bannerText);
-
-    } else if (runState == TRACEROUTE_STATE_RESULT) {
-        display->setFont(FONT_MEDIUM);
-        display->setTextAlignment(TEXT_ALIGN_LEFT);
-
-        display->drawString(x, y, "Route Result");
-
-        int contentStartY = y + FONT_HEIGHT_MEDIUM + 2; // Add more spacing after title
-        display->setTextAlignment(TEXT_ALIGN_LEFT);
-        display->setFont(FONT_SMALL);
-
-        if (resultText.length() > 0) {
-            std::vector<String> lines;
-            String currentLine = "";
-            int maxWidth = display->getWidth() - 4;
-
-            uint start = 0;
-            int newlinePos = resultText.indexOf('\n', start);
-
-            while (newlinePos != -1 || start < static_cast<int>(resultText.length())) {
-                String segment;
-                if (newlinePos != -1) {
-                    segment = resultText.substring(start, newlinePos);
-                    start = newlinePos + 1;
-                    newlinePos = resultText.indexOf('\n', start);
-                } else {
-                    segment = resultText.substring(start);
-                    start = resultText.length();
-                }
-
-                if (display->getStringWidth(segment) <= maxWidth) {
-                    lines.push_back(segment);
-                } else {
-                    // Try to break at better positions (space, >, <, -)
-                    String remaining = segment;
-
-                    while (remaining.length() > 0) {
-                        String tempLine = "";
-                        int lastGoodBreak = -1;
-                        bool lineComplete = false;
-
-                        for (int i = 0; i < static_cast<int>(remaining.length()); i++) {
-                            char ch = remaining.charAt(i);
-                            String testLine = tempLine + ch;
-
-                            if (display->getStringWidth(testLine) > maxWidth) {
-                                if (lastGoodBreak >= 0) {
-                                    // Break at the last good position
-                                    lines.push_back(remaining.substring(0, lastGoodBreak + 1));
-                                    remaining = remaining.substring(lastGoodBreak + 1);
-                                    lineComplete = true;
-                                    break;
-                                } else if (tempLine.length() > 0) {
-                                    lines.push_back(tempLine);
-                                    remaining = remaining.substring(i);
-                                    lineComplete = true;
-                                    break;
-                                } else {
-                                    // Single character exceeds width
-                                    lines.push_back(String(ch));
-                                    remaining = remaining.substring(i + 1);
-                                    lineComplete = true;
-                                    break;
-                                }
-                            } else {
-                                tempLine = testLine;
-                                // Mark good break positions
-                                if (ch == ' ' || ch == '>' || ch == '<' || ch == '-' || ch == '(' || ch == ')') {
-                                    lastGoodBreak = i;
-                                }
-                            }
-                        }
-
-                        if (!lineComplete) {
-                            // Reached end of remaining text
-                            if (tempLine.length() > 0) {
-                                lines.push_back(tempLine);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-
-            int lineHeight = FONT_HEIGHT_SMALL + 1; // Use proper font height with 1px spacing
-            for (size_t i = 0; i < lines.size(); i++) {
-                int lineY = contentStartY + (i * lineHeight);
-                if (lineY + FONT_HEIGHT_SMALL <= display->getHeight()) {
-                    display->drawString(x + 2, lineY, lines[i]);
-                }
-            }
-        }
-
-    } else if (runState == TRACEROUTE_STATE_COOLDOWN) {
-        display->setFont(FONT_MEDIUM);
-        int centerY = y + (display->getHeight() / 2) - (FONT_HEIGHT_MEDIUM / 2);
-        display->drawString(display->getWidth() / 2 + x, centerY, bannerText);
-    }
-}
-#endif // HAS_SCREEN
 int32_t TraceRouteModule::runOnce()
 {
     unsigned long now = millis();
@@ -699,11 +515,6 @@ int32_t TraceRouteModule::runOnce()
         resultShowTime = now;
         tracingNode = 0;
 
-        requestFocus();
-        UIFrameEvent e;
-        e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-        notifyObservers(&e);
-
         setIntervalFromNow(resultDisplayMs);
         return resultDisplayMs;
     }
@@ -716,25 +527,12 @@ int32_t TraceRouteModule::runOnce()
             bannerText = newBannerText;
             LOG_INFO("TraceRoute cooldown: updating banner to %s", bannerText.c_str());
 
-            // Force flash UI
-            requestFocus();
-            UIFrameEvent e;
-            e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-            notifyObservers(&e);
-
-            if (screen) {
-                screen->forceDisplay();
-            }
-
             return 1000;
         } else {
             // Cooldown finished
             LOG_INFO("TraceRoute cooldown finished, returning to IDLE");
             runState = TRACEROUTE_STATE_IDLE;
             bannerText = "";
-            UIFrameEvent e;
-            e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-            notifyObservers(&e);
             return INT32_MAX;
         }
     }
@@ -746,9 +544,6 @@ int32_t TraceRouteModule::runOnce()
             resultText = "";
             bannerText = "";
             tracingNode = 0;
-            UIFrameEvent e;
-            e.action = UIFrameEvent::Action::REGENERATE_FRAMESET;
-            notifyObservers(&e);
             return INT32_MAX;
         } else {
             return 1000;
