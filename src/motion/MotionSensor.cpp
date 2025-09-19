@@ -32,38 +32,6 @@ ScanI2C::I2CPort MotionSensor::devicePort()
     return device.address.port;
 }
 
-#if !defined(MESHTASTIC_EXCLUDE_SCREEN) && HAS_SCREEN
-void MotionSensor::drawFrameCalibration(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
-{
-    if (screen == nullptr)
-        return;
-    // int x_offset = display->width() / 2;
-    // int y_offset = display->height() <= 80 ? 0 : 32;
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
-    display->setFont(FONT_MEDIUM);
-    display->drawString(x, y, "Calibrating\nCompass");
-
-    uint8_t timeRemaining = (screen->getEndCalibration() - millis()) / 1000;
-    sprintf(timeRemainingBuffer, "( %02d )", timeRemaining);
-    display->setFont(FONT_SMALL);
-    display->drawString(x, y + 40, timeRemainingBuffer);
-
-    int16_t compassX = 0, compassY = 0;
-    uint16_t compassDiam = graphics::CompassRenderer::getCompassDiam(display->getWidth(), display->getHeight());
-
-    // coordinates for the center of the compass/circle
-    if (config.display.displaymode == meshtastic_Config_DisplayConfig_DisplayMode_DEFAULT) {
-        compassX = x + display->getWidth() - compassDiam / 2 - 5;
-        compassY = y + display->getHeight() / 2;
-    } else {
-        compassX = x + display->getWidth() - compassDiam / 2 - 5;
-        compassY = y + FONT_HEIGHT_SMALL + (display->getHeight() - FONT_HEIGHT_SMALL) / 2;
-    }
-    display->drawCircle(compassX, compassY, compassDiam / 2);
-    graphics::CompassRenderer::drawCompassNorth(display, compassX, compassY, screen->getHeading() * PI / 180, (compassDiam / 2));
-}
-#endif
-
 #if !MESHTASTIC_EXCLUDE_POWER_FSM
 void MotionSensor::wakeScreen()
 {

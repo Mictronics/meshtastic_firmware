@@ -205,8 +205,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // -----------------------------------------------------------------------------
 #define MPU6050_ADDR 0x68
 #define STK8BXX_ADDR 0x18
-#define LIS3DH_ADDR 0x18
-#define LIS3DH_ADDR_ALT 0x19
 #define LSM6DS3_ADDR 0x6A
 #define BHI260AP_ADDR 0x28
 

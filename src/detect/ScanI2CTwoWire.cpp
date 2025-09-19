@@ -366,13 +366,6 @@ void ScanI2CTwoWire::scanPort(I2CPort port, uint8_t *address, uint8_t asize)
                         logFoundDevice("MCP9808", (uint8_t)addr.address);
                         break;
                     }
-
-                    // Check register 0x0F for 0x3300 response to ID LIS3DH chip.
-                    registerValue = getRegisterValue(ScanI2CTwoWire::RegisterLocation(addr, 0x0F), 2);
-                    if (registerValue == 0x3300 || registerValue == 0x3333) { // RAK4631 WisBlock has LIS3DH register at 0x3333
-                        type = LIS3DH;
-                        logFoundDevice("LIS3DH", (uint8_t)addr.address);
-                    }
                     break;
                 }
             case SHT31_4x_ADDR:     // same as OPT3001_ADDR_ALT

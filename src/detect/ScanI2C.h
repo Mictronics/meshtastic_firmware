@@ -40,7 +40,6 @@ class ScanI2C
         PMSA0031,
         QMA6100P,
         MPU6050,
-        LIS3DH,
         BQ24295,
         LSM6DS3,
         TCA9535,
