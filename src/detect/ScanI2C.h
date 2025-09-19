@@ -54,7 +54,6 @@ class ScanI2C
         MLX90632,
         MLX90614,
         AHT10,
-        BMX160,
         DFROBOT_LARK,
         NAU7802,
         FT6336U,

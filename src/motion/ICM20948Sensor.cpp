@@ -153,18 +153,7 @@ int32_t ICM20948Sensor::runOnce()
 
 #endif
 
-void ICM20948Sensor::calibrate(uint16_t forSeconds)
-{
-#if !defined(MESHTASTIC_EXCLUDE_SCREEN) && HAS_SCREEN
-    LOG_DEBUG("BMX160 calibration started for %is", forSeconds);
-
-    doCalibration = true;
-    uint16_t calibrateFor = forSeconds * 1000; // calibrate for seconds provided
-    endCalibrationAt = millis() + calibrateFor;
-    if (screen)
-        screen->setEndCalibration(endCalibrationAt);
-#endif
-}
+void ICM20948Sensor::calibrate(uint16_t forSeconds) {}
 // ----------------------------------------------------------------------
 // ICM20948Singleton
 // ----------------------------------------------------------------------
