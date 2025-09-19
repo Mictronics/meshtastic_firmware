@@ -45,8 +45,6 @@
 #define I2C_SDA 10 // For QMC6310 sensors and screens
 #define I2C_SCL 11 // For QMC6310 sensors and screens
 
-#define BMA4XX_INT 14 // Interrupt for BMA_423 axis sensor
-
 #define HAS_GPS 0
 #undef GPS_RX_PIN
 #undef GPS_TX_PIN

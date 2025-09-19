@@ -439,16 +439,6 @@ void ScanI2CTwoWire::scanPort(I2CPort port, uint8_t *address, uint8_t asize)
 #else
                 SCAN_SIMPLE_CASE(PMSA0031_ADDR, PMSA0031, "PMSA0031", (uint8_t)addr.address)
 #endif
-            case BMA423_ADDR: // this can also be LIS3DH_ADDR_ALT
-                registerValue = getRegisterValue(ScanI2CTwoWire::RegisterLocation(addr, 0x0F), 2);
-                if (registerValue == 0x3300 || registerValue == 0x3333) { // RAK4631 WisBlock has LIS3DH register at 0x3333
-                    type = LIS3DH;
-                    logFoundDevice("LIS3DH", (uint8_t)addr.address);
-                } else {
-                    type = BMA423;
-                    logFoundDevice("BMA423", (uint8_t)addr.address);
-                }
-                break;
             case TCA9535_ADDR:
             case RAK120352_ADDR:
             case RAK120353_ADDR:
