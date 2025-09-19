@@ -212,7 +212,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define ICM20948_ADDR 0x69
 #define ICM20948_ADDR_ALT 0x68
 #define BHI260AP_ADDR 0x28
-#define BMM150_ADDR 0x13
 
 // -----------------------------------------------------------------------------
 // LED

@@ -7,7 +7,6 @@
 #if !defined(ARCH_STM32WL) && !MESHTASTIC_EXCLUDE_I2C
 
 #include "../concurrency/OSThread.h"
-#include "BMM150Sensor.h"
 #include "BMX160Sensor.h"
 #include "ICM20948Sensor.h"
 #include "LIS3DHSensor.h"
@@ -99,9 +98,6 @@ class AccelerometerThread : public concurrency::OSThread
 #endif
         case ScanI2C::DeviceType::ICM20948:
             sensor = new ICM20948Sensor(device);
-            break;
-        case ScanI2C::DeviceType::BMM150:
-            sensor = new BMM150Sensor(device);
             break;
 #ifdef HAS_QMA6100P
         case ScanI2C::DeviceType::QMA6100P:
