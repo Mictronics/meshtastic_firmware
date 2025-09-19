@@ -7,7 +7,6 @@
 #if !defined(ARCH_STM32WL) && !MESHTASTIC_EXCLUDE_I2C
 
 #include "../concurrency/OSThread.h"
-#include "MPU6050Sensor.h"
 #include "MotionSensor.h"
 #ifdef HAS_QMA6100P
 #include "QMA6100PSensor.h"
@@ -72,9 +71,6 @@ class AccelerometerThread : public concurrency::OSThread
         }
 
         switch (device.type) {
-        case ScanI2C::DeviceType::MPU6050:
-            sensor = new MPU6050Sensor(device);
-            break;
 #ifdef HAS_QMA6100P
         case ScanI2C::DeviceType::QMA6100P:
             sensor = new QMA6100PSensor(device);
