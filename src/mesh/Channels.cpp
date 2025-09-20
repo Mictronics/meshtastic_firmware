@@ -9,18 +9,11 @@
 
 #include <assert.h>
 
-#if !MESHTASTIC_EXCLUDE_MQTT
-#include "mqtt/MQTT.h"
-#endif
-
 Channels channels;
 
 const char *Channels::adminChannel = "admin";
 const char *Channels::gpioChannel = "gpio";
 const char *Channels::serialChannel = "serial";
-#if !MESHTASTIC_EXCLUDE_MQTT
-const char *Channels::mqttChannel = "mqtt";
-#endif
 
 uint8_t xorHash(const uint8_t *p, size_t len)
 {
@@ -315,12 +308,6 @@ void Channels::onConfigChanged()
         ch.role = meshtastic_Channel_Role_PRIMARY;
         LOG_ERROR("No primary channel detected! Setting channel 0 as primary.\n");
     }
-#if !MESHTASTIC_EXCLUDE_MQTT
-    if (channels.anyMqttEnabled() && mqtt && !mqtt->isEnabled()) {
-        LOG_DEBUG("MQTT is enabled on at least one channel, so set MQTT thread to run immediately");
-        mqtt->start();
-    }
-#endif
 }
 
 meshtastic_Channel &Channels::getByIndex(ChannelIndex chIndex)
@@ -367,12 +354,6 @@ void Channels::setChannel(const meshtastic_Channel &c)
 
 bool Channels::anyMqttEnabled()
 {
-#if USERPREFS_EVENT_MODE && !MESHTASTIC_EXCLUDE_MQTT
-    // Don't publish messages on the public MQTT broker if we are in event mode
-    if (mqtt && mqtt->isUsingDefaultServer() && mqtt->isUsingDefaultRootTopic()) {
-        return false;
-    }
-#endif
     for (int i = 0; i < getNumChannels(); i++)
         if (channelFile.channels[i].role != meshtastic_Channel_Role_DISABLED && channelFile.channels[i].has_settings &&
             (channelFile.channels[i].settings.downlink_enabled || channelFile.channels[i].settings.uplink_enabled))

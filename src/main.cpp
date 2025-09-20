@@ -65,10 +65,6 @@ NRF52Bluetooth *nrf52Bluetooth = nullptr;
 #include "mesh/eth/ethClient.h"
 #endif
 
-#if !MESHTASTIC_EXCLUDE_MQTT
-#include "mqtt/MQTT.h"
-#endif
-
 #include "LLCC68Interface.h"
 #include "LR1110Interface.h"
 #include "LR1120Interface.h"
@@ -1052,10 +1048,6 @@ void setup()
     }
 
     lateInitVariant(); // Do board specific init (see extra_variants/README.md for documentation)
-
-#if !MESHTASTIC_EXCLUDE_MQTT
-    mqttInit();
-#endif
 
 #ifdef RF95_FAN_EN
     // Ability to disable FAN if PIN has been set with RF95_FAN_EN.

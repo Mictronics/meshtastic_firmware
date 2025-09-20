@@ -25,9 +25,6 @@
 #if ToRadio_size > MAX_TO_FROM_RADIO_SIZE
 #error ToRadio is too big
 #endif
-#if !MESHTASTIC_EXCLUDE_MQTT
-#include "mqtt/MQTT.h"
-#endif
 #include "Throttle.h"
 #include <RTC.h>
 
@@ -145,18 +142,6 @@ bool PhoneAPI::handleToRadio(const uint8_t *buf, size_t bufLength)
             xModem.handlePacket(toRadioScratch.xmodemPacket);
 #endif
             break;
-#if !MESHTASTIC_EXCLUDE_MQTT
-        case meshtastic_ToRadio_mqttClientProxyMessage_tag:
-            LOG_DEBUG("Got MqttClientProxy message");
-            if (mqtt && moduleConfig.mqtt.proxy_to_client_enabled && moduleConfig.mqtt.enabled &&
-                (channels.anyMqttEnabled() || moduleConfig.mqtt.map_reporting_enabled)) {
-                mqtt->onClientProxyReceive(toRadioScratch.mqttClientProxyMessage);
-            } else {
-                LOG_WARN("MqttClientProxy received but proxy is not enabled, no channels have up/downlink, or map reporting "
-                         "not enabled");
-            }
-            break;
-#endif
         case meshtastic_ToRadio_heartbeat_tag:
             LOG_DEBUG("Got client heartbeat");
             heartbeatReceived = true;

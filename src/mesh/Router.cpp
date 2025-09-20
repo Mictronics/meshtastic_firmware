@@ -6,16 +6,13 @@
 #include "NodeDB.h"
 #include "RTC.h"
 
+#include "Default.h"
 #include "configuration.h"
 #include "detect/LoRaRadioType.h"
 #include "main.h"
 #include "mesh-pb-constants.h"
 #include "meshUtils.h"
 #include "modules/RoutingModule.h"
-#if !MESHTASTIC_EXCLUDE_MQTT
-#include "mqtt/MQTT.h"
-#endif
-#include "Default.h"
 #if ARCH_PORTDUINO
 #include "platform/portduino/PortduinoGlue.h"
 #endif
@@ -298,12 +295,6 @@ ErrorCode Router::send(meshtastic_MeshPacket *p)
             abortSendAndNak(encodeResult, p);
             return encodeResult; // FIXME - this isn't a valid ErrorCode
         }
-#if !MESHTASTIC_EXCLUDE_MQTT
-        // Only publish to MQTT if we're the original transmitter of the packet
-        if (moduleConfig.mqtt.enabled && isFromUs(p) && mqtt) {
-            mqtt->onSend(*p, *p_decoded, chIndex);
-        }
-#endif
         packetPool.release(p_decoded);
     }
 
@@ -713,18 +704,6 @@ void Router::handleReceived(meshtastic_MeshPacket *p, RxSource src)
     // If this could be a spoofed packet, don't let the modules see it.
     if (!skipHandle) {
         MeshModule::callModules(*p, src);
-
-#if !MESHTASTIC_EXCLUDE_MQTT
-        // Mark as pki_encrypted if it is not yet decoded and MQTT encryption is also enabled, hash matches and it's a DM not to
-        // us (because we would be able to decrypt it)
-        if (decodedState == DecodeState::DECODE_FAILURE && moduleConfig.mqtt.encryption_enabled && p->channel == 0x00 &&
-            !isBroadcast(p->to) && !isToUs(p))
-            p_encrypted->pki_encrypted = true;
-        // After potentially altering it, publish received message to MQTT if we're not the original transmitter of the packet
-        if ((decodedState == DecodeState::DECODE_SUCCESS || p_encrypted->pki_encrypted) && moduleConfig.mqtt.enabled &&
-            !isFromUs(p) && mqtt)
-            mqtt->onSend(*p_encrypted, *p, p->channel);
-#endif
     }
 
     packetPool.release(p_encrypted); // Release the encrypted packet

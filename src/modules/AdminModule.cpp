@@ -27,10 +27,6 @@
 #include "Default.h"
 #include "TypeConversions.h"
 
-#if !MESHTASTIC_EXCLUDE_MQTT
-#include "mqtt/MQTT.h"
-#endif
-
 #if !MESHTASTIC_EXCLUDE_GPS
 #include "GPS.h"
 #endif
@@ -796,21 +792,6 @@ bool AdminModule::handleSetModuleConfig(const meshtastic_ModuleConfig &c)
     }
 
     switch (c.which_payload_variant) {
-    case meshtastic_ModuleConfig_mqtt_tag:
-#if MESHTASTIC_EXCLUDE_MQTT
-        LOG_WARN("Set module config: MESHTASTIC_EXCLUDE_MQTT is defined. Not setting MQTT config");
-        return false;
-#else
-        LOG_INFO("Set module config: MQTT");
-        if (!MQTT::isValidConfig(c.payload_variant.mqtt)) {
-            return false;
-        }
-        // Disable Bluetooth to prevent interference during MQTT configuration
-        disableBluetooth();
-        moduleConfig.has_mqtt = true;
-        moduleConfig.mqtt = c.payload_variant.mqtt;
-#endif
-        break;
     case meshtastic_ModuleConfig_serial_tag:
         LOG_INFO("Set module config: Serial");
         moduleConfig.has_serial = true;
@@ -1130,9 +1111,6 @@ void AdminModule::handleGetDeviceConnectionStatus(const meshtastic_MeshPacket &r
     if (conn.wifi.status.is_connected) {
         conn.wifi.rssi = WiFi.RSSI();
         conn.wifi.status.ip_address = WiFi.localIP();
-#ifndef MESHTASTIC_EXCLUDE_MQTT
-        conn.wifi.status.is_mqtt_connected = mqtt && mqtt->isConnectedDirectly();
-#endif
         conn.wifi.status.is_syslog_connected = false; // FIXME wire this up
     }
 #endif
@@ -1143,9 +1121,6 @@ void AdminModule::handleGetDeviceConnectionStatus(const meshtastic_MeshPacket &r
     if (Ethernet.linkStatus() == LinkON) {
         conn.ethernet.status.is_connected = true;
         conn.ethernet.status.ip_address = Ethernet.localIP();
-#if !MESHTASTIC_EXCLUDE_MQTT
-        conn.ethernet.status.is_mqtt_connected = mqtt && mqtt->isConnectedDirectly();
-#endif
         conn.ethernet.status.is_syslog_connected = false; // FIXME wire this up
     } else {
         conn.ethernet.status.is_connected = false;
