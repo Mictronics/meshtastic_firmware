@@ -36,9 +36,6 @@ extern "C" {
 
 #define TTGO_T_ECHO
 
-// There will be no screen on the router
-#undef MESHTASTIC_INCLUDE_NICHE_GRAPHICS
-#undef HAS_SCREEN
 #define MESHTASTIC_EXCLUDE_SCREEN 1
 #define MESHTASTIC_EXCLUDE_WIFI 1
 

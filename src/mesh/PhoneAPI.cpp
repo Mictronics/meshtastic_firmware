@@ -595,15 +595,6 @@ bool PhoneAPI::available()
             return true;
         }
 #endif
-
-#ifdef ARCH_ESP32
-#if !MESHTASTIC_EXCLUDE_STOREFORWARD
-        // Check if StoreForward has packets stored for us.
-        if (!packetForPhone && storeForwardModule)
-            packetForPhone = storeForwardModule->getForPhone();
-#endif
-#endif
-
         if (!packetForPhone)
             packetForPhone = service->getForPhone();
         hasPacket = !!packetForPhone;

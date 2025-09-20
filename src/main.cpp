@@ -25,7 +25,6 @@
 #include "detect/ScanI2CTwoWire.h"
 #include <Wire.h>
 #endif
-#include "detect/einkScan.h"
 #include "main.h"
 #include "mesh/generated/meshtastic/config.pb.h"
 #include "meshUtils.h"
@@ -94,7 +93,6 @@ NRF52Bluetooth *nrf52Bluetooth = nullptr;
 #include <string>
 #endif
 
-#include "AmbientLightingThread.h"
 #include "PowerFSMThread.h"
 
 #ifdef HAS_I2S
@@ -118,11 +116,6 @@ UdpMulticastHandler *udpHandler = nullptr;
 
 #if defined(TCXO_OPTIONAL)
 float tcxoVoltage = SX126X_DIO3_TCXO_VOLTAGE; // if TCXO is optional, put this here so it can be changed further down.
-#endif
-
-#ifdef MESHTASTIC_INCLUDE_NICHE_GRAPHICS
-void setupNicheGraphics();
-#include "nicheGraphics.h"
 #endif
 
 #if defined(HW_SPI1_DEVICE) && defined(ARCH_ESP32)
@@ -229,7 +222,6 @@ uint32_t timeLastPowered = 0;
 
 static Periodic *ledPeriodic;
 static OSThread *powerFSMthread;
-static OSThread *ambientLightingThread;
 
 RadioInterface *rIf = NULL;
 #ifdef ARCH_PORTDUINO
@@ -781,11 +773,6 @@ void setup()
         nodeDB->hasWarned = true;
     }
 
-#ifdef MESHTASTIC_INCLUDE_NICHE_GRAPHICS
-    // After modules are setup, so we can observe modules
-    setupNicheGraphics();
-#endif
-
 #ifdef LED_PIN
     // Turn LED off after boot, if heartbeat by config
     if (config.device.led_heartbeat_disabled)
@@ -1141,34 +1128,14 @@ extern meshtastic_DeviceMetadata getDeviceMetadata()
     deviceMetadata.hw_model = HW_VENDOR;
     deviceMetadata.hasRemoteHardware = moduleConfig.remote_hardware.enabled;
     deviceMetadata.excluded_modules = meshtastic_ExcludedModules_EXCLUDED_NONE;
-#if MESHTASTIC_EXCLUDE_REMOTEHARDWARE
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_REMOTEHARDWARE_CONFIG;
-#endif
-#if MESHTASTIC_EXCLUDE_AUDIO
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_AUDIO_CONFIG;
-#endif
-// Option to explicitly include canned messages for edge cases, e.g. niche graphics
-#if ((!HAS_SCREEN || NO_EXT_GPIO) || MESHTASTIC_EXCLUDE_CANNEDMESSAGES) && !defined(MESHTASTIC_INCLUDE_NICHE_GRAPHICS)
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_CANNEDMSG_CONFIG;
-#endif
-#if NO_EXT_GPIO || MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_EXTNOTIF_CONFIG;
-#endif
-// Only edge case here is if we apply this a device with built in Accelerometer and want to detect interrupts
-// We'll have to macro guard against those targets potentially
-#if NO_EXT_GPIO || MESHTASTIC_EXCLUDE_DETECTIONSENSOR
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_DETECTIONSENSOR_CONFIG;
-#endif
-// If we don't have any GPIO and we don't have GPS OR we don't want too - no purpose in having serial config
-#if NO_EXT_GPIO && NO_GPS || MESHTASTIC_EXCLUDE_SERIAL
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_SERIAL_CONFIG;
-#endif
-#ifndef ARCH_ESP32
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_PAXCOUNTER_CONFIG;
-#endif
-#if !defined(HAS_RGB_LED) && !RAK_4631
     deviceMetadata.excluded_modules |= meshtastic_ExcludedModules_AMBIENTLIGHTING_CONFIG;
-#endif
 
 // No bluetooth on these targets (yet):
 // Pico W / 2W may get it at some point
