@@ -575,37 +575,11 @@ void setup()
         i2cScanner->setSuppressScreen();
     }
 #endif
-
-    pmu_found = i2cScanner->exists(ScanI2C::DeviceType::PMU_AXP192_AXP2101);
-
-    auto aqiInfo = i2cScanner->firstAQI();
-    aqi_found = aqiInfo.type != ScanI2C::DeviceType::NONE ? aqiInfo.address : ScanI2C::ADDRESS_NONE;
-
-/*
- * There are a bunch of sensors that have no further logic than to be found and stuffed into the
- * nodeTelemetrySensorsMap singleton. This wraps that logic in a temporary scope to declare the temporary field
- * "found".
- */
-
-// Two supported RGB LED currently
-#ifdef HAS_RGB_LED
-    rgb_found = i2cScanner->firstRGBLED();
-#endif
-
-#ifdef HAS_TPS65233
-    // TPS65233 is a power management IC for satellite modems, used in the Dreamcatcher
-    // We are switching it off here since we don't use an LNB.
-    if (i2cScanner->exists(ScanI2C::DeviceType::TPS65233)) {
-        Wire.beginTransmission(TPS65233_ADDR);
-        Wire.write(0);   // Register 0
-        Wire.write(128); // Turn off the LNB power, keep I2C Control enabled
-        Wire.endTransmission();
-        Wire.beginTransmission(TPS65233_ADDR);
-        Wire.write(1); // Register 1
-        Wire.write(0); // Turn off Tone Generator 22kHz
-        Wire.endTransmission();
-    }
-#endif
+    /*
+     * There are a bunch of sensors that have no further logic than to be found and stuffed into the
+     * nodeTelemetrySensorsMap singleton. This wraps that logic in a temporary scope to declare the temporary field
+     * "found".
+     */
 
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::BME_680, meshtastic_TelemetrySensorType_BME680);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::BME_280, meshtastic_TelemetrySensorType_BME280);
@@ -616,35 +590,6 @@ void setup()
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA226, meshtastic_TelemetrySensorType_INA226);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA219, meshtastic_TelemetrySensorType_INA219);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA3221, meshtastic_TelemetrySensorType_INA3221);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::MAX17048, meshtastic_TelemetrySensorType_MAX17048);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::MCP9808, meshtastic_TelemetrySensorType_MCP9808);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::SHT31, meshtastic_TelemetrySensorType_SHT31);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::SHTC3, meshtastic_TelemetrySensorType_SHTC3);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::LPS22HB, meshtastic_TelemetrySensorType_LPS22);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::QMC6310, meshtastic_TelemetrySensorType_QMC6310);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::QMI8658, meshtastic_TelemetrySensorType_QMI8658);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::QMC5883L, meshtastic_TelemetrySensorType_QMC5883L);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::HMC5883L, meshtastic_TelemetrySensorType_QMC5883L);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::PMSA0031, meshtastic_TelemetrySensorType_PMSA003I);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::RCWL9620, meshtastic_TelemetrySensorType_RCWL9620);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::VEML7700, meshtastic_TelemetrySensorType_VEML7700);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::TSL2591, meshtastic_TelemetrySensorType_TSL25911FN);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::OPT3001, meshtastic_TelemetrySensorType_OPT3001);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::MLX90632, meshtastic_TelemetrySensorType_MLX90632);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::MLX90614, meshtastic_TelemetrySensorType_MLX90614);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::SHT4X, meshtastic_TelemetrySensorType_SHT4X);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::AHT10, meshtastic_TelemetrySensorType_AHT10);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::DFROBOT_LARK, meshtastic_TelemetrySensorType_DFROBOT_LARK);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::MAX30102, meshtastic_TelemetrySensorType_MAX30102);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::CGRADSENS, meshtastic_TelemetrySensorType_RADSENS);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::DFROBOT_RAIN, meshtastic_TelemetrySensorType_DFROBOT_RAIN);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::LTR390UV, meshtastic_TelemetrySensorType_LTR390UV);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::DPS310, meshtastic_TelemetrySensorType_DPS310);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::RAK12035, meshtastic_TelemetrySensorType_RAK12035);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::PCT2075, meshtastic_TelemetrySensorType_PCT2075);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::SCD4X, meshtastic_TelemetrySensorType_SCD4X);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::TSL2561, meshtastic_TelemetrySensorType_TSL2561);
-
     i2cScanner.reset();
 #endif
 
@@ -687,12 +632,6 @@ void setup()
     // but we need to do this after main cpu init (esp32setup), because we need the random seed set
     nodeDB = new NodeDB;
 
-#if HAS_TFT
-    if (config.display.displaymode == meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
-        tftSetup();
-    }
-#endif
-
     // If we're taking on the repeater role, use NextHopRouter and turn off 3V3_S rail because peripherals are not needed
     if (config.device.role == meshtastic_Config_DeviceConfig_Role_REPEATER) {
         router = new NextHopRouter();
@@ -707,25 +646,6 @@ void setup()
         IS_ONE_OF(config.device.role, meshtastic_Config_DeviceConfig_Role_TRACKER,
                   meshtastic_Config_DeviceConfig_Role_TAK_TRACKER, meshtastic_Config_DeviceConfig_Role_SENSOR))
         LOG_DEBUG("Tracker/Sensor: Skip start melody");
-
-#if defined(USE_SH1107)
-    screen_model = meshtastic_Config_DisplayConfig_OledType_OLED_SH1107; // set dimension of 128x128
-    screen_geometry = GEOMETRY_128_128;
-#endif
-
-#if defined(USE_SH1107_128_64)
-    screen_model = meshtastic_Config_DisplayConfig_OledType_OLED_SH1107; // keep dimension of 128x64
-#endif
-
-#if !MESHTASTIC_EXCLUDE_I2C
-#if defined(HAS_NEOPIXEL) || defined(UNPHONE) || defined(RGBLED_RED)
-    ambientLightingThread = new AmbientLightingThread(ScanI2C::DeviceType::NONE);
-#elif !defined(ARCH_PORTDUINO) && !defined(ARCH_STM32WL)
-    if (rgb_found.type != ScanI2C::DeviceType::NONE) {
-        ambientLightingThread = new AmbientLightingThread(rgb_found.type);
-    }
-#endif
-#endif
 
 #if defined(T_WATCH_S3) || defined(T_LORA_PAGER)
     drv.begin();

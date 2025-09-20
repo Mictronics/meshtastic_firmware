@@ -133,93 +133,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define DISABLE_WELCOME_UNSET
 
 // -----------------------------------------------------------------------------
-// OLED & Input
-// -----------------------------------------------------------------------------
-#if defined(SEEED_WIO_TRACKER_L1) && !defined(SEEED_WIO_TRACKER_L1_EINK)
-#define SSD1306_ADDRESS 0x3D
-#define USE_SH1106
-#else
-#define SSD1306_ADDRESS 0x3C
-#endif
-#define ST7567_ADDRESS 0x3F
-
-// The SH1106 controller is almost, but not quite, the same as SSD1306
-// Define this if you know you have that controller or your "SSD1306" misbehaves.
-// #define USE_SH1106
-
-// Define if screen should be mirrored left to right
-// #define SCREEN_MIRROR
-
-// I2C Keyboards (M5Stack, RAK14004, T-Deck, T-Deck Pro, T-Lora Pager, CardKB, BBQ10, MPR121, TCA8418)
-#define CARDKB_ADDR 0x5F
-#define TDECK_KB_ADDR 0x55
-#define BBQ10_KB_ADDR 0x1F
-#define MPR121_KB_ADDR 0x5A
-#define TCA8418_KB_ADDR 0x34
-
-// -----------------------------------------------------------------------------
 // SENSOR
 // -----------------------------------------------------------------------------
 #define BME_ADDR 0x76
 #define BME_ADDR_ALTERNATE 0x77
-#define MCP9808_ADDR 0x18
 #define INA_ADDR 0x40
 #define INA_ADDR_ALTERNATE 0x41
 #define INA_ADDR_WAVESHARE_UPS 0x43
 #define INA3221_ADDR 0x42
-#define MAX1704X_ADDR 0x36
-#define QMC6310_ADDR 0x1C
-#define QMI8658_ADDR 0x6B
-#define QMC5883L_ADDR 0x0D
-#define HMC5883L_ADDR 0x1E
-#define SHTC3_ADDR 0x70
-#define LPS22HB_ADDR 0x5C
-#define LPS22HB_ADDR_ALT 0x5D
-#define SHT31_4x_ADDR 0x44
-#define SHT31_4x_ADDR_ALT 0x45
-#define PMSA0031_ADDR 0x12
-#define AHT10_ADDR 0x38
-#define RCWL9620_ADDR 0x57
-#define VEML7700_ADDR 0x10
-#define TSL25911_ADDR 0x29
-#define OPT3001_ADDR 0x45
-#define OPT3001_ADDR_ALT 0x44
-#define MLX90632_ADDR 0x3A
-#define DFROBOT_LARK_ADDR 0x42
-#define DFROBOT_RAIN_ADDR 0x1d
-#define NAU7802_ADDR 0x2A
-#define MAX30102_ADDR 0x57
-#define SCD4X_ADDR 0x62
-#define MLX90614_ADDR_DEF 0x5A
-#define CGRADSENS_ADDR 0x66
-#define LTR390UV_ADDR 0x53
-#define XPOWERS_AXP192_AXP2101_ADDRESS 0x34 // same adress as TCA8418_KB
-#define PCT2075_ADDR 0x37
-#define BQ27220_ADDR 0x55 // same address as TDECK_KB
-#define BQ25896_ADDR 0x6B
-#define LTR553ALS_ADDR 0x23
-
-// -----------------------------------------------------------------------------
-// LED
-// -----------------------------------------------------------------------------
-#define NCP5623_ADDR 0x38
-#define LP5562_ADDR 0x30
-
-// -----------------------------------------------------------------------------
-// Security
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// IO Expander
-// -----------------------------------------------------------------------------
-#define TCA9535_ADDR 0x20
-#define TCA9555_ADDR 0x26
-
-// -----------------------------------------------------------------------------
-// Touchscreen
-// -----------------------------------------------------------------------------
-#define FT6336U_ADDR 0x48
-#define CST328_ADDR 0x1A
 
 // -----------------------------------------------------------------------------
 // RAK12035VB Soil Monitor (using RAK12023 up to 3 RAK12035 monitors can be connected)
@@ -360,11 +281,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #ifndef TB_PRESS
 #define TB_PRESS 255
-#endif
-
-// Support multiple RGB LED configuration
-#if defined(HAS_NCP5623) || defined(HAS_LP5562) || defined(RGBLED_RED) || defined(HAS_NEOPIXEL) || defined(UNPHONE)
-#define HAS_RGB_LED
 #endif
 
 // default mapping of pins

@@ -20,8 +20,6 @@
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
 
 // Sensors
-#include "Sensor/CGRadSensSensor.h"
-#include "Sensor/RCWL9620Sensor.h"
 #include "Sensor/nullSensor.h"
 
 namespace graphics
@@ -29,12 +27,6 @@ namespace graphics
 extern void drawCommonHeader(OLEDDisplay *display, int16_t x, int16_t y, const char *titleStr, bool force_no_invert,
                              bool show_date);
 }
-#if __has_include(<Adafruit_AHTX0.h>)
-#include "Sensor/AHT10.h"
-AHT10Sensor aht10Sensor;
-#else
-NullSensor aht10Sensor;
-#endif
 #if __has_include(<Adafruit_BME280.h>)
 #include "Sensor/BME280Sensor.h"
 BME280Sensor bme280Sensor;
@@ -56,53 +48,11 @@ BMP280Sensor bmp280Sensor;
 NullSensor bme280Sensor;
 #endif
 
-#if __has_include(<Adafruit_LTR390.h>)
-#include "Sensor/LTR390UVSensor.h"
-LTR390UVSensor ltr390uvSensor;
-#else
-NullSensor ltr390uvSensor;
-#endif
-
 #if __has_include(<bsec2.h>)
 #include "Sensor/BME680Sensor.h"
 BME680Sensor bme680Sensor;
 #else
 NullSensor bme680Sensor;
-#endif
-
-#if __has_include(<Adafruit_DPS310.h>)
-#include "Sensor/DPS310Sensor.h"
-DPS310Sensor dps310Sensor;
-#else
-NullSensor dps310Sensor;
-#endif
-
-#if __has_include(<Adafruit_MCP9808.h>)
-#include "Sensor/MCP9808Sensor.h"
-MCP9808Sensor mcp9808Sensor;
-#else
-NullSensor mcp9808Sensor;
-#endif
-
-#if __has_include(<Adafruit_SHT31.h>)
-#include "Sensor/SHT31Sensor.h"
-SHT31Sensor sht31Sensor;
-#else
-NullSensor sht31Sensor;
-#endif
-
-#if __has_include(<Adafruit_LPS2X.h>)
-#include "Sensor/LPS22HBSensor.h"
-LPS22HBSensor lps22hbSensor;
-#else
-NullSensor lps22hbSensor;
-#endif
-
-#if __has_include(<Adafruit_SHTC3.h>)
-#include "Sensor/SHTC3Sensor.h"
-SHTC3Sensor shtc3Sensor;
-#else
-NullSensor shtc3Sensor;
 #endif
 
 #if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) && RAK_4631 == 1
@@ -112,48 +62,6 @@ RAK12035Sensor rak12035Sensor;
 NullSensor rak12035Sensor;
 #endif
 
-#if __has_include(<Adafruit_VEML7700.h>)
-#include "Sensor/VEML7700Sensor.h"
-VEML7700Sensor veml7700Sensor;
-#else
-NullSensor veml7700Sensor;
-#endif
-
-#if __has_include(<Adafruit_TSL2591.h>)
-#include "Sensor/TSL2591Sensor.h"
-TSL2591Sensor tsl2591Sensor;
-#else
-NullSensor tsl2591Sensor;
-#endif
-
-#if __has_include(<ClosedCube_OPT3001.h>)
-#include "Sensor/OPT3001Sensor.h"
-OPT3001Sensor opt3001Sensor;
-#else
-NullSensor opt3001Sensor;
-#endif
-
-#if __has_include(<Adafruit_SHT4x.h>)
-#include "Sensor/SHT4XSensor.h"
-SHT4XSensor sht4xSensor;
-#else
-NullSensor sht4xSensor;
-#endif
-
-#if __has_include(<SparkFun_MLX90632_Arduino_Library.h>)
-#include "Sensor/MLX90632Sensor.h"
-MLX90632Sensor mlx90632Sensor;
-#else
-NullSensor mlx90632Sensor;
-#endif
-
-#if __has_include(<SparkFun_Qwiic_Scale_NAU7802_Arduino_Library.h>)
-#include "Sensor/NAU7802Sensor.h"
-NAU7802Sensor nau7802Sensor;
-#else
-NullSensor nau7802Sensor;
-#endif
-
 #if __has_include(<Adafruit_BMP3XX.h>)
 #include "Sensor/BMP3XXSensor.h"
 BMP3XXSensor bmp3xxSensor;
@@ -161,31 +69,6 @@ BMP3XXSensor bmp3xxSensor;
 NullSensor bmp3xxSensor;
 #endif
 
-#if __has_include(<Adafruit_PCT2075.h>)
-#include "Sensor/PCT2075Sensor.h"
-PCT2075Sensor pct2075Sensor;
-#else
-NullSensor pct2075Sensor;
-#endif
-
-RCWL9620Sensor rcwl9620Sensor;
-CGRadSensSensor cgRadSens;
-
-#endif
-#ifdef T1000X_SENSOR_EN
-#include "Sensor/T1000xSensor.h"
-T1000xSensor t1000xSensor;
-#endif
-#ifdef SENSECAP_INDICATOR
-#include "Sensor/IndicatorSensor.h"
-IndicatorSensor indicatorSensor;
-#endif
-
-#if __has_include(<Adafruit_TSL2561_U.h>)
-#include "Sensor/TSL2561Sensor.h"
-TSL2561Sensor tsl2561Sensor;
-#else
-NullSensor tsl2561Sensor;
 #endif
 
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
@@ -225,9 +108,6 @@ int32_t EnvironmentTelemetryModule::runOnce()
 
         if (moduleConfig.telemetry.environment_measurement_enabled || ENVIRONMENTAL_TELEMETRY_MODULE_ENABLE) {
             LOG_INFO("Environment Telemetry: init");
-#ifdef SENSECAP_INDICATOR
-            result = indicatorSensor.runOnce();
-#endif
 #ifdef T1000X_SENSOR_EN
             result = t1000xSensor.runOnce();
 #elif !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
@@ -239,63 +119,16 @@ int32_t EnvironmentTelemetryModule::runOnce()
 #endif
             if (bme280Sensor.hasSensor())
                 result = bme280Sensor.runOnce();
-            if (ltr390uvSensor.hasSensor())
-                result = ltr390uvSensor.runOnce();
             if (bmp3xxSensor.hasSensor())
                 result = bmp3xxSensor.runOnce();
             if (bme680Sensor.hasSensor())
                 result = bme680Sensor.runOnce();
-            if (dps310Sensor.hasSensor())
-                result = dps310Sensor.runOnce();
-            if (mcp9808Sensor.hasSensor())
-                result = mcp9808Sensor.runOnce();
-            if (shtc3Sensor.hasSensor())
-                result = shtc3Sensor.runOnce();
-            if (lps22hbSensor.hasSensor())
-                result = lps22hbSensor.runOnce();
-            if (sht31Sensor.hasSensor())
-                result = sht31Sensor.runOnce();
-            if (sht4xSensor.hasSensor())
-                result = sht4xSensor.runOnce();
             if (ina219Sensor.hasSensor())
                 result = ina219Sensor.runOnce();
             if (ina260Sensor.hasSensor())
                 result = ina260Sensor.runOnce();
             if (ina3221Sensor.hasSensor())
                 result = ina3221Sensor.runOnce();
-            if (veml7700Sensor.hasSensor())
-                result = veml7700Sensor.runOnce();
-            if (tsl2591Sensor.hasSensor())
-                result = tsl2591Sensor.runOnce();
-            if (opt3001Sensor.hasSensor())
-                result = opt3001Sensor.runOnce();
-            if (rcwl9620Sensor.hasSensor())
-                result = rcwl9620Sensor.runOnce();
-            if (aht10Sensor.hasSensor())
-                result = aht10Sensor.runOnce();
-            if (mlx90632Sensor.hasSensor())
-                result = mlx90632Sensor.runOnce();
-            if (nau7802Sensor.hasSensor())
-                result = nau7802Sensor.runOnce();
-            if (max17048Sensor.hasSensor())
-                result = max17048Sensor.runOnce();
-            if (cgRadSens.hasSensor())
-                result = cgRadSens.runOnce();
-            if (tsl2561Sensor.hasSensor())
-                result = tsl2561Sensor.runOnce();
-            if (pct2075Sensor.hasSensor())
-                result = pct2075Sensor.runOnce();
-                // this only works on the wismesh hub with the solar option. This is not an I2C sensor, so we don't need the
-                // sensormap here.
-#ifdef HAS_RAKPROT
-
-            result = rak9154Sensor.runOnce();
-#endif
-#if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) && RAK_4631 == 1
-            if (rak12035Sensor.hasSensor()) {
-                result = rak12035Sensor.runOnce();
-            }
-#endif
 #endif
         }
         // it's possible to have this module enabled, only for displaying values on the screen.
@@ -380,22 +213,6 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
     valid = valid && t1000xSensor.getMetrics(m);
     hasSensor = true;
 #else
-    if (sht31Sensor.hasSensor()) {
-        valid = valid && sht31Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (sht4xSensor.hasSensor()) {
-        valid = valid && sht4xSensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (lps22hbSensor.hasSensor()) {
-        valid = valid && lps22hbSensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (shtc3Sensor.hasSensor()) {
-        valid = valid && shtc3Sensor.getMetrics(m);
-        hasSensor = true;
-    }
     if (bmp085Sensor.hasSensor()) {
         valid = valid && bmp085Sensor.getMetrics(m);
         hasSensor = true;
@@ -410,24 +227,12 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
         valid = valid && bme280Sensor.getMetrics(m);
         hasSensor = true;
     }
-    if (ltr390uvSensor.hasSensor()) {
-        valid = valid && ltr390uvSensor.getMetrics(m);
-        hasSensor = true;
-    }
     if (bmp3xxSensor.hasSensor()) {
         valid = valid && bmp3xxSensor.getMetrics(m);
         hasSensor = true;
     }
     if (bme680Sensor.hasSensor()) {
         valid = valid && bme680Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (dps310Sensor.hasSensor()) {
-        valid = valid && dps310Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (mcp9808Sensor.hasSensor()) {
-        valid = valid && mcp9808Sensor.getMetrics(m);
         hasSensor = true;
     }
     if (ina219Sensor.hasSensor()) {
@@ -442,78 +247,6 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
         valid = valid && ina3221Sensor.getMetrics(m);
         hasSensor = true;
     }
-    if (veml7700Sensor.hasSensor()) {
-        valid = valid && veml7700Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (tsl2591Sensor.hasSensor()) {
-        valid = valid && tsl2591Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (opt3001Sensor.hasSensor()) {
-        valid = valid && opt3001Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (mlx90632Sensor.hasSensor()) {
-        valid = valid && mlx90632Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (rcwl9620Sensor.hasSensor()) {
-        valid = valid && rcwl9620Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (nau7802Sensor.hasSensor()) {
-        valid = valid && nau7802Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (tsl2561Sensor.hasSensor()) {
-        valid = valid && tsl2561Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (aht10Sensor.hasSensor()) {
-        if (!bmp280Sensor.hasSensor() && !bmp3xxSensor.hasSensor()) {
-            valid = valid && aht10Sensor.getMetrics(m);
-            hasSensor = true;
-        } else if (bmp280Sensor.hasSensor()) {
-            // prefer bmp280 temp if both sensors are present, fetch only humidity
-            meshtastic_Telemetry m_ahtx = meshtastic_Telemetry_init_zero;
-            LOG_INFO("AHTX0+BMP280 module detected: using temp from BMP280 and humy from AHTX0");
-            aht10Sensor.getMetrics(&m_ahtx);
-            m->variant.environment_metrics.relative_humidity = m_ahtx.variant.environment_metrics.relative_humidity;
-            m->variant.environment_metrics.has_relative_humidity = m_ahtx.variant.environment_metrics.has_relative_humidity;
-        } else {
-            // prefer bmp3xx temp if both sensors are present, fetch only humidity
-            meshtastic_Telemetry m_ahtx = meshtastic_Telemetry_init_zero;
-            LOG_INFO("AHTX0+BMP3XX module detected: using temp from BMP3XX and humy from AHTX0");
-            aht10Sensor.getMetrics(&m_ahtx);
-            m->variant.environment_metrics.relative_humidity = m_ahtx.variant.environment_metrics.relative_humidity;
-            m->variant.environment_metrics.has_relative_humidity = m_ahtx.variant.environment_metrics.has_relative_humidity;
-        }
-    }
-    if (max17048Sensor.hasSensor()) {
-        valid = valid && max17048Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (cgRadSens.hasSensor()) {
-        valid = valid && cgRadSens.getMetrics(m);
-        hasSensor = true;
-    }
-    if (pct2075Sensor.hasSensor()) {
-        valid = valid && pct2075Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-#ifdef HAS_RAKPROT
-    valid = valid && rak9154Sensor.getMetrics(m);
-    hasSensor = true;
-#endif
-#if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) &&                                                             \
-                  RAK_4631 ==                                                                                                    \
-                      1 // Not really needed, but may as well just skip at a lower level it if no library or not a RAK_4631
-    if (rak12035Sensor.hasSensor()) {
-        valid = valid && rak12035Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-#endif
 #endif
     return valid && hasSensor;
 }
@@ -617,21 +350,6 @@ AdminMessageHandleResult EnvironmentTelemetryModule::handleAdminMessageForModule
 {
     AdminMessageHandleResult result = AdminMessageHandleResult::NOT_HANDLED;
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
-    if (sht31Sensor.hasSensor()) {
-        result = sht31Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (lps22hbSensor.hasSensor()) {
-        result = lps22hbSensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (shtc3Sensor.hasSensor()) {
-        result = shtc3Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
     if (bmp085Sensor.hasSensor()) {
         result = bmp085Sensor.handleAdminMessage(mp, request, response);
         if (result != AdminMessageHandleResult::NOT_HANDLED)
@@ -647,11 +365,6 @@ AdminMessageHandleResult EnvironmentTelemetryModule::handleAdminMessageForModule
         if (result != AdminMessageHandleResult::NOT_HANDLED)
             return result;
     }
-    if (ltr390uvSensor.hasSensor()) {
-        result = ltr390uvSensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
     if (bmp3xxSensor.hasSensor()) {
         result = bmp3xxSensor.handleAdminMessage(mp, request, response);
         if (result != AdminMessageHandleResult::NOT_HANDLED)
@@ -659,16 +372,6 @@ AdminMessageHandleResult EnvironmentTelemetryModule::handleAdminMessageForModule
     }
     if (bme680Sensor.hasSensor()) {
         result = bme680Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (dps310Sensor.hasSensor()) {
-        result = dps310Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (mcp9808Sensor.hasSensor()) {
-        result = mcp9808Sensor.handleAdminMessage(mp, request, response);
         if (result != AdminMessageHandleResult::NOT_HANDLED)
             return result;
     }
@@ -687,60 +390,6 @@ AdminMessageHandleResult EnvironmentTelemetryModule::handleAdminMessageForModule
         if (result != AdminMessageHandleResult::NOT_HANDLED)
             return result;
     }
-    if (veml7700Sensor.hasSensor()) {
-        result = veml7700Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (tsl2591Sensor.hasSensor()) {
-        result = tsl2591Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (opt3001Sensor.hasSensor()) {
-        result = opt3001Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (mlx90632Sensor.hasSensor()) {
-        result = mlx90632Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (rcwl9620Sensor.hasSensor()) {
-        result = rcwl9620Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (nau7802Sensor.hasSensor()) {
-        result = nau7802Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (aht10Sensor.hasSensor()) {
-        result = aht10Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (max17048Sensor.hasSensor()) {
-        result = max17048Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (cgRadSens.hasSensor()) {
-        result = cgRadSens.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-#if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) &&                                                             \
-                  RAK_4631 ==                                                                                                    \
-                      1 // Not really needed, but may as well just skip it at a lower level if no library or not a RAK_4631
-    if (rak12035Sensor.hasSensor()) {
-        result = rak12035Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-#endif
 #endif
     return result;
 }
