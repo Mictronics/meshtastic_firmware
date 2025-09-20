@@ -147,20 +147,6 @@ MLX90632Sensor mlx90632Sensor;
 NullSensor mlx90632Sensor;
 #endif
 
-#if __has_include(<DFRobot_LarkWeatherStation.h>)
-#include "Sensor/DFRobotLarkSensor.h"
-DFRobotLarkSensor dfRobotLarkSensor;
-#else
-NullSensor dfRobotLarkSensor;
-#endif
-
-#if __has_include(<DFRobot_RainfallSensor.h>)
-#include "Sensor/DFRobotGravitySensor.h"
-DFRobotGravitySensor dfRobotGravitySensor;
-#else
-NullSensor dfRobotGravitySensor;
-#endif
-
 #if __has_include(<SparkFun_Qwiic_Scale_NAU7802_Arduino_Library.h>)
 #include "Sensor/NAU7802Sensor.h"
 NAU7802Sensor nau7802Sensor;
@@ -245,10 +231,6 @@ int32_t EnvironmentTelemetryModule::runOnce()
 #ifdef T1000X_SENSOR_EN
             result = t1000xSensor.runOnce();
 #elif !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
-            if (dfRobotLarkSensor.hasSensor())
-                result = dfRobotLarkSensor.runOnce();
-            if (dfRobotGravitySensor.hasSensor())
-                result = dfRobotGravitySensor.runOnce();
             if (bmp085Sensor.hasSensor())
                 result = bmp085Sensor.runOnce();
 #if __has_include(<Adafruit_BME280.h>)
@@ -398,14 +380,6 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
     valid = valid && t1000xSensor.getMetrics(m);
     hasSensor = true;
 #else
-    if (dfRobotLarkSensor.hasSensor()) {
-        valid = valid && dfRobotLarkSensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (dfRobotGravitySensor.hasSensor()) {
-        valid = valid && dfRobotGravitySensor.getMetrics(m);
-        hasSensor = true;
-    }
     if (sht31Sensor.hasSensor()) {
         valid = valid && sht31Sensor.getMetrics(m);
         hasSensor = true;
@@ -643,16 +617,6 @@ AdminMessageHandleResult EnvironmentTelemetryModule::handleAdminMessageForModule
 {
     AdminMessageHandleResult result = AdminMessageHandleResult::NOT_HANDLED;
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
-    if (dfRobotLarkSensor.hasSensor()) {
-        result = dfRobotLarkSensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (dfRobotGravitySensor.hasSensor()) {
-        result = dfRobotGravitySensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
     if (sht31Sensor.hasSensor()) {
         result = sht31Sensor.handleAdminMessage(mp, request, response);
         if (result != AdminMessageHandleResult::NOT_HANDLED)
