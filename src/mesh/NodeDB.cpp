@@ -21,7 +21,6 @@
 #include "main.h"
 #include "mesh-pb-constants.h"
 #include "meshUtils.h"
-#include "modules/NeighborInfoModule.h"
 #include <ErriezCRC32.h>
 #include <algorithm>
 #include <pb_decode.h>
@@ -33,7 +32,6 @@
 #include "mesh/wifi/WiFiAPClient.h"
 #endif
 #include "SPILock.h"
-#include "modules/StoreForwardModule.h"
 #include <Preferences.h>
 #include <esp_efuse.h>
 #include <esp_efuse_table.h>
@@ -43,7 +41,6 @@
 #endif
 
 #ifdef ARCH_PORTDUINO
-#include "modules/StoreForwardModule.h"
 #include "platform/portduino/PortduinoGlue.h"
 #endif
 
@@ -982,8 +979,6 @@ void NodeDB::resetNodes()
     devicestate.has_rx_waypoint = false;
     saveNodeDatabaseToDisk();
     saveDeviceStateToDisk();
-    if (neighborInfoModule && moduleConfig.neighbor_info.enabled)
-        neighborInfoModule->resetNeighbors();
 }
 
 void NodeDB::removeNodeByNum(NodeNum nodeNum)

@@ -15,18 +15,12 @@
 #include "power.h"
 #include "sleep.h"
 #include "target_specific.h"
-#include <OLEDDisplay.h>
 
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
 
 // Sensors
 #include "Sensor/nullSensor.h"
 
-namespace graphics
-{
-extern void drawCommonHeader(OLEDDisplay *display, int16_t x, int16_t y, const char *titleStr, bool force_no_invert,
-                             bool show_date);
-}
 #if __has_include(<Adafruit_BME280.h>)
 #include "Sensor/BME280Sensor.h"
 BME280Sensor bme280Sensor;

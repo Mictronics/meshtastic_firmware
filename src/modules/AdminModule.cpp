@@ -39,11 +39,6 @@
 #include "modules/PositionModule.h"
 #endif
 
-#if (defined(ARCH_ESP32) || defined(ARCH_NRF52) || defined(ARCH_RP2040)) && !defined(CONFIG_IDF_TARGET_ESP32S2) &&               \
-    !defined(CONFIG_IDF_TARGET_ESP32C3)
-#include "SerialModule.h"
-#endif
-
 AdminModule *adminModule;
 bool hasOpenEditTransaction;
 
@@ -818,14 +813,6 @@ bool AdminModule::handleSetModuleConfig(const meshtastic_ModuleConfig &c)
         break;
     case meshtastic_ModuleConfig_serial_tag:
         LOG_INFO("Set module config: Serial");
-#if (defined(ARCH_ESP32) || defined(ARCH_NRF52) || defined(ARCH_RP2040)) && !defined(CONFIG_IDF_TARGET_ESP32S2) &&               \
-    !defined(CONFIG_IDF_TARGET_ESP32C3)
-        if (!SerialModule::isValidConfig(c.payload_variant.serial)) {
-            LOG_ERROR("Invalid serial config");
-            return false;
-        }
-        disableBluetooth(); // Disable Bluetooth to prevent interference during Serial configuration
-#endif
         moduleConfig.has_serial = true;
         moduleConfig.serial = c.payload_variant.serial;
         break;

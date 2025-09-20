@@ -7,8 +7,6 @@
 #include "../mesh/generated/meshtastic/telemetry.pb.h"
 #include "NodeDB.h"
 #include "ProtobufModule.h"
-#include <OLEDDisplay.h>
-#include <OLEDDisplayUi.h>
 
 class PowerTelemetryModule : private concurrency::OSThread, public ProtobufModule<meshtastic_Telemetry>
 {

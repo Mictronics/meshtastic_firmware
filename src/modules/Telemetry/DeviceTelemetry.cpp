@@ -10,8 +10,6 @@
 #include "configuration.h"
 #include "main.h"
 #include "memGet.h"
-#include <OLEDDisplay.h>
-#include <OLEDDisplayUi.h>
 #include <meshUtils.h>
 
 #define MAGIC_USB_BATTERY_LEVEL 101
