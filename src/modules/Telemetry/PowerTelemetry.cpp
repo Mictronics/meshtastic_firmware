@@ -96,7 +96,7 @@ int32_t PowerTelemetryModule::runOnce()
 bool PowerTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_Telemetry *t)
 {
     if (t->which_variant == meshtastic_Telemetry_power_metrics_tag) {
-#if defined(DEBUG_PORT) && !defined(DEBUG_MUTE)
+#if defined(DEBUG_PORT)
         const char *sender = getSenderShortName(mp);
 
         LOG_INFO("(Received from %s): ch1_voltage=%.1f, ch1_current=%.1f, ch2_voltage=%.1f, ch2_current=%.1f, "

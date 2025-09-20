@@ -227,7 +227,7 @@ void TraceRouteModule::appendMyIDandSNR(meshtastic_RouteDiscovery *updated, floa
 
 void TraceRouteModule::printRoute(meshtastic_RouteDiscovery *r, uint32_t origin, uint32_t dest, bool isTowardsDestination)
 {
-#if defined(DEBUG_PORT) && !defined(DEBUG_MUTE)
+#if defined(DEBUG_PORT)
     std::string route = "Route traced:\n";
     route += vformat("#Start %08x > ", origin);
     for (uint8_t i = 0; i < r->route_count; i++) {

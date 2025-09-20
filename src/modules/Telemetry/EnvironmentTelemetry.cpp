@@ -161,7 +161,7 @@ int32_t EnvironmentTelemetryModule::runOnce()
 bool EnvironmentTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_Telemetry *t)
 {
     if (t->which_variant == meshtastic_Telemetry_environment_metrics_tag) {
-#if defined(DEBUG_PORT) && !defined(DEBUG_MUTE)
+#if defined(DEBUG_PORT)
         const char *sender = getSenderShortName(mp);
 
         LOG_INFO("(Received from %s): barometric_pressure=%f, current=%f, gas_resistance=%f, relative_humidity=%f, "
@@ -199,14 +199,6 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
     m->which_variant = meshtastic_Telemetry_environment_metrics_tag;
     m->variant.environment_metrics = meshtastic_EnvironmentMetrics_init_zero;
 
-#ifdef SENSECAP_INDICATOR
-    valid = valid && indicatorSensor.getMetrics(m);
-    hasSensor = true;
-#endif
-#ifdef T1000X_SENSOR_EN // add by WayenWeng
-    valid = valid && t1000xSensor.getMetrics(m);
-    hasSensor = true;
-#else
     if (bmp085Sensor.hasSensor()) {
         valid = valid && bmp085Sensor.getMetrics(m);
         hasSensor = true;
@@ -241,7 +233,6 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
         valid = valid && ina3221Sensor.getMetrics(m);
         hasSensor = true;
     }
-#endif
     return valid && hasSensor;
 }
 
@@ -278,11 +269,8 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     meshtastic_Telemetry m = meshtastic_Telemetry_init_zero;
     m.which_variant = meshtastic_Telemetry_environment_metrics_tag;
     m.time = getTime();
-#ifdef T1000X_SENSOR_EN
-    if (t1000xSensor.getMetrics(&m)) {
-#else
+
     if (getEnvironmentTelemetry(&m)) {
-#endif
         LOG_INFO("Send: barometric_pressure=%f, current=%f, gas_resistance=%f, relative_humidity=%f, temperature=%f",
                  m.variant.environment_metrics.barometric_pressure, m.variant.environment_metrics.current,
                  m.variant.environment_metrics.gas_resistance, m.variant.environment_metrics.relative_humidity,
