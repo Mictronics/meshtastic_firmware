@@ -48,7 +48,6 @@
 #include "main.h"
 #include "modules/Telemetry/AirQualityTelemetry.h"
 #include "modules/Telemetry/EnvironmentTelemetry.h"
-#include "modules/Telemetry/HealthTelemetry.h"
 #include "modules/Telemetry/Sensor/TelemetrySensor.h"
 #endif
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_POWER_TELEMETRY
@@ -75,10 +74,6 @@
 #endif
 #if !defined(CONFIG_IDF_TARGET_ESP32S2) && !MESHTASTIC_EXCLUDE_SERIAL
 #include "modules/SerialModule.h"
-#endif
-
-#if !MESHTASTIC_EXCLUDE_DROPZONE
-#include "modules/DropzoneModule.h"
 #endif
 
 /**
@@ -124,9 +119,6 @@ void setupModules()
 #if !MESHTASTIC_EXCLUDE_PKI
         keyVerificationModule = new KeyVerificationModule();
 #endif
-#if !MESHTASTIC_EXCLUDE_DROPZONE
-        dropzoneModule = new DropzoneModule();
-#endif
 #if !MESHTASTIC_EXCLUDE_GENERIC_THREAD_MODULE
         new GenericThreadModule();
 #endif
@@ -157,12 +149,6 @@ void setupModules()
         if (moduleConfig.has_telemetry && moduleConfig.telemetry.air_quality_enabled &&
             nodeTelemetrySensorsMap[meshtastic_TelemetrySensorType_PMSA003I].first > 0) {
             new AirQualityTelemetryModule();
-        }
-#endif
-#if !MESHTASTIC_EXCLUDE_HEALTH_TELEMETRY
-        if (nodeTelemetrySensorsMap[meshtastic_TelemetrySensorType_MAX30102].first > 0 ||
-            nodeTelemetrySensorsMap[meshtastic_TelemetrySensorType_MLX90614].first > 0) {
-            new HealthTelemetryModule();
         }
 #endif
 #endif
