@@ -515,6 +515,7 @@ bool GPS::setup()
                 }
             }
             // Rare Serial Speeds
+#ifndef CONFIG_IDF_TARGET_ESP32C6
             if (probeTries == GPS_PROBETRIES) {
                 LOG_DEBUG("Probe for GPS at %d", rareSerialSpeeds[speedSelect]);
                 gnssModel = probe(rareSerialSpeeds[speedSelect]);
@@ -525,6 +526,7 @@ bool GPS::setup()
                     }
                 }
             }
+#endif
         }
 
         if (gnssModel != GNSS_MODEL_UNKNOWN) {
