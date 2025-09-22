@@ -242,10 +242,7 @@ void setupModules()
         new DeviceTelemetryModule();
 #endif
 #if HAS_TELEMETRY && HAS_SENSOR && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
-        if (moduleConfig.has_telemetry &&
-            (moduleConfig.telemetry.environment_measurement_enabled || moduleConfig.telemetry.environment_screen_enabled)) {
-            new EnvironmentTelemetryModule();
-        }
+        new EnvironmentTelemetryModule();
 #if __has_include("Adafruit_PM25AQI.h")
         if (moduleConfig.has_telemetry && moduleConfig.telemetry.air_quality_enabled &&
             nodeTelemetrySensorsMap[meshtastic_TelemetrySensorType_PMSA003I].first > 0) {
@@ -260,10 +257,7 @@ void setupModules()
 #endif
 #endif
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_POWER_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
-        if (moduleConfig.has_telemetry &&
-            (moduleConfig.telemetry.power_measurement_enabled || moduleConfig.telemetry.power_screen_enabled)) {
-            new PowerTelemetryModule();
-        }
+        new PowerTelemetryModule();
 #endif
 #if (defined(ARCH_ESP32) || defined(ARCH_NRF52) || defined(ARCH_RP2040) || defined(ARCH_STM32WL)) &&                             \
     !defined(CONFIG_IDF_TARGET_ESP32S2) && !defined(CONFIG_IDF_TARGET_ESP32C3)
