@@ -71,16 +71,10 @@ void setupModules()
         new DeviceTelemetryModule();
 #endif
 #if HAS_TELEMETRY && HAS_SENSOR && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
-        if (moduleConfig.has_telemetry &&
-            (moduleConfig.telemetry.environment_measurement_enabled || moduleConfig.telemetry.environment_screen_enabled)) {
-            new EnvironmentTelemetryModule();
-        }
+        new EnvironmentTelemetryModule();
 #endif
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_POWER_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
-        if (moduleConfig.has_telemetry &&
-            (moduleConfig.telemetry.power_measurement_enabled || moduleConfig.telemetry.power_screen_enabled)) {
-            new PowerTelemetryModule();
-        }
+        new PowerTelemetryModule();
 #endif
     } else {
         // Configure repeater role
