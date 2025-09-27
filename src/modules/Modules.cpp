@@ -14,9 +14,6 @@
 #endif
 #include "modules/RoutingModule.h"
 #include "modules/TextMessageModule.h"
-#if !MESHTASTIC_EXCLUDE_TRACEROUTE
-#include "modules/TraceRouteModule.h"
-#endif
 #if ARCH_PORTDUINO
 #include "modules/Telemetry/HostMetrics.h"
 #endif
@@ -53,9 +50,6 @@ void setupModules()
 #if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
         textMessageModule = new TextMessageModule();
 #endif
-#if !MESHTASTIC_EXCLUDE_TRACEROUTE
-        traceRouteModule = new TraceRouteModule();
-#endif
 #if !MESHTASTIC_EXCLUDE_PKI
         keyVerificationModule = new KeyVerificationModule();
 #endif
@@ -83,10 +77,6 @@ void setupModules()
 #endif
 #if HAS_TELEMETRY
         new DeviceTelemetryModule();
-#endif
-
-#if !MESHTASTIC_EXCLUDE_TRACEROUTE
-        traceRouteModule = new TraceRouteModule();
 #endif
     }
     // NOTE! This module must be added LAST because it likes to check for replies from other modules and avoid sending extra

@@ -4,9 +4,6 @@
 #include "configuration.h"
 #include "mesh-pb-constants.h"
 #include "meshUtils.h"
-#if !MESHTASTIC_EXCLUDE_TRACEROUTE
-#include "modules/TraceRouteModule.h"
-#endif
 
 FloodingRouter::FloodingRouter() {}
 
@@ -43,11 +40,6 @@ bool FloodingRouter::shouldFilterReceived(const meshtastic_MeshPacket *p)
 
             if (nodeDB)
                 nodeDB->updateFrom(*p);
-#if !MESHTASTIC_EXCLUDE_TRACEROUTE
-            if (traceRouteModule && p->which_payload_variant == meshtastic_MeshPacket_decoded_tag &&
-                p->decoded.portnum == meshtastic_PortNum_TRACEROUTE_APP)
-                traceRouteModule->processUpgradedPacket(*p);
-#endif
 
             perhapsRebroadcast(p);
 

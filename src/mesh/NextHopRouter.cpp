@@ -1,10 +1,7 @@
 #include "NextHopRouter.h"
 #include "MeshTypes.h"
-#include "meshUtils.h"
-#if !MESHTASTIC_EXCLUDE_TRACEROUTE
-#include "modules/TraceRouteModule.h"
-#endif
 #include "NodeDB.h"
+#include "meshUtils.h"
 
 NextHopRouter::NextHopRouter() {}
 
@@ -53,12 +50,6 @@ bool NextHopRouter::shouldFilterReceived(const meshtastic_MeshPacket *p)
 
             if (nodeDB)
                 nodeDB->updateFrom(*p);
-#if !MESHTASTIC_EXCLUDE_TRACEROUTE
-            if (traceRouteModule && p->which_payload_variant == meshtastic_MeshPacket_decoded_tag &&
-                p->decoded.portnum == meshtastic_PortNum_TRACEROUTE_APP)
-                traceRouteModule->processUpgradedPacket(*p);
-#endif
-
             perhapsRelay(p);
 
             // We already enqueued the improved copy, so make sure the incoming packet stops here.
