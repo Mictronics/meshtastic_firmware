@@ -323,6 +323,7 @@ void setup()
     digitalWrite(SDCARD_CS, HIGH);
     pinMode(TFT_CS, OUTPUT);
     digitalWrite(TFT_CS, HIGH);
+    pinMode(KB_INT, INPUT_PULLUP);
     // io expander
     io.begin(Wire, XL9555_SLAVE_ADDRESS0, SDA, SCL);
     io.pinMode(EXPANDS_DRV_EN, OUTPUT);
@@ -1199,6 +1200,9 @@ void loop()
 
     // We want to sleep as long as possible here - because it saves power
     if (!runASAP && loopCanSleep()) {
+#ifdef DEBUG_LOOP_TIMING
+        LOG_DEBUG("main loop delay: %d", delayMsec);
+#endif
         mainDelay.delay(delayMsec);
     }
 }
