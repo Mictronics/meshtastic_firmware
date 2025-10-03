@@ -41,10 +41,6 @@ int32_t DeviceTelemetryModule::runOnce()
 
 bool DeviceTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_Telemetry *t)
 {
-    // Don't worry about storing telemetry in NodeDB if we're a repeater
-    if (config.device.role == meshtastic_Config_DeviceConfig_Role_REPEATER)
-        return false;
-
     if (t->which_variant == meshtastic_Telemetry_device_metrics_tag) {
 #if defined(DEBUG_PORT)
         const char *sender = getSenderShortName(mp);

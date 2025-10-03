@@ -37,48 +37,38 @@
  */
 void setupModules()
 {
-    if (config.device.role != meshtastic_Config_DeviceConfig_Role_REPEATER) {
 #if !MESHTASTIC_EXCLUDE_ADMIN
-        adminModule = new AdminModule();
+    adminModule = new AdminModule();
 #endif
 #if !MESHTASTIC_EXCLUDE_NODEINFO
-        nodeInfoModule = new NodeInfoModule();
+    nodeInfoModule = new NodeInfoModule();
 #endif
 #if !MESHTASTIC_EXCLUDE_GPS
-        positionModule = new PositionModule();
+    positionModule = new PositionModule();
 #endif
 #if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
-        textMessageModule = new TextMessageModule();
+    textMessageModule = new TextMessageModule();
 #endif
 #if !MESHTASTIC_EXCLUDE_PKI
-        keyVerificationModule = new KeyVerificationModule();
+    keyVerificationModule = new KeyVerificationModule();
 #endif
 #if !MESHTASTIC_EXCLUDE_GENERIC_THREAD_MODULE
-        new GenericThreadModule();
+    new GenericThreadModule();
 #endif
-        // Note: if the rest of meshtastic doesn't need to explicitly use your module, you do not need to assign the instance
-        // to a global variable.
+    // Note: if the rest of meshtastic doesn't need to explicitly use your module, you do not need to assign the instance
+    // to a global variable.
 #if ARCH_PORTDUINO
-        new HostMetricsModule();
+    new HostMetricsModule();
 #endif
 #if HAS_TELEMETRY
-        new DeviceTelemetryModule();
+    new DeviceTelemetryModule();
 #endif
 #if HAS_TELEMETRY && HAS_SENSOR && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
-        new EnvironmentTelemetryModule();
+    new EnvironmentTelemetryModule();
 #endif
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_POWER_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
-        new PowerTelemetryModule();
+    new PowerTelemetryModule();
 #endif
-    } else {
-        // Configure repeater role
-#if !MESHTASTIC_EXCLUDE_ADMIN
-        adminModule = new AdminModule();
-#endif
-#if HAS_TELEMETRY
-        new DeviceTelemetryModule();
-#endif
-    }
     // NOTE! This module must be added LAST because it likes to check for replies from other modules and avoid sending extra
     // acks
     routingModule = new RoutingModule();

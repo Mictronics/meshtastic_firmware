@@ -10,6 +10,7 @@ class ScanI2C
         NONE,
         RTC_RV3028,
         RTC_PCF8563,
+        RTC_RX8130CE,
         BME_680,
         BME_280,
         BMP_280,
