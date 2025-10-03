@@ -204,7 +204,7 @@ NodeDB::NodeDB()
 
     int saveWhat = 0;
     // Get device unique id
-#if defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3)
+#if defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3) || defined(CONFIG_IDF_TARGET_ESP32C6)
     uint32_t unique_id[4];
     // ESP32 factory burns a unique id in efuse for S2+ series and evidently C3+ series
     // This is used for HMACs in the esp-rainmaker AIOT platform and seems to be a good choice for us
@@ -225,7 +225,11 @@ NodeDB::NodeDB()
     memcpy(myNodeInfo.device_id.bytes + sizeof(device_id_start), &device_id_end, sizeof(device_id_end));
     myNodeInfo.device_id.size = 16;
     // Uncomment below to print the device id
-
+#elif ARCH_PORTDUINO
+    if (portduino_config.has_device_id) {
+        memcpy(myNodeInfo.device_id.bytes, portduino_config.device_id, 16);
+        myNodeInfo.device_id.size = 16;
+    }
 #else
     // FIXME - implement for other platforms
 #endif
@@ -264,12 +268,12 @@ NodeDB::NodeDB()
 
     if (!owner.is_licensed && config.lora.region != meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
         bool keygenSuccess = false;
-        if (config.security.private_key.size == 32) {
+        keyIsLowEntropy = checkLowEntropyPublicKey(config.security.public_key);
+        if (config.security.private_key.size == 32 && !keyIsLowEntropy) {
             if (crypto->regeneratePublicKey(config.security.public_key.bytes, config.security.private_key.bytes)) {
                 keygenSuccess = true;
             }
         } else {
-            LOG_INFO("Generate new PKI keys");
             crypto->generateKeyPair(config.security.public_key.bytes, config.security.private_key.bytes);
             keygenSuccess = true;
         }
@@ -288,16 +292,6 @@ NodeDB::NodeDB()
         crypto->setDHPrivateKey(config.security.private_key.bytes);
     }
 #endif
-    keyIsLowEntropy = checkLowEntropyPublicKey(config.security.public_key);
-    if (keyIsLowEntropy) {
-        LOG_WARN("Erasing low entropy keys");
-        config.security.private_key.size = 0;
-        memfll(config.security.private_key.bytes, '\0', sizeof(config.security.private_key.bytes));
-        config.security.public_key.size = 0;
-        memfll(config.security.public_key.bytes, '\0', sizeof(config.security.public_key.bytes));
-        owner.public_key.size = 0;
-        memfll(owner.public_key.bytes, '\0', sizeof(owner.public_key.bytes));
-    }
     // Include our owner in the node db under our nodenum
     meshtastic_NodeInfoLite *info = getOrCreateMeshNode(getNodeNum());
     info->user = TypeConversions::ConvertToUserLite(owner);
@@ -339,6 +333,38 @@ NodeDB::NodeDB()
         moduleConfig.telemetry.health_update_interval = Default::getConfiguredOrMinimumValue(
             moduleConfig.telemetry.health_update_interval, min_default_telemetry_interval_secs);
     }
+    // FIXME: UINT32_MAX intervals overflows Apple clients until they are fully patched
+    if (config.device.node_info_broadcast_secs > MAX_INTERVAL)
+        config.device.node_info_broadcast_secs = MAX_INTERVAL;
+    if (config.position.position_broadcast_secs > MAX_INTERVAL)
+        config.position.position_broadcast_secs = MAX_INTERVAL;
+    if (config.position.gps_update_interval > MAX_INTERVAL)
+        config.position.gps_update_interval = MAX_INTERVAL;
+    if (config.position.gps_attempt_time > MAX_INTERVAL)
+        config.position.gps_attempt_time = MAX_INTERVAL;
+    if (config.position.position_flags > MAX_INTERVAL)
+        config.position.position_flags = MAX_INTERVAL;
+    if (config.position.rx_gpio > MAX_INTERVAL)
+        config.position.rx_gpio = MAX_INTERVAL;
+    if (config.position.tx_gpio > MAX_INTERVAL)
+        config.position.tx_gpio = MAX_INTERVAL;
+    if (config.position.broadcast_smart_minimum_distance > MAX_INTERVAL)
+        config.position.broadcast_smart_minimum_distance = MAX_INTERVAL;
+    if (config.position.broadcast_smart_minimum_interval_secs > MAX_INTERVAL)
+        config.position.broadcast_smart_minimum_interval_secs = MAX_INTERVAL;
+    if (config.position.gps_en_gpio > MAX_INTERVAL)
+        config.position.gps_en_gpio = MAX_INTERVAL;
+    if (moduleConfig.neighbor_info.update_interval > MAX_INTERVAL)
+        moduleConfig.neighbor_info.update_interval = MAX_INTERVAL;
+    if (moduleConfig.telemetry.device_update_interval > MAX_INTERVAL)
+        moduleConfig.telemetry.device_update_interval = MAX_INTERVAL;
+    if (moduleConfig.telemetry.environment_update_interval > MAX_INTERVAL)
+        moduleConfig.telemetry.environment_update_interval = MAX_INTERVAL;
+    if (moduleConfig.telemetry.air_quality_interval > MAX_INTERVAL)
+        moduleConfig.telemetry.air_quality_interval = MAX_INTERVAL;
+    if (moduleConfig.telemetry.health_update_interval > MAX_INTERVAL)
+        moduleConfig.telemetry.health_update_interval = MAX_INTERVAL;
+
     if (moduleConfig.mqtt.has_map_report_settings &&
         moduleConfig.mqtt.map_report_settings.publish_interval_secs < default_map_publish_interval_secs) {
         moduleConfig.mqtt.map_report_settings.publish_interval_secs = default_map_publish_interval_secs;
@@ -353,6 +379,14 @@ NodeDB::NodeDB()
         config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_LOCAL_ONLY;
     }
 
+#if !HAS_TFT
+    if (config.display.displaymode == meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
+        // On a device without MUI, this display mode makes no sense, and will break logic.
+        config.display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_DEFAULT;
+        config.bluetooth.enabled = true;
+    }
+#endif
+
     if (devicestateCRC != crc32Buffer(&devicestate, sizeof(devicestate)))
         saveWhat |= SEGMENT_DEVICESTATE;
     if (nodeDatabaseCRC != crc32Buffer(&nodeDatabase, sizeof(nodeDatabase)))
@@ -366,6 +400,9 @@ NodeDB::NodeDB()
         config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
         config.position.gps_enabled = 0;
     }
+#ifdef USERPREFS_FIRMWARE_EDITION
+    myNodeInfo.firmware_edition = USERPREFS_FIRMWARE_EDITION;
+#endif
 #ifdef USERPREFS_FIXED_GPS
     if (myNodeInfo.reboot_count == 1) { // Check if First boot ever or after Factory Reset.
         meshtastic_Position fixedGPS = meshtastic_Position_init_default;
@@ -391,6 +428,7 @@ NodeDB::NodeDB()
 #endif
     }
 #endif
+    sortMeshDB();
     saveToDisk(saveWhat);
 }
 
@@ -519,11 +557,14 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #endif
     config.lora.config_ok_to_mqtt = false;
 
+#if HAS_TFT // For the devices that support MUI, default to that
+    config.display.displaymode = meshtastic_Config_DisplayConfig_DisplayMode_COLOR;
+#endif
+
 #ifdef USERPREFS_CONFIG_DEVICE_ROLE
-    // Restrict ROUTER*, LOST AND FOUND, and REPEATER roles for security reasons
+    // Restrict ROUTER*, LOST AND FOUND roles for security reasons
     if (IS_ONE_OF(USERPREFS_CONFIG_DEVICE_ROLE, meshtastic_Config_DeviceConfig_Role_ROUTER,
-                  meshtastic_Config_DeviceConfig_Role_ROUTER_LATE, meshtastic_Config_DeviceConfig_Role_REPEATER,
-                  meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND)) {
+                  meshtastic_Config_DeviceConfig_Role_ROUTER_LATE, meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND)) {
         LOG_WARN("ROUTER roles are restricted, falling back to CLIENT role");
         config.device.role = meshtastic_Config_DeviceConfig_Role_CLIENT;
     } else {
@@ -592,12 +633,6 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #ifdef PIN_GPS_EN
     config.position.gps_en_gpio = PIN_GPS_EN;
 #endif
-
-#ifdef GPS_POWER_TOGGLE
-    config.device.disable_triple_click = false;
-#else
-    config.device.disable_triple_click = true;
-#endif
 #if defined(USERPREFS_CONFIG_GPS_MODE)
     config.position.gps_mode = USERPREFS_CONFIG_GPS_MODE;
 #elif !HAS_GPS || GPS_DEFAULT_NOT_PRESENT
@@ -636,7 +671,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
     config.bluetooth.fixed_pin = defaultBLEPin;
 
 #if defined(ST7735_CS) || defined(USE_EINK) || defined(ILI9341_DRIVER) || defined(ILI9342_DRIVER) || defined(ST7789_CS) ||       \
-    defined(HX8357_CS) || defined(USE_ST7789) || defined(ILI9488_CS)
+    defined(HX8357_CS) || defined(USE_ST7789) || defined(ILI9488_CS) || defined(ST7796_CS) || defined(USE_SPISSD1306)
     bool hasScreen = true;
 #ifdef HELTEC_MESH_NODE_T114
     uint32_t st7789_id = get_st7789_id(ST7789_NSS, ST7789_SCK, ST7789_SDA, ST7789_RS, ST7789_RESET);
@@ -646,7 +681,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #endif
 #elif ARCH_PORTDUINO
     bool hasScreen = false;
-    if (settingsMap[displayPanel])
+    if (portduino_config.displayPanel)
         hasScreen = true;
     else
         hasScreen = screen_found.port != ScanI2C::I2CPort::NO_I2C;
@@ -674,7 +709,7 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
 #ifdef USERPREFS_NETWORK_ENABLED_PROTOCOLS
     config.network.enabled_protocols = USERPREFS_NETWORK_ENABLED_PROTOCOLS;
 #else
-    config.network.enabled_protocols = 1;
+    config.network.enabled_protocols = 0;
 #endif
 #endif
 
@@ -700,7 +735,6 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
     config.display.screen_on_secs = 30;
     config.display.wake_on_tap_or_motion = true;
 #endif
-
 #if defined(ARCH_ESP32) && !MESHTASTIC_EXCLUDE_WIFI
     if (WiFiOTA::isUpdated()) {
         WiFiOTA::recoverConfig(&config.network);
@@ -760,16 +794,23 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.external_notification.output_buzzer = PIN_BUZZER;
     moduleConfig.external_notification.use_pwm = true;
     moduleConfig.external_notification.alert_message_buzzer = true;
-    moduleConfig.external_notification.nag_timeout = 60;
+    moduleConfig.external_notification.nag_timeout = default_ringtone_nag_secs;
 #endif
-#if defined(RAK4630) || defined(RAK11310)
+#if defined(PIN_VIBRATION)
+    moduleConfig.external_notification.enabled = true;
+    moduleConfig.external_notification.output_vibra = PIN_VIBRATION;
+    moduleConfig.external_notification.alert_message_vibra = true;
+    moduleConfig.external_notification.output_ms = 500;
+    moduleConfig.external_notification.nag_timeout = 2;
+#endif
+#if defined(RAK4630) || defined(RAK11310) || defined(RAK3312)
     // Default to RAK led pin 2 (blue)
     moduleConfig.external_notification.enabled = true;
     moduleConfig.external_notification.output = PIN_LED2;
     moduleConfig.external_notification.active = true;
     moduleConfig.external_notification.alert_message = true;
     moduleConfig.external_notification.output_ms = 1000;
-    moduleConfig.external_notification.nag_timeout = 60;
+    moduleConfig.external_notification.nag_timeout = default_ringtone_nag_secs;
 #endif
 
 #ifdef HAS_I2S
@@ -778,10 +819,10 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.external_notification.use_i2s_as_buzzer = true;
     moduleConfig.external_notification.alert_message_buzzer = true;
 #if HAS_TFT
-    if (moduleConfig.external_notification.nag_timeout == 60)
+    if (moduleConfig.external_notification.nag_timeout == default_ringtone_nag_secs)
         moduleConfig.external_notification.nag_timeout = 0;
 #else
-    moduleConfig.external_notification.nag_timeout = 60;
+    moduleConfig.external_notification.nag_timeout = default_ringtone_nag_secs;
 #endif
 #endif
 #ifdef NANO_G2_ULTRA
@@ -799,15 +840,16 @@ void NodeDB::installDefaultModuleConfig()
     moduleConfig.external_notification.output_ms = 1000;
     moduleConfig.external_notification.nag_timeout = 60;
 #endif
-#ifdef BUTTON_SECONDARY_CANNEDMESSAGES
-    // Use a board's second built-in button as input source for canned messages
-    moduleConfig.canned_message.enabled = true;
-    moduleConfig.canned_message.inputbroker_pin_press = BUTTON_PIN_SECONDARY;
-    strcpy(moduleConfig.canned_message.allow_input_source, "scanAndSelect");
+#ifdef T_LORA_PAGER
+    moduleConfig.canned_message.updown1_enabled = true;
+    moduleConfig.canned_message.inputbroker_pin_a = ROTARY_A;
+    moduleConfig.canned_message.inputbroker_pin_b = ROTARY_B;
+    moduleConfig.canned_message.inputbroker_pin_press = ROTARY_PRESS;
+    moduleConfig.canned_message.inputbroker_event_cw = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar(28);
+    moduleConfig.canned_message.inputbroker_event_ccw = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar(29);
+    moduleConfig.canned_message.inputbroker_event_press = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_SELECT;
 #endif
-
     moduleConfig.has_canned_message = true;
-
 #if USERPREFS_MQTT_ENABLED && !MESHTASTIC_EXCLUDE_MQTT
     moduleConfig.mqtt.enabled = true;
 #endif
@@ -865,20 +907,18 @@ void NodeDB::installRoleDefaults(meshtastic_Config_DeviceConfig_Role role)
     if (role == meshtastic_Config_DeviceConfig_Role_ROUTER) {
         initConfigIntervals();
         initModuleConfigIntervals();
+        moduleConfig.telemetry.device_update_interval = default_telemetry_broadcast_interval_secs;
         config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_CORE_PORTNUMS_ONLY;
         owner.has_is_unmessagable = true;
         owner.is_unmessagable = true;
     } else if (role == meshtastic_Config_DeviceConfig_Role_ROUTER_LATE) {
+        moduleConfig.telemetry.device_update_interval = ONE_DAY;
         owner.has_is_unmessagable = true;
         owner.is_unmessagable = true;
-    } else if (role == meshtastic_Config_DeviceConfig_Role_REPEATER) {
-        owner.has_is_unmessagable = true;
-        owner.is_unmessagable = true;
-        config.display.screen_on_secs = 1;
-        config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_CORE_PORTNUMS_ONLY;
     } else if (role == meshtastic_Config_DeviceConfig_Role_SENSOR) {
         owner.has_is_unmessagable = true;
         owner.is_unmessagable = true;
+        moduleConfig.telemetry.device_update_interval = default_telemetry_broadcast_interval_secs;
         moduleConfig.telemetry.environment_measurement_enabled = true;
         moduleConfig.telemetry.environment_update_interval = 300;
     } else if (role == meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND) {
@@ -896,6 +936,7 @@ void NodeDB::installRoleDefaults(meshtastic_Config_DeviceConfig_Role role)
     } else if (role == meshtastic_Config_DeviceConfig_Role_TRACKER) {
         owner.has_is_unmessagable = true;
         owner.is_unmessagable = true;
+        moduleConfig.telemetry.device_update_interval = default_telemetry_broadcast_interval_secs;
     } else if (role == meshtastic_Config_DeviceConfig_Role_TAK_TRACKER) {
         owner.has_is_unmessagable = true;
         owner.is_unmessagable = true;
@@ -911,21 +952,25 @@ void NodeDB::installRoleDefaults(meshtastic_Config_DeviceConfig_Role role)
         moduleConfig.telemetry.device_update_interval = ONE_DAY;
     } else if (role == meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN) {
         config.device.rebroadcast_mode = meshtastic_Config_DeviceConfig_RebroadcastMode_LOCAL_ONLY;
-        config.device.node_info_broadcast_secs = UINT32_MAX;
+        config.device.node_info_broadcast_secs = MAX_INTERVAL;
         config.position.position_broadcast_smart_enabled = false;
-        config.position.position_broadcast_secs = UINT32_MAX;
-        moduleConfig.neighbor_info.update_interval = UINT32_MAX;
-        moduleConfig.telemetry.device_update_interval = UINT32_MAX;
-        moduleConfig.telemetry.environment_update_interval = UINT32_MAX;
-        moduleConfig.telemetry.air_quality_interval = UINT32_MAX;
-        moduleConfig.telemetry.health_update_interval = UINT32_MAX;
+        config.position.position_broadcast_secs = MAX_INTERVAL;
+        moduleConfig.neighbor_info.update_interval = MAX_INTERVAL;
+        moduleConfig.telemetry.device_update_interval = MAX_INTERVAL;
+        moduleConfig.telemetry.environment_update_interval = MAX_INTERVAL;
+        moduleConfig.telemetry.air_quality_interval = MAX_INTERVAL;
+        moduleConfig.telemetry.health_update_interval = MAX_INTERVAL;
     }
 }
 
 void NodeDB::initModuleConfigIntervals()
 {
     // Zero out telemetry intervals so that they coalesce to defaults in Default.h
-    moduleConfig.telemetry.device_update_interval = 0;
+#ifdef USERPREFS_CONFIG_DEVICE_TELEM_UPDATE_INTERVAL
+    moduleConfig.telemetry.device_update_interval = USERPREFS_CONFIG_DEVICE_TELEM_UPDATE_INTERVAL;
+#else
+    moduleConfig.telemetry.device_update_interval = MAX_INTERVAL;
+#endif
     moduleConfig.telemetry.environment_update_interval = 0;
     moduleConfig.telemetry.air_quality_interval = 0;
     moduleConfig.telemetry.power_update_interval = 0;
@@ -991,7 +1036,10 @@ void NodeDB::cleanupMeshDB()
                     meshNodes->at(i).user.public_key.size = 0;
                 }
             }
-            meshNodes->at(newPos++) = meshNodes->at(i);
+            if (newPos != i)
+                meshNodes->at(newPos++) = meshNodes->at(i);
+            else
+                newPos++;
         } else {
             removed++;
         }
@@ -1082,8 +1130,8 @@ LoadFileResult NodeDB::loadProto(const char *filename, size_t protoSize, size_t 
     if (f) {
         LOG_INFO("Load %s", filename);
         pb_istream_t stream = {&readcb, &f, protoSize};
-
-        memset(dest_struct, 0, objSize);
+        if (fields != &meshtastic_NodeDatabase_msg) // contains a vector object
+            memset(dest_struct, 0, objSize);
         if (!pb_decode(&stream, fields, dest_struct)) {
             LOG_ERROR("Error: can't decode protobuf %s", PB_GET_ERROR(&stream));
             state = LoadFileResult::DECODE_FAILED;
@@ -1118,6 +1166,20 @@ void NodeDB::loadFromDisk()
     spiLock->unlock();
 #endif
 #ifdef FSCom
+#ifdef FACTORY_INSTALL
+    spiLock->lock();
+    if (!FSCom.exists("/prefs/" xstr(BUILD_EPOCH))) {
+        LOG_WARN("Factory Install Reset!");
+        FSCom.format();
+        FSCom.mkdir("/prefs");
+        File f2 = FSCom.open("/prefs/" xstr(BUILD_EPOCH), FILE_O_WRITE);
+        if (f2) {
+            f2.flush();
+            f2.close();
+        }
+    }
+    spiLock->unlock();
+#endif
     spiLock->lock();
     if (FSCom.exists(legacyPrefFileName)) {
         spiLock->unlock();
@@ -1293,6 +1355,13 @@ void NodeDB::loadFromDisk()
 
         saveToDisk(SEGMENT_MODULECONFIG);
     }
+#if ARCH_PORTDUINO
+    // set any config overrides
+    if (portduino_config.has_configDisplayMode) {
+        config.display.displaymode = (_meshtastic_Config_DisplayConfig_DisplayMode)portduino_config.configDisplayMode;
+    }
+
+#endif
 }
 
 /** Save a protobuf from a file, return true for success */
@@ -1557,8 +1626,17 @@ void NodeDB::updateTelemetry(uint32_t nodeId, const meshtastic_Telemetry &t, RxS
 void NodeDB::addFromContact(meshtastic_SharedContact contact)
 {
     meshtastic_NodeInfoLite *info = getOrCreateMeshNode(contact.node_num);
-    if (!info) {
+    if (!info || !contact.has_user) {
         return;
+    }
+    // If the local node has this node marked as manually verified
+    // and the client does not, do not allow the client to update the
+    // saved public key.
+    if ((info->bitfield & NODEINFO_BITFIELD_IS_KEY_MANUALLY_VERIFIED_MASK) && !contact.manually_verified) {
+        if (contact.user.public_key.size != info->user.public_key.size ||
+            memcmp(contact.user.public_key.bytes, info->user.public_key.bytes, info->user.public_key.size) != 0) {
+            return;
+        }
     }
     info->num = contact.node_num;
     info->has_user = true;
@@ -1574,10 +1652,13 @@ void NodeDB::addFromContact(meshtastic_SharedContact contact)
     } else {
         info->last_heard = getValidTime(RTCQualityNTP);
         info->is_favorite = true;
-        info->bitfield |= NODEINFO_BITFIELD_IS_KEY_MANUALLY_VERIFIED_MASK;
+        // As the clients will begin sending the contact with DMs, we want to strictly check if the node is manually verified
+        if (contact.manually_verified) {
+            info->bitfield |= NODEINFO_BITFIELD_IS_KEY_MANUALLY_VERIFIED_MASK;
+        }
         // Mark the node's key as manually verified to indicate trustworthiness.
         updateGUIforNode = info;
-        powerFSM.trigger(EVENT_NODEDB_UPDATED);
+        // sortMeshDB();
         notifyObservers(true); // Force an update whether or not our node counts have changed
     }
     saveNodeDatabaseToDisk();
@@ -1597,25 +1678,30 @@ bool NodeDB::updateUser(uint32_t nodeId, meshtastic_User &p, uint8_t channelInde
         printBytes("Incoming Pubkey: ", p.public_key.bytes, 32);
 
         // Alert the user if a remote node is advertising public key that matches our own
-        if (owner.public_key.size == 32 && memcmp(p.public_key.bytes, owner.public_key.bytes, 32) == 0 && !duplicateWarned) {
-            duplicateWarned = true;
-            char warning[] = "Remote device %s has advertised your public key. This may indicate a compromised key. You may need "
-                             "to regenerate your public keys.";
-            LOG_WARN(warning, p.long_name);
-            meshtastic_ClientNotification *cn = clientNotificationPool.allocZeroed();
-            cn->which_payload_variant = meshtastic_ClientNotification_duplicated_public_key_tag;
-            cn->level = meshtastic_LogRecord_Level_WARNING;
-            cn->time = getValidTime(RTCQualityFromNet);
-            sprintf(cn->message, warning, p.long_name);
-            service->sendClientNotification(cn);
+        if (owner.public_key.size == 32 && memcmp(p.public_key.bytes, owner.public_key.bytes, 32) == 0) {
+            if (!duplicateWarned) {
+                duplicateWarned = true;
+                char warning[] =
+                    "Remote device %s has advertised your public key. This may indicate a compromised key. You may need "
+                    "to regenerate your public keys.";
+                LOG_WARN(warning, p.long_name);
+                meshtastic_ClientNotification *cn = clientNotificationPool.allocZeroed();
+                cn->level = meshtastic_LogRecord_Level_WARNING;
+                cn->time = getValidTime(RTCQualityFromNet);
+                sprintf(cn->message, warning, p.long_name);
+                service->sendClientNotification(cn);
+            }
+            return false;
         }
     }
-    if (info->user.public_key.size > 0) { // if we have a key for this user already, don't overwrite with a new one
+    if (info->user.public_key.size == 32) { // if we have a key for this user already, don't overwrite with a new one
+        // if the key doesn't match, don't update nodeDB at all.
+        if (p.public_key.size != 32 || (memcmp(p.public_key.bytes, info->user.public_key.bytes, 32) != 0)) {
+            LOG_WARN("Public Key mismatch, dropping NodeInfo");
+            return false;
+        }
         LOG_INFO("Public Key set for node, not updating!");
-        // we copy the key into the incoming packet, to prevent overwrite
-        p.public_key.size = 32;
-        memcpy(p.public_key.bytes, info->user.public_key.bytes, 32);
-    } else if (p.public_key.size > 0) {
+    } else if (p.public_key.size == 32) {
         LOG_INFO("Update Node Pubkey!");
     }
 #endif
@@ -1633,7 +1719,6 @@ bool NodeDB::updateUser(uint32_t nodeId, meshtastic_User &p, uint8_t channelInde
 
     if (changed) {
         updateGUIforNode = info;
-        powerFSM.trigger(EVENT_NODEDB_UPDATED);
         notifyObservers(true); // Force an update whether or not our node counts have changed
 
         // We just changed something about a User,
@@ -1654,10 +1739,10 @@ bool NodeDB::updateUser(uint32_t nodeId, meshtastic_User &p, uint8_t channelInde
 /// we updateGUI and updateGUIforNode if we think our this change is big enough for a redraw
 void NodeDB::updateFrom(const meshtastic_MeshPacket &mp)
 {
-    // if (mp.from == getNodeNum()) {
-    //     LOG_DEBUG("Ignore update from self");
-    //     return;
-    // }
+    if (mp.from == getNodeNum()) {
+        LOG_DEBUG("Ignore update from self");
+        return;
+    }
     if (mp.which_payload_variant == meshtastic_MeshPacket_decoded_tag && mp.from) {
         LOG_DEBUG("Update DB node 0x%x, rx_time=%u", mp.from, mp.rx_time);
 
@@ -1679,6 +1764,111 @@ void NodeDB::updateFrom(const meshtastic_MeshPacket &mp)
             info->has_hops_away = true;
             info->hops_away = mp.hop_start - mp.hop_limit;
         }
+        // sortMeshDB();
+    }
+}
+
+void NodeDB::set_favorite(bool is_favorite, uint32_t nodeId)
+{
+    meshtastic_NodeInfoLite *lite = getMeshNode(nodeId);
+    if (lite && lite->is_favorite != is_favorite) {
+        lite->is_favorite = is_favorite;
+        sortMeshDB();
+        saveNodeDatabaseToDisk();
+    }
+}
+
+bool NodeDB::isFavorite(uint32_t nodeId)
+{
+    // returns true if nodeId is_favorite; false if not or not found
+
+    // NODENUM_BROADCAST will never be in the DB
+    if (nodeId == NODENUM_BROADCAST)
+        return false;
+
+    meshtastic_NodeInfoLite *lite = getMeshNode(nodeId);
+
+    if (lite) {
+        return lite->is_favorite;
+    }
+    return false;
+}
+
+bool NodeDB::isFromOrToFavoritedNode(const meshtastic_MeshPacket &p)
+{
+    // This method is logically equivalent to:
+    //   return isFavorite(p.from) || isFavorite(p.to);
+    // but is more efficient by:
+    //   1. doing only one pass through the database, instead of two
+    //   2. exiting early when a favorite is found, or if both from and to have been seen
+
+    if (p.to == NODENUM_BROADCAST)
+        return isFavorite(p.from); // we never store NODENUM_BROADCAST in the DB, so we only need to check p.from
+
+    meshtastic_NodeInfoLite *lite = NULL;
+
+    bool seenFrom = false;
+    bool seenTo = false;
+
+    for (int i = 0; i < numMeshNodes; i++) {
+        lite = &meshNodes->at(i);
+
+        if (lite->num == p.from) {
+            if (lite->is_favorite)
+                return true;
+
+            seenFrom = true;
+        }
+
+        if (lite->num == p.to) {
+            if (lite->is_favorite)
+                return true;
+
+            seenTo = true;
+        }
+
+        if (seenFrom && seenTo)
+            return false; // we've seen both, and neither is a favorite, so we can stop searching early
+
+        // Note: if we knew that sortMeshDB was always called after any change to is_favorite, we could exit early after searching
+        // all favorited nodes first.
+    }
+
+    return false;
+}
+
+void NodeDB::pause_sort(bool paused)
+{
+    sortingIsPaused = paused;
+}
+
+void NodeDB::sortMeshDB()
+{
+    if (!sortingIsPaused && (lastSort == 0 || !Throttle::isWithinTimespanMs(lastSort, 1000 * 5))) {
+        lastSort = millis();
+        bool changed = true;
+        while (changed) { // dumb reverse bubble sort, but probably not bad for what we're doing
+            changed = false;
+            for (int i = numMeshNodes - 1; i > 0; i--) { // lowest case this should examine is i == 1
+                if (meshNodes->at(i - 1).num == getNodeNum()) {
+                    // noop
+                } else if (meshNodes->at(i).num ==
+                           getNodeNum()) { // in the oddball case our own node num is not at location 0, put it there
+                    // TODO: Look for at(i-1) also matching own node num, and throw the DB in the trash
+                    std::swap(meshNodes->at(i), meshNodes->at(i - 1));
+                    changed = true;
+                } else if (meshNodes->at(i).is_favorite && !meshNodes->at(i - 1).is_favorite) {
+                    std::swap(meshNodes->at(i), meshNodes->at(i - 1));
+                    changed = true;
+                } else if (!meshNodes->at(i).is_favorite && meshNodes->at(i - 1).is_favorite) {
+                    // noop
+                } else if (meshNodes->at(i).last_heard > meshNodes->at(i - 1).last_heard) {
+                    std::swap(meshNodes->at(i), meshNodes->at(i - 1));
+                    changed = true;
+                }
+            }
+        }
+        LOG_INFO("Sort took %u milliseconds", millis() - lastSort);
     }
 }
 
@@ -1780,34 +1970,16 @@ UserLicenseStatus NodeDB::getLicenseStatus(uint32_t nodeNum)
     return info->user.is_licensed ? UserLicenseStatus::Licensed : UserLicenseStatus::NotLicensed;
 }
 
-bool NodeDB::checkLowEntropyPublicKey(const meshtastic_Config_SecurityConfig_public_key_t keyToTest)
+bool NodeDB::checkLowEntropyPublicKey(const meshtastic_Config_SecurityConfig_public_key_t &keyToTest)
 {
     if (keyToTest.size == 32) {
         uint8_t keyHash[32] = {0};
         memcpy(keyHash, keyToTest.bytes, keyToTest.size);
         crypto->hash(keyHash, 32);
-        if (memcmp(keyHash, LOW_ENTROPY_HASH1, sizeof(LOW_ENTROPY_HASH1)) ==
-                0 || // should become an array that gets looped through rather than this abomination
-            memcmp(keyHash, LOW_ENTROPY_HASH2, sizeof(LOW_ENTROPY_HASH2)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH3, sizeof(LOW_ENTROPY_HASH3)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH4, sizeof(LOW_ENTROPY_HASH4)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH5, sizeof(LOW_ENTROPY_HASH5)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH6, sizeof(LOW_ENTROPY_HASH6)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH7, sizeof(LOW_ENTROPY_HASH7)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH8, sizeof(LOW_ENTROPY_HASH8)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH9, sizeof(LOW_ENTROPY_HASH9)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH10, sizeof(LOW_ENTROPY_HASH10)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH11, sizeof(LOW_ENTROPY_HASH11)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH12, sizeof(LOW_ENTROPY_HASH12)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH13, sizeof(LOW_ENTROPY_HASH13)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH14, sizeof(LOW_ENTROPY_HASH14)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH15, sizeof(LOW_ENTROPY_HASH15)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH16, sizeof(LOW_ENTROPY_HASH16)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH17, sizeof(LOW_ENTROPY_HASH17)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH18, sizeof(LOW_ENTROPY_HASH18)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH19, sizeof(LOW_ENTROPY_HASH19)) == 0 ||
-            memcmp(keyHash, LOW_ENTROPY_HASH20, sizeof(LOW_ENTROPY_HASH20)) == 0) {
-            return true;
+        for (uint16_t i = 0; i < sizeof(LOW_ENTROPY_HASHES) / sizeof(LOW_ENTROPY_HASHES[0]); i++) {
+            if (memcmp(keyHash, LOW_ENTROPY_HASHES[i], sizeof(LOW_ENTROPY_HASHES[0])) == 0) {
+                return true;
+            }
         }
     }
     return false;
@@ -1904,10 +2076,6 @@ bool NodeDB::restorePreferences(meshtastic_AdminMessage_BackupLocation location,
 /// Record an error that should be reported via analytics
 void recordCriticalError(meshtastic_CriticalErrorCode code, uint32_t address, const char *filename)
 {
-    // Print error to screen and serial port
-    String lcd = String("Critical error ") + code + "!\n";
-    if (screen)
-        screen->print(lcd.c_str());
     if (filename) {
         LOG_ERROR("NOTE! Record critical error %d at %s:%lu", code, filename, address);
     } else {

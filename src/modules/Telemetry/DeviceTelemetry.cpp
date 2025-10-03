@@ -43,12 +43,8 @@ int32_t DeviceTelemetryModule::runOnce()
 
 bool DeviceTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_Telemetry *t)
 {
-    // Don't worry about storing telemetry in NodeDB if we're a repeater
-    if (config.device.role == meshtastic_Config_DeviceConfig_Role_REPEATER)
-        return false;
-
     if (t->which_variant == meshtastic_Telemetry_device_metrics_tag) {
-#ifdef DEBUG_PORT
+#if defined(DEBUG_PORT)
         const char *sender = getSenderShortName(mp);
 
         LOG_INFO("(Received from %s): air_util_tx=%f, channel_utilization=%f, battery_level=%i, voltage=%f", sender,
@@ -171,7 +167,10 @@ bool DeviceTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
              telemetry.variant.device_metrics.battery_level, telemetry.variant.device_metrics.voltage,
              telemetry.variant.device_metrics.uptime_seconds);
 
+    DEBUG_HEAP_BEFORE;
     meshtastic_MeshPacket *p = allocDataProtobuf(telemetry);
+    DEBUG_HEAP_AFTER("DeviceTelemetryModule::sendTelemetry", p);
+
     p->to = dest;
     p->decoded.want_response = false;
     p->priority = meshtastic_MeshPacket_Priority_BACKGROUND;

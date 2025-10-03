@@ -180,11 +180,20 @@ class RadioInterface
     /** The worst-case SNR_based packet delay */
     uint32_t getTxDelayMsecWeightedWorst(float snr);
 
+    /** Returns true if we should rebroadcast early like a ROUTER */
+    bool shouldRebroadcastEarlyLikeRouter(meshtastic_MeshPacket *p);
+
     /** The delay to use when we want to flood a message. Use a weighted scale based on SNR */
-    uint32_t getTxDelayMsecWeighted(float snr);
+    uint32_t getTxDelayMsecWeighted(meshtastic_MeshPacket *p);
 
     /** If the packet is not already in the late rebroadcast window, move it there */
     virtual void clampToLateRebroadcastWindow(NodeNum from, PacketId id) { return; }
+
+    /**
+     * If there is a packet pending TX in the queue with a worse hop limit, remove it pending replacement with a better version
+     * @return Whether a pending packet was removed
+     */
+    virtual bool removePendingTXPacket(NodeNum from, PacketId id, uint32_t hop_limit_lt) { return false; }
 
     /**
      * Calculate airtime per
@@ -230,7 +239,7 @@ class RadioInterface
      * Some regulatory regions limit xmit power.
      * This function should be called by subclasses after setting their desired power.  It might lower it
      */
-    void limitPower();
+    void limitPower(int8_t MAX_POWER);
 
     /**
      * Save the frequency we selected for later reuse.

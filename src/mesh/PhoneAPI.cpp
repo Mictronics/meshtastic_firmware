@@ -31,6 +31,9 @@
 #include "Throttle.h"
 #include <RTC.h>
 
+// Flag to indicate a heartbeat was received and we should send queue status
+bool heartbeatReceived = false;
+
 PhoneAPI::PhoneAPI()
 {
     lastContactMsec = millis();
@@ -97,6 +100,7 @@ void PhoneAPI::close()
         config_nonce = 0;
         config_state = 0;
         pauseBluetoothLogging = false;
+        heartbeatReceived = false;
     }
 }
 
@@ -155,6 +159,7 @@ bool PhoneAPI::handleToRadio(const uint8_t *buf, size_t bufLength)
 #endif
         case meshtastic_ToRadio_heartbeat_tag:
             LOG_DEBUG("Got client heartbeat");
+            heartbeatReceived = true;
             break;
         default:
             // Ignore nop messages
@@ -188,6 +193,17 @@ bool PhoneAPI::handleToRadio(const uint8_t *buf, size_t bufLength)
 
 size_t PhoneAPI::getFromRadio(uint8_t *buf)
 {
+    // Respond to heartbeat by sending queue status
+    if (heartbeatReceived) {
+        memset(&fromRadioScratch, 0, sizeof(fromRadioScratch));
+        fromRadioScratch.which_payload_variant = meshtastic_FromRadio_queueStatus_tag;
+        fromRadioScratch.queueStatus = router->getQueueStatus();
+        heartbeatReceived = false;
+        size_t numbytes = pb_encode_to_bytes(buf, meshtastic_FromRadio_size, &meshtastic_FromRadio_msg, &fromRadioScratch);
+        LOG_DEBUG("FromRadio=STATE_SEND_QUEUE_STATUS, numbytes=%u", numbytes);
+        return numbytes;
+    }
+
     if (!available()) {
         return 0;
     }
@@ -205,6 +221,7 @@ size_t PhoneAPI::getFromRadio(uint8_t *buf)
         // app not to send locations on our behalf.
         fromRadioScratch.which_payload_variant = meshtastic_FromRadio_my_info_tag;
         strncpy(myNodeInfo.pio_env, optstr(APP_ENV), sizeof(myNodeInfo.pio_env));
+        myNodeInfo.nodedb_count = static_cast<uint16_t>(nodeDB->getNumMeshNodes());
         fromRadioScratch.my_info = myNodeInfo;
         state = STATE_SEND_UIDATA;
 
@@ -233,6 +250,7 @@ size_t PhoneAPI::getFromRadio(uint8_t *buf)
         if (config_nonce == SPECIAL_NONCE_ONLY_NODES) {
             // If client only wants node info, jump directly to sending nodes
             state = STATE_SEND_OTHER_NODEINFOS;
+            onNowHasData(0);
         } else {
             state = STATE_SEND_METADATA;
         }
@@ -406,6 +424,7 @@ size_t PhoneAPI::getFromRadio(uint8_t *buf)
                 state = STATE_SEND_FILEMANIFEST;
             } else {
                 state = STATE_SEND_OTHER_NODEINFOS;
+                onNowHasData(0);
             }
             config_state = 0;
         }
@@ -571,6 +590,7 @@ bool PhoneAPI::available()
                 nodeInfoForPhone.snr = isUs ? 0 : nodeInfoForPhone.snr;
                 nodeInfoForPhone.via_mqtt = isUs ? false : nodeInfoForPhone.via_mqtt;
                 nodeInfoForPhone.is_favorite = nodeInfoForPhone.is_favorite || isUs; // Our node is always a favorite
+                onNowHasData(0);
             }
         }
         return true; // Always say we have something, because we might need to advance our state machine
@@ -670,7 +690,8 @@ bool PhoneAPI::handleToRadioPacket(meshtastic_MeshPacket &p)
         meshtastic_QueueStatus qs = router->getQueueStatus();
         service->sendQueueStatusToPhone(qs, 0, p.id);
         return false;
-    } else if (IS_ONE_OF(meshtastic_PortNum_POSITION_APP, meshtastic_PortNum_WAYPOINT_APP, meshtastic_PortNum_ALERT_APP) &&
+    } else if (IS_ONE_OF(p.decoded.portnum, meshtastic_PortNum_POSITION_APP, meshtastic_PortNum_WAYPOINT_APP,
+                         meshtastic_PortNum_ALERT_APP, meshtastic_PortNum_TELEMETRY_APP) &&
                lastPortNumToRadio[p.decoded.portnum] &&
                Throttle::isWithinTimespanMs(lastPortNumToRadio[p.decoded.portnum], TEN_SECONDS_MS)) {
         // TODO: [Issue #6700] Make this rate limit throttling scale up / down with the preset
@@ -680,7 +701,22 @@ bool PhoneAPI::handleToRadioPacket(meshtastic_MeshPacket &p)
         // FIXME: Figure out why this continues to happen
         // sendNotification(meshtastic_LogRecord_Level_WARNING, p.id, "Position can only be sent once every 5 seconds");
         return false;
+    } else if (p.decoded.portnum == meshtastic_PortNum_TEXT_MESSAGE_APP && lastPortNumToRadio[p.decoded.portnum] &&
+               Throttle::isWithinTimespanMs(lastPortNumToRadio[p.decoded.portnum], TWO_SECONDS_MS)) {
+        LOG_WARN("Rate limit portnum %d", p.decoded.portnum);
+        meshtastic_QueueStatus qs = router->getQueueStatus();
+        service->sendQueueStatusToPhone(qs, 0, p.id);
+        service->sendRoutingErrorResponse(meshtastic_Routing_Error_RATE_LIMIT_EXCEEDED, &p);
+        // sendNotification(meshtastic_LogRecord_Level_WARNING, p.id, "Text messages can only be sent once every 2 seconds");
+        return false;
     }
+
+    // Upgrade traceroute requests from phone to use reliable delivery, matching TraceRouteModule
+    if (p.decoded.portnum == meshtastic_PortNum_TRACEROUTE_APP && !isBroadcast(p.to)) {
+        // Use reliable delivery for traceroute requests (which will be copied to traceroute responses by setReplyTo)
+        p.want_ack = true;
+    }
+
     lastPortNumToRadio[p.decoded.portnum] = millis();
     service->handleToRadio(p);
     return true;

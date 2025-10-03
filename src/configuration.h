@@ -26,10 +26,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Arduino.h>
 
-#ifdef RV3028_RTC
+#if __has_include("Melopero_RV3028.h")
 #include "Melopero_RV3028.h"
 #endif
-#ifdef PCF8563_RTC
+#if __has_include("pcf8563.h")
 #include "pcf8563.h"
 #endif
 
@@ -117,6 +117,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SX126X_MAX_POWER 22
 #endif
 
+#ifdef USE_GC1109_PA
+// Power Amps are often non-linear, so we can use an array of values for the power curve
+#define NUM_PA_POINTS 22
+#define TX_GAIN_LORA 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 10, 9, 9, 8, 7
+#endif
+
 // Default system gain to 0 if not defined
 #ifndef TX_GAIN_LORA
 #define TX_GAIN_LORA 0
@@ -135,7 +141,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // -----------------------------------------------------------------------------
 // OLED & Input
 // -----------------------------------------------------------------------------
-#if defined(SEEED_WIO_TRACKER_L1)
+#if defined(SEEED_WIO_TRACKER_L1) && !defined(SEEED_WIO_TRACKER_L1_EINK)
 #define SSD1306_ADDRESS 0x3D
 #define USE_SH1106
 #else
@@ -150,7 +156,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Define if screen should be mirrored left to right
 // #define SCREEN_MIRROR
 
-// I2C Keyboards (M5Stack, RAK14004, T-Deck)
+// I2C Keyboards (M5Stack, RAK14004, T-Deck, T-Deck Pro, T-Lora Pager, CardKB, BBQ10, MPR121, TCA8418)
 #define CARDKB_ADDR 0x5F
 #define TDECK_KB_ADDR 0x55
 #define BBQ10_KB_ADDR 0x1F
@@ -190,11 +196,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DFROBOT_RAIN_ADDR 0x1d
 #define NAU7802_ADDR 0x2A
 #define MAX30102_ADDR 0x57
+#define SCD4X_ADDR 0x62
 #define MLX90614_ADDR_DEF 0x5A
 #define CGRADSENS_ADDR 0x66
 #define LTR390UV_ADDR 0x53
-#define XPOWERS_AXP192_AXP2101_ADDRESS 0x34 // same adress as TCA8418
+#define XPOWERS_AXP192_AXP2101_ADDRESS 0x34 // same adress as TCA8418_KB
 #define PCT2075_ADDR 0x37
+#define BQ27220_ADDR 0x55 // same address as TDECK_KB
+#define BQ25896_ADDR 0x6B
+#define LTR553ALS_ADDR 0x23
 
 // -----------------------------------------------------------------------------
 // ACCELEROMETER
@@ -208,6 +218,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BMX160_ADDR 0x69
 #define ICM20948_ADDR 0x69
 #define ICM20948_ADDR_ALT 0x68
+#define BHI260AP_ADDR 0x28
+#define BMM150_ADDR 0x13
 
 // -----------------------------------------------------------------------------
 // LED
@@ -229,6 +241,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Touchscreen
 // -----------------------------------------------------------------------------
 #define FT6336U_ADDR 0x48
+#define CST328_ADDR 0x1A
 
 // -----------------------------------------------------------------------------
 // RAK12035VB Soil Monitor (using RAK12023 up to 3 RAK12035 monitors can be connected)
@@ -253,6 +266,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #if defined(VEXT_ENABLE) && !defined(VEXT_ON_VALUE)
 // Older variant.h files might not be defining this value, so stay with the old default
 #define VEXT_ON_VALUE LOW
+#endif
+
+// -----------------------------------------------------------------------------
+// Rotary encoder
+// -----------------------------------------------------------------------------
+#ifndef ROTARY_DELAY
+#define ROTARY_DELAY 5
 #endif
 
 // -----------------------------------------------------------------------------
@@ -348,9 +368,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #error HW_VENDOR must be defined
 #endif
 
+#ifndef TB_DOWN
+#define TB_DOWN 255
+#endif
+#ifndef TB_UP
+#define TB_UP 255
+#endif
+#ifndef TB_LEFT
+#define TB_LEFT 255
+#endif
+#ifndef TB_RIGHT
+#define TB_RIGHT 255
+#endif
+#ifndef TB_PRESS
+#define TB_PRESS 255
+#endif
+
 // Support multiple RGB LED configuration
 #if defined(HAS_NCP5623) || defined(HAS_LP5562) || defined(RGBLED_RED) || defined(HAS_NEOPIXEL) || defined(UNPHONE)
 #define HAS_RGB_LED
+#endif
+
+// default mapping of pins
+#if defined(PIN_BUTTON2) && !defined(CANCEL_BUTTON_PIN)
+#define ALT_BUTTON_PIN PIN_BUTTON2
+#endif
+#if defined ALT_BUTTON_PIN
+
+#ifndef ALT_BUTTON_ACTIVE_LOW
+#define ALT_BUTTON_ACTIVE_LOW true
+#endif
+#ifndef ALT_BUTTON_ACTIVE_PULLUP
+#define ALT_BUTTON_ACTIVE_PULLUP true
+#endif
 #endif
 
 // -----------------------------------------------------------------------------
