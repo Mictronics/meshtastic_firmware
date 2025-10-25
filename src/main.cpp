@@ -22,6 +22,7 @@
 #include "power.h"
 
 #if !MESHTASTIC_EXCLUDE_I2C
+#include "detect/ScanI2CConsumer.h"
 #include "detect/ScanI2CTwoWire.h"
 #include <Wire.h>
 #endif
@@ -385,6 +386,12 @@ void setup()
 
     LOG_INFO("\n\n//\\ E S H T /\\ S T / C\n");
 
+#if defined(DEBUG_MUTE) && defined(DEBUG_PORT)
+    DEBUG_PORT.printf("\r\n\r\n//\\ E S H T /\\ S T / C\r\n");
+    DEBUG_PORT.printf("Version %s for %s from %s\r\n", optstr(APP_VERSION), optstr(APP_ENV), optstr(APP_REPO));
+    DEBUG_PORT.printf("Debug mute is enabled, there will be no serial output.\r\n");
+#endif
+
     initDeepSleep();
 
 #if defined(MODEM_POWER_EN)
@@ -576,11 +583,6 @@ void setup()
      * "found".
      */
 
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::BME_680, meshtastic_TelemetrySensorType_BME680);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::BME_280, meshtastic_TelemetrySensorType_BME280);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::BMP_280, meshtastic_TelemetrySensorType_BMP280);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::BMP_3XX, meshtastic_TelemetrySensorType_BMP3XX);
-    scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::BMP_085, meshtastic_TelemetrySensorType_BMP085);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA260, meshtastic_TelemetrySensorType_INA260);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA226, meshtastic_TelemetrySensorType_INA226);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA219, meshtastic_TelemetrySensorType_INA219);
@@ -669,7 +671,14 @@ void setup()
         SPI.begin();
     }
 #elif !defined(ARCH_ESP32) // ARCH_RP2040
+#if defined(RAK3401) || defined(RAK13302)
+    pinMode(WB_IO2, OUTPUT);
+    digitalWrite(WB_IO2, HIGH);
+    SPI1.setPins(LORA_MISO, LORA_SCK, LORA_MOSI);
+    SPI1.begin();
+#else
     SPI.begin();
+#endif
 #else
         // ESP32
 #if defined(HW_SPI1_DEVICE)
@@ -767,6 +776,12 @@ void setup()
 
     // Now that the mesh service is created, create any modules
     setupModules();
+
+#if !MESHTASTIC_EXCLUDE_I2C
+    // Inform modules about I2C devices
+    ScanI2CCompleted(i2cScanner.get());
+    i2cScanner.reset();
+#endif
 
     // warn the user about a low entropy key
     if (nodeDB->keyIsLowEntropy && !nodeDB->hasWarned) {

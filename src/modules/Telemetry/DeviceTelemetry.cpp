@@ -24,7 +24,8 @@ int32_t DeviceTelemetryModule::runOnce()
           Default::getConfiguredOrDefaultMsScaled(moduleConfig.telemetry.device_update_interval,
                                                   default_telemetry_broadcast_interval_secs, numOnlineNodes))) &&
         airTime->isTxAllowedChannelUtil(!isImpoliteRole) && airTime->isTxAllowedAirUtil() &&
-        config.device.role != meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN) {
+        config.device.role != meshtastic_Config_DeviceConfig_Role_CLIENT_HIDDEN &&
+        moduleConfig.telemetry.device_telemetry_enabled) {
         sendTelemetry();
         lastSentToMesh = uptimeLastMs;
     } else if (service->isToPhoneQueueEmpty()) {
@@ -119,6 +120,7 @@ meshtastic_Telemetry DeviceTelemetryModule::getLocalStatsTelemetry()
         telemetry.variant.local_stats.num_packets_rx = RadioLibInterface::instance->rxGood + RadioLibInterface::instance->rxBad;
         telemetry.variant.local_stats.num_packets_rx_bad = RadioLibInterface::instance->rxBad;
         telemetry.variant.local_stats.num_tx_relay = RadioLibInterface::instance->txRelay;
+        telemetry.variant.local_stats.num_tx_dropped = RadioLibInterface::instance->txDrop;
     }
 #ifdef ARCH_PORTDUINO
     if (SimRadio::instance) {
@@ -126,6 +128,7 @@ meshtastic_Telemetry DeviceTelemetryModule::getLocalStatsTelemetry()
         telemetry.variant.local_stats.num_packets_rx = SimRadio::instance->rxGood + SimRadio::instance->rxBad;
         telemetry.variant.local_stats.num_packets_rx_bad = SimRadio::instance->rxBad;
         telemetry.variant.local_stats.num_tx_relay = SimRadio::instance->txRelay;
+        telemetry.variant.local_stats.num_tx_dropped = SimRadio::instance->txDrop;
     }
 #else
     telemetry.variant.local_stats.heap_total_bytes = memGet.getHeapSize();

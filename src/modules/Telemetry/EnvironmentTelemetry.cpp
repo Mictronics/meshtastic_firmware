@@ -23,44 +23,26 @@
 
 #if __has_include(<Adafruit_BME280.h>)
 #include "Sensor/BME280Sensor.h"
-BME280Sensor bme280Sensor;
-#else
-NullSensor bmp280Sensor;
 #endif
 
 #if __has_include(<Adafruit_BMP085.h>)
 #include "Sensor/BMP085Sensor.h"
-BMP085Sensor bmp085Sensor;
-#else
-NullSensor bmp085Sensor;
 #endif
 
 #if __has_include(<Adafruit_BMP280.h>)
 #include "Sensor/BMP280Sensor.h"
-BMP280Sensor bmp280Sensor;
-#else
-NullSensor bme280Sensor;
 #endif
 
 #if __has_include(<bsec2.h>)
 #include "Sensor/BME680Sensor.h"
-BME680Sensor bme680Sensor;
-#else
-NullSensor bme680Sensor;
 #endif
 
 #if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) && RAK_4631 == 1
 #include "Sensor/RAK12035Sensor.h"
-RAK12035Sensor rak12035Sensor;
-#else
-NullSensor rak12035Sensor;
 #endif
 
 #if __has_include(<Adafruit_BMP3XX.h>)
 #include "Sensor/BMP3XXSensor.h"
-BMP3XXSensor bmp3xxSensor;
-#else
-NullSensor bmp3xxSensor;
 #endif
 
 #endif
@@ -69,6 +51,118 @@ NullSensor bmp3xxSensor;
 #define DISPLAY_RECEIVEID_MEASUREMENTS_ON_SCREEN true
 
 #include <Throttle.h>
+
+#include <forward_list>
+
+static std::forward_list<TelemetrySensor *> sensors;
+
+template <typename T> void addSensor(ScanI2C *i2cScanner, ScanI2C::DeviceType type)
+{
+    ScanI2C::FoundDevice dev = i2cScanner->find(type);
+    if (dev.type != ScanI2C::DeviceType::NONE || type == ScanI2C::DeviceType::NONE) {
+        TelemetrySensor *sensor = new T();
+#if WIRE_INTERFACES_COUNT > 1
+        TwoWire *bus = ScanI2CTwoWire::fetchI2CBus(dev.address);
+        if (dev.address.port != ScanI2C::I2CPort::WIRE1 && sensor->onlyWire1()) {
+            // This sensor only works on Wire (Wire1 is not supported)
+            delete sensor;
+            return;
+        }
+#else
+        TwoWire *bus = &Wire;
+#endif
+        if (sensor->initDevice(bus, &dev)) {
+            sensors.push_front(sensor);
+            return;
+        }
+        // destroy sensor
+        delete sensor;
+    }
+}
+
+void EnvironmentTelemetryModule::i2cScanFinished(ScanI2C *i2cScanner)
+{
+    if (!moduleConfig.telemetry.environment_measurement_enabled && !ENVIRONMENTAL_TELEMETRY_MODULE_ENABLE) {
+        return;
+    }
+    LOG_INFO("Environment Telemetry adding I2C devices...");
+
+    // order by priority of metrics/values (low top, high bottom)
+
+#if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
+#if __has_include(<DFRobot_LarkWeatherStation.h>)
+    addSensor<DFRobotLarkSensor>(i2cScanner, ScanI2C::DeviceType::DFROBOT_LARK);
+#endif
+#if __has_include(<DFRobot_RainfallSensor.h>)
+    addSensor<DFRobotGravitySensor>(i2cScanner, ScanI2C::DeviceType::DFROBOT_RAIN);
+#endif
+#if __has_include(<Adafruit_AHTX0.h>)
+    addSensor<AHT10Sensor>(i2cScanner, ScanI2C::DeviceType::AHT10);
+#endif
+#if __has_include(<Adafruit_BMP085.h>)
+    addSensor<BMP085Sensor>(i2cScanner, ScanI2C::DeviceType::BMP_085);
+#endif
+#if __has_include(<Adafruit_BME280.h>)
+    addSensor<BME280Sensor>(i2cScanner, ScanI2C::DeviceType::BME_280);
+#endif
+#if __has_include(<Adafruit_LTR390.h>)
+    addSensor<LTR390UVSensor>(i2cScanner, ScanI2C::DeviceType::LTR390UV);
+#endif
+#if __has_include(<bsec2.h>)
+    addSensor<BME680Sensor>(i2cScanner, ScanI2C::DeviceType::BME_680);
+#endif
+#if __has_include(<Adafruit_BMP280.h>)
+    addSensor<BMP280Sensor>(i2cScanner, ScanI2C::DeviceType::BMP_280);
+#endif
+#if __has_include(<Adafruit_DPS310.h>)
+    addSensor<DPS310Sensor>(i2cScanner, ScanI2C::DeviceType::DPS310);
+#endif
+#if __has_include(<Adafruit_MCP9808.h>)
+    addSensor<MCP9808Sensor>(i2cScanner, ScanI2C::DeviceType::MCP9808);
+#endif
+#if __has_include(<Adafruit_SHT31.h>)
+    addSensor<SHT31Sensor>(i2cScanner, ScanI2C::DeviceType::SHT31);
+#endif
+#if __has_include(<Adafruit_LPS2X.h>)
+    addSensor<LPS22HBSensor>(i2cScanner, ScanI2C::DeviceType::LPS22HB);
+#endif
+#if __has_include(<Adafruit_SHTC3.h>)
+    addSensor<SHTC3Sensor>(i2cScanner, ScanI2C::DeviceType::SHTC3);
+#endif
+#if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) && RAK_4631 == 1
+    addSensor<RAK12035Sensor>(i2cScanner, ScanI2C::DeviceType::RAK12035);
+#endif
+#if __has_include(<Adafruit_VEML7700.h>)
+    addSensor<VEML7700Sensor>(i2cScanner, ScanI2C::DeviceType::VEML7700);
+#endif
+#if __has_include(<Adafruit_TSL2591.h>)
+    addSensor<TSL2591Sensor>(i2cScanner, ScanI2C::DeviceType::TSL2591);
+#endif
+#if __has_include(<ClosedCube_OPT3001.h>)
+    addSensor<OPT3001Sensor>(i2cScanner, ScanI2C::DeviceType::OPT3001);
+#endif
+#if __has_include(<Adafruit_SHT4x.h>)
+    addSensor<SHT4XSensor>(i2cScanner, ScanI2C::DeviceType::SHT4X);
+#endif
+#if __has_include(<SparkFun_MLX90632_Arduino_Library.h>)
+    addSensor<MLX90632Sensor>(i2cScanner, ScanI2C::DeviceType::MLX90632);
+#endif
+
+#if __has_include(<Adafruit_BMP3XX.h>)
+    addSensor<BMP3XXSensor>(i2cScanner, ScanI2C::DeviceType::BMP_3XX);
+#endif
+#if __has_include(<Adafruit_PCT2075.h>)
+    addSensor<PCT2075Sensor>(i2cScanner, ScanI2C::DeviceType::PCT2075);
+#endif
+#if __has_include(<Adafruit_TSL2561_U.h>)
+    addSensor<TSL2561Sensor>(i2cScanner, ScanI2C::DeviceType::TSL2561);
+#endif
+#if __has_include(<SparkFun_Qwiic_Scale_NAU7802_Arduino_Library.h>)
+    addSensor<NAU7802Sensor>(i2cScanner, ScanI2C::DeviceType::NAU7802);
+#endif
+
+#endif
+}
 
 int32_t EnvironmentTelemetryModule::runOnce()
 {
@@ -102,21 +196,13 @@ int32_t EnvironmentTelemetryModule::runOnce()
 
         if (moduleConfig.telemetry.environment_measurement_enabled || ENVIRONMENTAL_TELEMETRY_MODULE_ENABLE) {
             LOG_INFO("Environment Telemetry: init");
-#ifdef T1000X_SENSOR_EN
-            result = t1000xSensor.runOnce();
-#elif !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
-            if (bmp085Sensor.hasSensor())
-                result = bmp085Sensor.runOnce();
-#if __has_include(<Adafruit_BME280.h>)
-            if (bmp280Sensor.hasSensor())
-                result = bmp280Sensor.runOnce();
-#endif
-            if (bme280Sensor.hasSensor())
-                result = bme280Sensor.runOnce();
-            if (bmp3xxSensor.hasSensor())
-                result = bmp3xxSensor.runOnce();
-            if (bme680Sensor.hasSensor())
-                result = bme680Sensor.runOnce();
+
+            // check if we have at least one sensor
+            if (!sensors.empty()) {
+                result = DEFAULT_SENSOR_MINIMUM_WAIT_TIME_BETWEEN_READS;
+            }
+
+#if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
             if (ina219Sensor.hasSensor())
                 result = ina219Sensor.runOnce();
             if (ina260Sensor.hasSensor())
@@ -132,11 +218,13 @@ int32_t EnvironmentTelemetryModule::runOnce()
         // if we somehow got to a second run of this module with measurement disabled, then just wait forever
         if (!moduleConfig.telemetry.environment_measurement_enabled && !ENVIRONMENTAL_TELEMETRY_MODULE_ENABLE) {
             return disable();
-        } else {
-#if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
-            if (bme680Sensor.hasSensor())
-                result = bme680Sensor.runTrigger();
-#endif
+        }
+
+        for (TelemetrySensor *sensor : sensors) {
+            uint32_t delay = sensor->runOnce();
+            if (delay < result) {
+                result = delay;
+            }
         }
 
         if (((lastSentToMesh == 0) ||
@@ -199,28 +287,11 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
     m->which_variant = meshtastic_Telemetry_environment_metrics_tag;
     m->variant.environment_metrics = meshtastic_EnvironmentMetrics_init_zero;
 
-    if (bmp085Sensor.hasSensor()) {
-        valid = valid && bmp085Sensor.getMetrics(m);
+    for (TelemetrySensor *sensor : sensors) {
+        valid = valid && sensor->getMetrics(m);
         hasSensor = true;
     }
-#if __has_include(<Adafruit_BME280.h>)
-    if (bmp280Sensor.hasSensor()) {
-        valid = valid && bmp280Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-#endif
-    if (bme280Sensor.hasSensor()) {
-        valid = valid && bme280Sensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (bmp3xxSensor.hasSensor()) {
-        valid = valid && bmp3xxSensor.getMetrics(m);
-        hasSensor = true;
-    }
-    if (bme680Sensor.hasSensor()) {
-        valid = valid && bme680Sensor.getMetrics(m);
-        hasSensor = true;
-    }
+
     if (ina219Sensor.hasSensor()) {
         valid = valid && ina219Sensor.getMetrics(m);
         hasSensor = true;
@@ -332,31 +403,12 @@ AdminMessageHandleResult EnvironmentTelemetryModule::handleAdminMessageForModule
 {
     AdminMessageHandleResult result = AdminMessageHandleResult::NOT_HANDLED;
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
-    if (bmp085Sensor.hasSensor()) {
-        result = bmp085Sensor.handleAdminMessage(mp, request, response);
+    for (TelemetrySensor *sensor : sensors) {
+        result = sensor->handleAdminMessage(mp, request, response);
         if (result != AdminMessageHandleResult::NOT_HANDLED)
             return result;
     }
-    if (bmp280Sensor.hasSensor()) {
-        result = bmp280Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (bme280Sensor.hasSensor()) {
-        result = bme280Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (bmp3xxSensor.hasSensor()) {
-        result = bmp3xxSensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
-    if (bme680Sensor.hasSensor()) {
-        result = bme680Sensor.handleAdminMessage(mp, request, response);
-        if (result != AdminMessageHandleResult::NOT_HANDLED)
-            return result;
-    }
+
     if (ina219Sensor.hasSensor()) {
         result = ina219Sensor.handleAdminMessage(mp, request, response);
         if (result != AdminMessageHandleResult::NOT_HANDLED)
