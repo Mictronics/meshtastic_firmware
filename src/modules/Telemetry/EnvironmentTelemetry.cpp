@@ -37,18 +37,10 @@
 #include "Sensor/BME680Sensor.h"
 #endif
 
-#if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) && RAK_4631 == 1
-#include "Sensor/RAK12035Sensor.h"
-#endif
-
 #if __has_include(<Adafruit_BMP3XX.h>)
 #include "Sensor/BMP3XXSensor.h"
 #endif
 
-#endif
-
-#if __has_include(<BH1750_WE.h>)
-#include "Sensor/BH1750Sensor.h"
 #endif
 
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
@@ -94,80 +86,18 @@ void EnvironmentTelemetryModule::i2cScanFinished(ScanI2C *i2cScanner)
     // order by priority of metrics/values (low top, high bottom)
 
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
-#if __has_include(<DFRobot_LarkWeatherStation.h>)
-    addSensor<DFRobotLarkSensor>(i2cScanner, ScanI2C::DeviceType::DFROBOT_LARK);
-#endif
-#if __has_include(<DFRobot_RainfallSensor.h>)
-    addSensor<DFRobotGravitySensor>(i2cScanner, ScanI2C::DeviceType::DFROBOT_RAIN);
-#endif
-#if __has_include(<Adafruit_AHTX0.h>)
-    addSensor<AHT10Sensor>(i2cScanner, ScanI2C::DeviceType::AHT10);
-#endif
 #if __has_include(<Adafruit_BMP085.h>)
     addSensor<BMP085Sensor>(i2cScanner, ScanI2C::DeviceType::BMP_085);
 #endif
 #if __has_include(<Adafruit_BME280.h>)
     addSensor<BME280Sensor>(i2cScanner, ScanI2C::DeviceType::BME_280);
 #endif
-#if __has_include(<Adafruit_LTR390.h>)
-    addSensor<LTR390UVSensor>(i2cScanner, ScanI2C::DeviceType::LTR390UV);
-#endif
 #if __has_include(<bsec2.h>)
     addSensor<BME680Sensor>(i2cScanner, ScanI2C::DeviceType::BME_680);
 #endif
-#if __has_include(<Adafruit_BMP280.h>)
-    addSensor<BMP280Sensor>(i2cScanner, ScanI2C::DeviceType::BMP_280);
-#endif
-#if __has_include(<Adafruit_DPS310.h>)
-    addSensor<DPS310Sensor>(i2cScanner, ScanI2C::DeviceType::DPS310);
-#endif
-#if __has_include(<Adafruit_MCP9808.h>)
-    addSensor<MCP9808Sensor>(i2cScanner, ScanI2C::DeviceType::MCP9808);
-#endif
-#if __has_include(<Adafruit_SHT31.h>)
-    addSensor<SHT31Sensor>(i2cScanner, ScanI2C::DeviceType::SHT31);
-#endif
-#if __has_include(<Adafruit_LPS2X.h>)
-    addSensor<LPS22HBSensor>(i2cScanner, ScanI2C::DeviceType::LPS22HB);
-#endif
-#if __has_include(<Adafruit_SHTC3.h>)
-    addSensor<SHTC3Sensor>(i2cScanner, ScanI2C::DeviceType::SHTC3);
-#endif
-#if __has_include("RAK12035_SoilMoisture.h") && defined(RAK_4631) && RAK_4631 == 1
-    addSensor<RAK12035Sensor>(i2cScanner, ScanI2C::DeviceType::RAK12035);
-#endif
-#if __has_include(<Adafruit_VEML7700.h>)
-    addSensor<VEML7700Sensor>(i2cScanner, ScanI2C::DeviceType::VEML7700);
-#endif
-#if __has_include(<Adafruit_TSL2591.h>)
-    addSensor<TSL2591Sensor>(i2cScanner, ScanI2C::DeviceType::TSL2591);
-#endif
-#if __has_include(<ClosedCube_OPT3001.h>)
-    addSensor<OPT3001Sensor>(i2cScanner, ScanI2C::DeviceType::OPT3001);
-#endif
-#if __has_include(<Adafruit_SHT4x.h>)
-    addSensor<SHT4XSensor>(i2cScanner, ScanI2C::DeviceType::SHT4X);
-#endif
-#if __has_include(<SparkFun_MLX90632_Arduino_Library.h>)
-    addSensor<MLX90632Sensor>(i2cScanner, ScanI2C::DeviceType::MLX90632);
-#endif
-
 #if __has_include(<Adafruit_BMP3XX.h>)
     addSensor<BMP3XXSensor>(i2cScanner, ScanI2C::DeviceType::BMP_3XX);
 #endif
-#if __has_include(<Adafruit_PCT2075.h>)
-    addSensor<PCT2075Sensor>(i2cScanner, ScanI2C::DeviceType::PCT2075);
-#endif
-#if __has_include(<Adafruit_TSL2561_U.h>)
-    addSensor<TSL2561Sensor>(i2cScanner, ScanI2C::DeviceType::TSL2561);
-#endif
-#if __has_include(<SparkFun_Qwiic_Scale_NAU7802_Arduino_Library.h>)
-    addSensor<NAU7802Sensor>(i2cScanner, ScanI2C::DeviceType::NAU7802);
-#endif
-#if __has_include(<BH1750_WE.h>)
-    addSensor<BH1750Sensor>(i2cScanner, ScanI2C::DeviceType::BH1750);
-#endif
-
 #endif
 }
 
