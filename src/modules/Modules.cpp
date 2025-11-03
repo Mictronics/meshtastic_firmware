@@ -11,6 +11,8 @@
 #endif
 #if !MESHTASTIC_EXCLUDE_GPS
 #include "modules/PositionModule.h"
+#else
+#include "modules/TimeModule.h"
 #endif
 #include "modules/RoutingModule.h"
 #include "modules/TextMessageModule.h"
@@ -45,6 +47,8 @@ void setupModules()
 #endif
 #if !MESHTASTIC_EXCLUDE_GPS
     positionModule = new PositionModule();
+#else
+    new TimeModule();
 #endif
 #if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
     textMessageModule = new TextMessageModule();
