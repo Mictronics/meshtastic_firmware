@@ -45,7 +45,9 @@ class menuHandler
         key_verification_final_prompt,
         trace_route_menu,
         throttle_message,
-        FrameToggles
+        node_name_length_menu,
+        FrameToggles,
+        DisplayUnits
     };
     static screenMenus menuQueue;
 
@@ -87,7 +89,9 @@ class menuHandler
     static void notificationsMenu();
     static void screenOptionsMenu();
     static void powerMenu();
+    static void nodeNameLengthMenu();
     static void FrameToggles_menu();
+    static void DisplayUnits_menu();
     static void textMessageMenu();
 
   private:

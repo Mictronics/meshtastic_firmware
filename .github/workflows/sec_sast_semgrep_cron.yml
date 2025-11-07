@@ -33,7 +33,7 @@ jobs:
 
       # step 3
       - name: save report as pipeline artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: report.sarif
           overwrite: true
@@ -41,7 +41,7 @@ jobs:
 
       # step 4
       - name: publish code scanning alerts
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: report.sarif
           category: semgrep
