@@ -427,6 +427,10 @@ void setup()
 #ifdef RESET_OLED
     pinMode(RESET_OLED, OUTPUT);
     digitalWrite(RESET_OLED, 1);
+    delay(2);
+    digitalWrite(RESET_OLED, 0);
+    delay(10);
+    digitalWrite(RESET_OLED, 1);
 #endif
 
 #ifdef SENSOR_POWER_CTRL_PIN
@@ -782,6 +786,7 @@ void setup()
     i2cScanner.reset();
 #endif
 
+#if !defined(MESHTASTIC_EXCLUDE_PKI)
     // warn the user about a low entropy key
     if (nodeDB->keyIsLowEntropy && !nodeDB->hasWarned) {
         LOG_WARN(LOW_ENTROPY_WARNING);
@@ -792,6 +797,7 @@ void setup()
         service->sendClientNotification(cn);
         nodeDB->hasWarned = true;
     }
+#endif
 
 #ifdef LED_PIN
     // Turn LED off after boot, if heartbeat by config
@@ -1043,7 +1049,7 @@ void setup()
 #endif
 
     // check if the radio chip matches the selected region
-    if ((config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_LORA_24) && (!rIf->wideLora())) {
+    if ((config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_LORA_24) && rIf && (!rIf->wideLora())) {
         LOG_WARN("LoRa chip does not support 2.4GHz. Revert to unset");
         config.lora.region = meshtastic_Config_LoRaConfig_RegionCode_UNSET;
         nodeDB->saveToDisk(SEGMENT_CONFIG);

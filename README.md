@@ -41,4 +41,3 @@ This branch is a customized variant for the Lilygo T-Echo working as a remotely 
 ## Stats
 
 ![Alt](https://repobeats.axiom.co/api/embed/8025e56c482ec63541593cc5bd322c19d5c0bdcf.svg "Repobeats analytics image")
-
