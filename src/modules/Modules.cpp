@@ -30,9 +30,6 @@
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_POWER_TELEMETRY
 #include "modules/Telemetry/PowerTelemetry.h"
 #endif
-#if !MESHTASTIC_EXCLUDE_GENERIC_THREAD_MODULE
-#include "modules/GenericThreadModule.h"
-#endif
 
 /**
  * Create module instances here.  If you are adding a new module, you must 'new' it here (or somewhere else)
@@ -55,9 +52,6 @@ void setupModules()
 #endif
 #if !MESHTASTIC_EXCLUDE_PKI
     keyVerificationModule = new KeyVerificationModule();
-#endif
-#if !MESHTASTIC_EXCLUDE_GENERIC_THREAD_MODULE
-    new GenericThreadModule();
 #endif
     // Note: if the rest of meshtastic doesn't need to explicitly use your module, you do not need to assign the instance
     // to a global variable.
