@@ -262,6 +262,11 @@ class AnalogBatteryLevel : public HasBatteryLevel
                 break;
             }
         }
+#if defined(BATTERY_CHARGING_INV)
+        // bit of trickery to show 99% up until the charge finishes
+        if (!digitalRead(BATTERY_CHARGING_INV) && battery_SOC > 99)
+            battery_SOC = 99;
+#endif
         return clamp((int)(battery_SOC), 0, 100);
     }
 
@@ -439,6 +444,8 @@ class AnalogBatteryLevel : public HasBatteryLevel
         }
         // if it's not HIGH - check the battery
 #endif
+#elif defined(MUZI_BASE)
+        return NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk;
 #endif
         return getBattVoltage() > chargingVolt;
     }
@@ -454,6 +461,8 @@ class AnalogBatteryLevel : public HasBatteryLevel
 #endif
 #ifdef EXT_CHRG_DETECT
         return digitalRead(EXT_CHRG_DETECT) == ext_chrg_detect_value;
+#elif defined(BATTERY_CHARGING_INV)
+        return !digitalRead(BATTERY_CHARGING_INV);
 #else
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR && !defined(DISABLE_INA_CHARGING_DETECTION)
         if (hasINA()) {
@@ -681,11 +690,18 @@ bool Power::setup()
         []() {
             power->setIntervalFromNow(0);
             runASAP = true;
-            BaseType_t higherWake = 0;
         },
         CHANGE);
 #endif
-
+#ifdef BATTERY_CHARGING_INV
+    attachInterrupt(
+        BATTERY_CHARGING_INV,
+        []() {
+            power->setIntervalFromNow(0);
+            runASAP = true;
+        },
+        CHANGE);
+#endif
     enabled = found;
     low_voltage_counter = 0;
 
