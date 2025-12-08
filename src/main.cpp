@@ -171,7 +171,6 @@ bool isVibrating = false;
 
 bool eink_found = true;
 
-uint32_t serialSinceMsec;
 bool pauseBluetoothLogging = false;
 
 bool pmu_found;
@@ -382,7 +381,6 @@ void setup()
 #endif
 
     powerMonInit();
-    serialSinceMsec = millis();
 
     LOG_INFO("\n\n//\\ E S H T /\\ S T / C\n");
 
