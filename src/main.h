@@ -84,6 +84,7 @@ extern uint32_t shutdownAtMsec;
 
 extern uint32_t serialSinceMsec;
 
+extern uint32_t lastRxMsec;
 // If a thread does something that might need for it to be rescheduled ASAP it can set this flag
 // This will suppress the current delay and instead try to run ASAP.
 extern bool runASAP;
