@@ -171,6 +171,11 @@ bool isVibrating = false;
 
 bool eink_found = true;
 
+// Holds the timestamp we got during RX
+// Update in RadioLibInterface::handleReceiveInterrupt()
+// Used for RX watchdog to detect dead radio chip.
+uint32_t lastRxMsec = 0;
+
 bool pauseBluetoothLogging = false;
 
 bool pmu_found;
@@ -1102,6 +1107,9 @@ void setup()
     // Start airtime logger thread.
     airTime = new AirTime();
 
+    // Initialize on boot so it triggers even when initial radio chip detection fails.
+    lastRxMsec = millis();
+
     if (!rIf)
         RECORD_CRITICALERROR(meshtastic_CriticalErrorCode_NO_RADIO);
     else {
@@ -1201,6 +1209,13 @@ void loop()
     // Reset external watchdog via pin change
     digitalWrite(EXT_WATCHDOG_TRIGGER, !digitalRead(EXT_WATCHDOG_TRIGGER));
 #endif
+
+    // Radio chip watchdog.
+    // Check last RX periode if radio chip is still alive.
+    // Timeout one hour. Plenty of time to receive at least "something".
+    if (!Throttle::isWithinTimespanMs(lastRxMsec, MS_IN_HOUR) && rebootAtMsec == 0) {
+        rebootAtMsec = millis() + 3000; // Dead. Reboot in 3s
+    }
 
 #ifdef ARCH_ESP32
     esp32Loop();

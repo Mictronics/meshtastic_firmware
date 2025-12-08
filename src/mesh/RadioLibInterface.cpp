@@ -446,6 +446,10 @@ void RadioLibInterface::handleReceiveInterrupt()
     }
 #endif
 
+    // Reset the radio chip watchdog period.
+    // We don't need a valid packet. Any RX is fine so we know the radio chip is still alive.
+    lastRxMsec = millis();
+
     int state = iface->readData((uint8_t *)&radioBuffer, length);
 #if ARCH_PORTDUINO
     if (portduino_config.logoutputlevel == level_trace) {
