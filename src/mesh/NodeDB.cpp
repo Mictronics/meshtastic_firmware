@@ -670,7 +670,8 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
     config.bluetooth.fixed_pin = defaultBLEPin;
 
 #if defined(ST7735_CS) || defined(USE_EINK) || defined(ILI9341_DRIVER) || defined(ILI9342_DRIVER) || defined(ST7789_CS) ||       \
-    defined(HX8357_CS) || defined(USE_ST7789) || defined(ILI9488_CS) || defined(ST7796_CS) || defined(USE_SPISSD1306) || defined(USE_ST7796)
+    defined(HX8357_CS) || defined(USE_ST7789) || defined(ILI9488_CS) || defined(ST7796_CS) || defined(USE_SPISSD1306) ||         \
+    defined(USE_ST7796)
     bool hasScreen = true;
 #ifdef HELTEC_MESH_NODE_T114
     uint32_t st7789_id = get_st7789_id(ST7789_NSS, ST7789_SCK, ST7789_SDA, ST7789_RS, ST7789_RESET);
@@ -922,6 +923,7 @@ void NodeDB::initModuleConfigIntervals()
     // Zero out telemetry intervals so that they coalesce to defaults in Default.h
 #ifdef USERPREFS_CONFIG_DEVICE_TELEM_UPDATE_INTERVAL
     moduleConfig.telemetry.device_update_interval = USERPREFS_CONFIG_DEVICE_TELEM_UPDATE_INTERVAL;
+    moduleConfig.telemetry.device_telemetry_enabled = true;
 #else
     moduleConfig.telemetry.device_update_interval = MAX_INTERVAL;
 #endif
