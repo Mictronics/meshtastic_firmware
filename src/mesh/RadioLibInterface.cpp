@@ -415,7 +415,7 @@ void RadioLibInterface::completeSending()
         txGood++;
         if (!isFromUs(p))
             txRelay++;
-        printPacket("Completed sending", p);
+        LOG_DEBUG("TX complete");
 
         // We are done sending that packet, release it
         packetPool.release(p);

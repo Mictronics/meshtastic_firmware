@@ -1654,7 +1654,7 @@ bool NodeDB::updateUser(uint32_t nodeId, meshtastic_User &p, uint8_t channelInde
 
 #if !(MESHTASTIC_EXCLUDE_PKI)
     if (p.public_key.size == 32 && nodeId != nodeDB->getNodeNum()) {
-        printBytes("Incoming Pubkey: ", p.public_key.bytes, 32);
+        // printBytes("Incoming Pubkey: ", p.public_key.bytes, 32);
 
         // Alert the user if a remote node is advertising public key that matches our own
         if (owner.public_key.size == 32 && memcmp(p.public_key.bytes, owner.public_key.bytes, 32) == 0) {
