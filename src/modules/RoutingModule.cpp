@@ -27,7 +27,7 @@ bool RoutingModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mesh
         return false;
     }
 
-    printPacket("Routing sniffing", &mp);
+    // printPacket("Routing sniffing", &mp);
     router->sniffReceived(&mp, r);
 
     // FIXME - move this to a non promsicious PhoneAPI module?

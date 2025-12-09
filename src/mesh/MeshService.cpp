@@ -108,7 +108,7 @@ int MeshService::handleFromRadio(const meshtastic_MeshPacket *mp)
         }
     }
 
-    printPacket("Forwarding to phone", mp);
+    // printPacket("Forwarding to phone", mp);
     sendToPhone(packetPool.allocCopy(*mp));
 
     return 0;
