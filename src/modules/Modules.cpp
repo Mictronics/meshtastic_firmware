@@ -9,11 +9,9 @@
 #if !MESHTASTIC_EXCLUDE_NODEINFO
 #include "modules/NodeInfoModule.h"
 #endif
-#if !MESHTASTIC_EXCLUDE_GPS
-#include "modules/PositionModule.h"
-#else
+
 #include "modules/TimeModule.h"
-#endif
+
 #include "modules/RoutingModule.h"
 #include "modules/TextMessageModule.h"
 #if ARCH_PORTDUINO
@@ -42,11 +40,9 @@ void setupModules()
 #if !MESHTASTIC_EXCLUDE_NODEINFO
     nodeInfoModule = new NodeInfoModule();
 #endif
-#if !MESHTASTIC_EXCLUDE_GPS
-    positionModule = new PositionModule();
-#else
+
     new TimeModule();
-#endif
+
 #if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
     textMessageModule = new TextMessageModule();
 #endif

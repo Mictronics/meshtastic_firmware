@@ -1,9 +1,5 @@
 #include "configuration.h"
 
-#if !MESHTASTIC_EXCLUDE_GPS
-#include "GPS.h"
-#endif
-
 #include "../concurrency/Periodic.h"
 #include "BluetoothCommon.h" // needed for updateBatteryLevel, FIXME, eventually when we pull mesh out into a lib we shouldn't be whacking bluetooth from here
 #include "MeshService.h"
@@ -15,7 +11,6 @@
 #include "mesh-pb-constants.h"
 #include "meshUtils.h"
 #include "modules/NodeInfoModule.h"
-#include "modules/PositionModule.h"
 #include "modules/RoutingModule.h"
 #include "power.h"
 #include <assert.h>
@@ -72,13 +67,7 @@ MeshService::MeshService()
     lastQueueStatus = {0, 0, 16, 0};
 }
 
-void MeshService::init()
-{
-#if HAS_GPS
-    if (gps)
-        gpsObserver.observe(&gps->newStatus);
-#endif
-}
+void MeshService::init() {}
 
 int MeshService::handleFromRadio(const meshtastic_MeshPacket *mp)
 {
@@ -274,14 +263,6 @@ bool MeshService::trySendPosition(NodeNum dest, bool wantReplies)
     assert(node);
 
     if (nodeDB->hasValidPosition(node)) {
-#if HAS_GPS && !MESHTASTIC_EXCLUDE_GPS
-        if (positionModule) {
-            LOG_INFO("Send position ping to 0x%x, wantReplies=%d, channel=%d", dest, wantReplies, node->channel);
-            positionModule->sendOurPosition(dest, wantReplies, node->channel);
-            return true;
-        }
-    } else {
-#endif
         if (nodeInfoModule) {
             LOG_INFO("Send nodeinfo ping to 0x%x, wantReplies=%d, channel=%d", dest, wantReplies, node->channel);
             nodeInfoModule->sendOurNodeInfo(dest, wantReplies, node->channel);
@@ -391,41 +372,6 @@ meshtastic_NodeInfoLite *MeshService::refreshLocalMeshNode()
     return node;
 }
 
-#if HAS_GPS
-int MeshService::onGPSChanged(const meshtastic::GPSStatus *newStatus)
-{
-    // Update our local node info with our position (even if we don't decide to update anyone else)
-    const meshtastic_NodeInfoLite *node = refreshLocalMeshNode();
-    meshtastic_Position pos = meshtastic_Position_init_default;
-
-    if (newStatus->getHasLock()) {
-        // load data from GPS object, will add timestamp + battery further down
-        pos = gps->p;
-    } else {
-        // The GPS has lost lock
-#ifdef GPS_DEBUG
-        LOG_DEBUG("onGPSchanged() - lost validLocation");
-#endif
-    }
-    // Used fixed position if configured regardless of GPS lock
-    if (config.position.fixed_position) {
-        LOG_WARN("Use fixed position");
-        pos = TypeConversions::ConvertToPosition(node->position);
-    }
-
-    // Add a fresh timestamp
-    pos.time = getValidTime(RTCQualityFromNet);
-
-    // In debug logs, identify position by @timestamp:stage (stage 4 = nodeDB)
-    LOG_DEBUG("onGPSChanged() pos@%x time=%u lat=%d lon=%d alt=%d", pos.timestamp, pos.time, pos.latitude_i, pos.longitude_i,
-              pos.altitude);
-
-    // Update our current position in the local DB
-    nodeDB->updatePosition(nodeDB->getNodeNum(), pos, RX_SRC_LOCAL);
-
-    return 0;
-}
-#endif
 bool MeshService::isToPhoneQueueEmpty()
 {
     return toPhoneQueue.isEmpty();

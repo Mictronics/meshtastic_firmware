@@ -27,14 +27,6 @@
 #include "Default.h"
 #include "TypeConversions.h"
 
-#if !MESHTASTIC_EXCLUDE_GPS
-#include "GPS.h"
-#endif
-
-#if MESHTASTIC_EXCLUDE_GPS
-#include "modules/PositionModule.h"
-#endif
-
 AdminModule *adminModule;
 bool hasOpenEditTransaction;
 
@@ -372,12 +364,6 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         nodeDB->setLocalPosition(r->set_fixed_position);
         config.position.fixed_position = true;
         saveChanges(SEGMENT_NODEDATABASE | SEGMENT_CONFIG, false);
-#if !MESHTASTIC_EXCLUDE_GPS
-        if (gps != nullptr)
-            gps->enable();
-        // Send our new fixed position to the mesh for good measure
-        positionModule->sendOurPosition();
-#endif
         break;
     }
     case meshtastic_AdminMessage_remove_fixed_position_tag: {

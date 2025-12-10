@@ -1,7 +1,4 @@
-#include "configuration.h"
-#if !MESHTASTIC_EXCLUDE_GPS
-#include "GPS.h"
-#endif
+#include "NodeDB.h"
 #include "../detect/ScanI2C.h"
 #include "Channels.h"
 #include "CryptoEngine.h"
@@ -9,7 +6,6 @@
 #include "FSCommon.h"
 #include "MeshRadio.h"
 #include "MeshService.h"
-#include "NodeDB.h"
 #include "PacketHistory.h"
 #include "PowerFSM.h"
 #include "RTC.h"
@@ -17,6 +13,7 @@
 #include "SPILock.h"
 #include "SafeFile.h"
 #include "TypeConversions.h"
+#include "configuration.h"
 #include "error.h"
 #include "main.h"
 #include "mesh-pb-constants.h"

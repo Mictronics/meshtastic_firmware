@@ -1,21 +1,17 @@
-#include "configuration.h"
-#if !MESHTASTIC_EXCLUDE_GPS
-#include "GPS.h"
-#endif
-
+#include "PhoneAPI.h"
 #include "Channels.h"
 #include "Default.h"
 #include "FSCommon.h"
 #include "MeshService.h"
 #include "NodeDB.h"
 #include "PacketHistory.h"
-#include "PhoneAPI.h"
 #include "PowerFSM.h"
 #include "RadioInterface.h"
 #include "Router.h"
 #include "SPILock.h"
 #include "TypeConversions.h"
 #include "concurrency/LockGuard.h"
+#include "configuration.h"
 #include "main.h"
 #include "xmodem.h"
 

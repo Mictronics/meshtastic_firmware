@@ -1,7 +1,3 @@
-#include "configuration.h"
-#if !MESHTASTIC_EXCLUDE_GPS
-#include "GPS.h"
-#endif
 #include "MeshRadio.h"
 #include "MeshService.h"
 #include "NodeDB.h"
@@ -9,6 +5,7 @@
 #include "PowerMon.h"
 #include "ReliableRouter.h"
 #include "airtime.h"
+#include "configuration.h"
 
 #include "FSCommon.h"
 #include "Led.h"
@@ -718,45 +715,13 @@ void setup()
 
     readFromRTC(); // read the main CPU RTC at first (in case we can't get GPS time)
 
-#if !MESHTASTIC_EXCLUDE_GPS
-    // If we're taking on the repeater role, ignore GPS
-#ifdef SENSOR_GPS_CONFLICT
-    if (sensor_detected == false) {
-#endif
-        if (HAS_GPS) {
-            if (config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
-                gps = GPS::createGps();
-                if (gps) {
-                    gpsStatus->observe(&gps->newStatus);
-                } else {
-                    LOG_DEBUG("Run without GPS");
-                }
-                // Disable standby in repeater mode or when not present to avoid parasite current drawn
 #ifdef PIN_GPS_STANDBY
-            } else {
-                pinMode(PIN_GPS_STANDBY, OUTPUT);
+    pinMode(PIN_GPS_STANDBY, OUTPUT);
 #ifdef PIN_GPS_STANDBY_INVERTED
-                digitalWrite(PIN_GPS_STANDBY, 1);
+    digitalWrite(PIN_GPS_STANDBY, 1);
 #else
-                digitalWrite(PIN_GPS_STANDBY, 0);
+    digitalWrite(PIN_GPS_STANDBY, 0);
 #endif
-#endif
-            }
-            // Disable standby if not exists to avoid parasite current drawn
-#ifdef PIN_GPS_STANDBY
-        } else {
-            pinMode(PIN_GPS_STANDBY, OUTPUT);
-#ifdef PIN_GPS_STANDBY_INVERTED
-            digitalWrite(PIN_GPS_STANDBY, 1);
-#else
-            digitalWrite(PIN_GPS_STANDBY, 0);
-#endif
-#endif
-        }
-#ifdef SENSOR_GPS_CONFLICT
-    }
-#endif
-
 #endif
 
     nodeStatus->observe(&nodeDB->newStatus);

@@ -1,9 +1,5 @@
 #include "configuration.h"
 
-#if !MESHTASTIC_EXCLUDE_GPS
-#include "GPS.h"
-#endif
-
 #include "Default.h"
 #include "Led.h"
 #include "MeshRadio.h"
