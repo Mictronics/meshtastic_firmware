@@ -283,7 +283,7 @@ void MeshService::sendToPhone(meshtastic_MeshPacket *p)
             if (d)
                 releaseToPool(d);
         } else {
-            LOG_WARN("ToPhone queue is full, drop packet");
+            // LOG_WARN("ToPhone queue is full, drop packet");
             releaseToPool(p);
             fromNum++; // Make sure to notify observers in case they are reconnected so they can get the packets
             return;

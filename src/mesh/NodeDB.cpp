@@ -1676,9 +1676,7 @@ bool NodeDB::updateUser(uint32_t nodeId, meshtastic_User &p, uint8_t channelInde
             LOG_WARN("Public Key mismatch, dropping NodeInfo");
             return false;
         }
-        LOG_INFO("Public Key set for node, not updating!");
-    } else if (p.public_key.size == 32) {
-        LOG_INFO("Update Node Pubkey!");
+        // LOG_INFO("Public Key set for node, not updating!");
     }
 #endif
 
@@ -1932,7 +1930,7 @@ meshtastic_NodeInfoLite *NodeDB::getOrCreateMeshNode(NodeNum n)
         // everything is missing except the nodenum
         memset(lite, 0, sizeof(*lite));
         lite->num = n;
-        LOG_INFO("Adding node to database with %i nodes and %u bytes free!", numMeshNodes, memGet.getFreeHeap());
+        // LOG_INFO("Adding node to database with %i nodes and %u bytes free!", numMeshNodes, memGet.getFreeHeap());
     }
 
     return lite;

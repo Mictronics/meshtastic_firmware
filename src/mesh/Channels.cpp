@@ -233,7 +233,7 @@ CryptoKey Channels::getKey(ChannelIndex chIndex)
             // Convert the short single byte variants of psk into variant that can be used more generally
 
             uint8_t pskIndex = k.bytes[0];
-            LOG_DEBUG("Expand short PSK #%d", pskIndex);
+            // LOG_DEBUG("Expand short PSK #%d", pskIndex);
             if (pskIndex == 0)
                 k.length = 0; // Turn off encryption
             else {

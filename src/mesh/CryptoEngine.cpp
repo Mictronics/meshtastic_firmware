@@ -206,7 +206,7 @@ concurrency::Lock *cryptLock;
 
 void CryptoEngine::setKey(const CryptoKey &k)
 {
-    LOG_DEBUG("Use AES%d key!", k.length * 8);
+    // LOG_DEBUG("Use AES%d key!", k.length * 8);
     key = k;
 }
 
