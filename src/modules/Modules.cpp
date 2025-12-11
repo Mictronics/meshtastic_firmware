@@ -13,7 +13,9 @@
 #include "modules/TimeModule.h"
 
 #include "modules/RoutingModule.h"
+#if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
 #include "modules/TextMessageModule.h"
+#endif
 #if ARCH_PORTDUINO
 #include "modules/Telemetry/HostMetrics.h"
 #endif

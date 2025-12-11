@@ -38,6 +38,7 @@ extern "C" {
 
 #define MESHTASTIC_EXCLUDE_SCREEN 1
 #define MESHTASTIC_EXCLUDE_WIFI 1
+#define MESHTASTIC_EXCLUDE_TEXTMESSAGE 1
 
 /*
  * Disable GPS lock and search time prediction algorithm

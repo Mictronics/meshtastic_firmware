@@ -1,3 +1,4 @@
+#if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
 #include "TextMessageModule.h"
 #include "MeshService.h"
 #include "NodeDB.h"
@@ -26,3 +27,4 @@ bool TextMessageModule::wantPacket(const meshtastic_MeshPacket *p)
 {
     return MeshService::isTextPayload(p);
 }
+#endif
