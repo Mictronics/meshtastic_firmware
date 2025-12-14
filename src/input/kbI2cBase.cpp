@@ -9,6 +9,8 @@
 #include "TLoraPagerKeyboard.h"
 #elif defined(NOKIA5130)
 #include "Nokia5130Keyboard.h"
+#elif defined(HACKADAY_COMMUNICATOR)
+#include "HackadayCommunicatorKeyboard.h"
 #else
 #include "TCA8418Keyboard.h"
 #endif
@@ -24,6 +26,8 @@ KbI2cBase::KbI2cBase(const char *name)
       TCAKeyboard(*(new TLoraPagerKeyboard()))
 #elif defined(NOKIA5130)
       TCAKeyboard(*(new Nokia5130Keyboard()))
+#elif defined(HACKADAY_COMMUNICATOR)
+      TCAKeyboard(*(new HackadayCommunicatorKeyboard()))
 #else
       TCAKeyboard(*(new TCA8418Keyboard()))
 #endif
@@ -336,7 +340,7 @@ int32_t KbI2cBase::runOnce()
                 break;
             }
             if (e.inputEvent != INPUT_BROKER_NONE) {
-                LOG_DEBUG("TCA8418 Notifying: %i Char: %c", e.inputEvent, e.kbchar);
+                // LOG_DEBUG("TCA8418 Notifying: %i Char: %c", e.inputEvent, e.kbchar);
                 this->notifyObservers(&e);
             }
             TCAKeyboard.trigger();
