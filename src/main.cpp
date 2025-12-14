@@ -349,7 +349,10 @@ void setup()
     io.pinMode(EXPANDS_GPIO_EN, OUTPUT);
     io.digitalWrite(EXPANDS_GPIO_EN, HIGH);
     io.pinMode(EXPANDS_SD_PULLEN, INPUT);
+#elif defined(HACKADAY_COMMUNICATOR)
+    pinMode(KB_INT, INPUT);
 #endif
+
     concurrency::hasBeenSetup = true;
 #if ARCH_PORTDUINO
     SPISettings spiSettings(portduino_config.spiSpeed, MSBFIRST, SPI_MODE0);
@@ -385,6 +388,11 @@ void setup()
     powerMonInit();
 
     LOG_INFO("\n\n//\\ E S H T /\\ S T / C\n");
+
+#if defined(ARCH_ESP32) && defined(BOARD_HAS_PSRAM)
+    // use PSRAM for malloc calls > 256 bytes
+    heap_caps_malloc_extmem_enable(256);
+#endif
 
 #if defined(DEBUG_MUTE) && defined(DEBUG_PORT)
     DEBUG_PORT.printf("\r\n\r\n//\\ E S H T /\\ S T / C\r\n");

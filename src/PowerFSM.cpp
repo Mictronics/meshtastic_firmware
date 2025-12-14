@@ -56,20 +56,20 @@ static bool isPowered()
 
 static void sdsEnter()
 {
-    LOG_DEBUG("State: SDS");
+    LOG_POWERFSM("State: SDS");
     // FIXME - make sure GPS and LORA radio are off first - because we want close to zero current draw
     doDeepSleep(Default::getConfiguredOrDefaultMs(config.power.sds_secs), false, false);
 }
 
 static void lowBattSDSEnter()
 {
-    LOG_DEBUG("State: Lower batt SDS");
+    LOG_POWERFSM("State: Lower batt SDS");
     doDeepSleep(Default::getConfiguredOrDefaultMs(config.power.sds_secs), false, true);
 }
 
 static void shutdownEnter()
 {
-    LOG_DEBUG("State: SHUTDOWN");
+    LOG_POWERFSM("State: SHUTDOWN");
     shutdownAtMsec = millis();
 }
 
@@ -79,7 +79,7 @@ static uint32_t secsSlept;
 
 static void lsEnter()
 {
-    LOG_INFO("lsEnter begin, ls_secs=%u", config.power.ls_secs);
+    LOG_POWERFSM("lsEnter begin, ls_secs=%u", config.power.ls_secs);
     secsSlept = 0; // How long have we been sleeping this time
 
     // LOG_INFO("lsEnter end");
@@ -151,12 +151,12 @@ static void lsIdle()
 
 static void lsExit()
 {
-    LOG_INFO("Exit state: LS");
+    LOG_POWERFSM("State: lsExit");
 }
 
 static void nbEnter()
 {
-    LOG_DEBUG("State: NB");
+    LOG_POWERFSM("State: NB");
 #ifdef ARCH_ESP32
     // Only ESP32 should turn off bluetooth
     setBluetoothEnable(false);
@@ -167,24 +167,26 @@ static void nbEnter()
 
 static void darkEnter()
 {
+    LOG_POWERFSM("State: darkEnter");
     setBluetoothEnable(true);
 }
 
 static void serialEnter()
 {
-    LOG_DEBUG("State: SERIAL");
+    LOG_POWERFSM("State: serialEnter");
     setBluetoothEnable(false);
 }
 
 static void serialExit()
 {
+    LOG_POWERFSM("State: serialExit");
     // Turn bluetooth back on when we leave serial stream API
     setBluetoothEnable(true);
 }
 
 static void powerEnter()
 {
-    // LOG_DEBUG("State: POWER");
+    LOG_POWERFSM("State: powerEnter");
     if (!isPowered()) {
         // If we got here, we are in the wrong state - we should be in powered, let that state handle things
         LOG_INFO("Loss of power in Powered");
@@ -197,6 +199,7 @@ static void powerEnter()
 
 static void powerIdle()
 {
+    // LOG_POWERFSM("State: powerIdle"); // very chatty
     if (!isPowered()) {
         // If we got here, we are in the wrong state
         LOG_INFO("Loss of power in Powered");
@@ -211,12 +214,13 @@ static void powerExit()
 
 static void onEnter()
 {
-    LOG_DEBUG("State: ON");
+    LOG_POWERFSM("State: ON");
     setBluetoothEnable(true);
 }
 
 static void onIdle()
 {
+    LOG_POWERFSM("State: onIdle");
     if (isPowered()) {
         // If we got here, we are in the wrong state - we should be in powered, let that state handle things
         powerFSM.trigger(EVENT_POWER_CONNECTED);
@@ -225,7 +229,7 @@ static void onIdle()
 
 static void bootEnter()
 {
-    LOG_DEBUG("State: BOOT");
+    LOG_POWERFSM("State: bootEnter");
 }
 
 State stateSHUTDOWN(shutdownEnter, NULL, NULL, "SHUTDOWN");
@@ -302,11 +306,6 @@ void PowerFSM_setup()
         // if any packet destined for phone arrives, turn on bluetooth at least
         powerFSM.add_transition(&stateNB, &stateDARK, EVENT_PACKET_FOR_PHONE, NULL, "Packet for phone");
 
-        // Removed 2.7: we don't show the nodes individually for every node on the screen anymore
-        // powerFSM.add_transition(&stateNB, &stateON, EVENT_NODEDB_UPDATED, NULL, "NodeDB update");
-        // powerFSM.add_transition(&stateDARK, &stateON, EVENT_NODEDB_UPDATED, NULL, "NodeDB update");
-        // powerFSM.add_transition(&stateON, &stateON, EVENT_NODEDB_UPDATED, NULL, "NodeDB update");
-
         // Show the received text message
         powerFSM.add_transition(&stateLS, &stateON, EVENT_RECEIVED_MSG, NULL, "Received text");
         powerFSM.add_transition(&stateNB, &stateON, EVENT_RECEIVED_MSG, NULL, "Received text");
@@ -355,7 +354,7 @@ void PowerFSM_setup()
     // Don't add power saving transitions if we are a power saving tracker or sensor or have Wifi enabled. Sleep will be initiated
     // through the modules
 
-#if HAS_WIFI || !defined(MESHTASTIC_EXCLUDE_WIFI)
+#if HAS_WIFI && !defined(MESHTASTIC_EXCLUDE_WIFI)
     bool isTrackerOrSensor = config.device.role == meshtastic_Config_DeviceConfig_Role_TRACKER ||
                              config.device.role == meshtastic_Config_DeviceConfig_Role_TAK_TRACKER ||
                              config.device.role == meshtastic_Config_DeviceConfig_Role_SENSOR;
