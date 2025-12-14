@@ -230,8 +230,8 @@ static void onEnter()
 {
     LOG_POWERFSM("State: onEnter");
     if (screen)
-        // screen->setOn(true);
-        setBluetoothEnable(true);
+        screen->setOn(true);
+    setBluetoothEnable(true);
 }
 
 static void onIdle()
