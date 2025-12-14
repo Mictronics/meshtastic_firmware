@@ -15,6 +15,7 @@ def readProps(prefsLoc):
         long="unset",
         deb="unset",
         branch="unset",
+        isDirty="false",
     )
 
     # Try to find current build SHA if if the workspace is clean.  This could fail if git is not installed
@@ -33,9 +34,10 @@ def readProps(prefsLoc):
             .strip()
         )
         suffix = sha
-        # if isDirty:
+        if isDirty:
         #     # short for 'dirty', we want to keep our verstrings source for protobuf reasons
         #     suffix = sha + "-d"
+            verObj["isDirty"] = "true"
         verObj["long"] = "{}.{}".format(verObj["short"], suffix)
         verObj["deb"] = "{}.{}~{}{}".format(verObj["short"], run_number, build_location, sha)
         verObj["branch"] = branch
