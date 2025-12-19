@@ -20,8 +20,13 @@
 // txd = 8
 // rxd = 9
 
-#define EXT_NOTIFY_OUT 22
-#define BUTTON_PIN 17
+#undef EXT_NOTIFY_OUT
+#undef BUTTON_PIN
+
+// Enable external ATtiny10 watchdog
+#define HAS_EXT_WATCHDOG 1
+// External watchdog trigger output pin
+#define EXT_WATCHDOG_TRIGGER 22
 
 #define BATTERY_PIN 26
 // ratio of voltage divider = 3.0 (R17=200k, R18=100k)
