@@ -1,6 +1,7 @@
 #include "NRF52Bluetooth.h"
 #include "BLEDfuSecure.h"
 #include "BluetoothCommon.h"
+#include "NodeDB.h"
 #include "PowerFSM.h"
 #include "configuration.h"
 #include "main.h"

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "BluetoothStatus.h"
-#include "GPSStatus.h"
 #include "NodeStatus.h"
 #include "PowerStatus.h"
 #include "detect/ScanI2C.h"

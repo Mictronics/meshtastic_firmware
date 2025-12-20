@@ -127,9 +127,6 @@ volatile static const char slipstreamTZString[] = {USERPREFS_TZ_STRING};
 // Global power status
 meshtastic::PowerStatus *powerStatus = new meshtastic::PowerStatus();
 
-// Global GPS status
-meshtastic::GPSStatus *gpsStatus = new meshtastic::GPSStatus();
-
 // Global Node status
 meshtastic::NodeStatus *nodeStatus = new meshtastic::NodeStatus();
 
