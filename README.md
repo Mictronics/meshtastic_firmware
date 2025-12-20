@@ -36,7 +36,14 @@ Join our community and help improve Meshtastic! 🚀
 
 ## About this branch
 
-This branch is a customized variant for the Lilygo T-Echo working as a remotely located router. Modified to minimize power consumption, removed screen support and hard coded configuration that restores router functionality even after factory reset.
+This branch is a barebones version that includes only the minimum code required to run a Meshtastic node supporting a mesh. The code is indented to run on unattended remote nodes with minimal hardware.
+
+Includes only:
+
+- Modules: Telemetry (device, environment, host, power), remote administration, node info, routing, text, time
+- Sensors: BMP280, BME280, BME680, BMP3xx, BMP085, INA219, INA226, INA3221
+
+Run tested on RP2040 Pico Waveshare, RP2040-Lora, RP2350 Pico2(W), Lilygo T-Echo, RAK11310, RAK4631, Heltec v3 and Linux Native.
 
 ## Stats
 
