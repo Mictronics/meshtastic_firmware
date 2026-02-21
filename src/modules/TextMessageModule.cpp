@@ -1,7 +1,6 @@
 #if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
 #include "TextMessageModule.h"
 #include "MeshService.h"
-#include "MessageStore.h"
 #include "NodeDB.h"
 #include "PowerFSM.h"
 #include "configuration.h"

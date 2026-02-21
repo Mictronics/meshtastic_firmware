@@ -14,7 +14,6 @@
  * For more information, see: https://meshtastic.org/
  */
 #include "power.h"
-#include "MessageStore.h"
 #include "NodeDB.h"
 #include "PowerFSM.h"
 #include "Throttle.h"
