@@ -81,9 +81,6 @@ extern "C" {
 #define LED_BLUE PIN_LED1
 #define LED_GREEN PIN_LED2
 
-#define LED_BUILTIN LED_BLUE
-#define LED_CONN PIN_GREEN
-
 #define LED_STATE_ON 0 // State when LED is lit
 
 /*
@@ -139,6 +136,7 @@ static const uint8_t A0 = PIN_A0;
 /*
  * Serial interfaces
  */
+#define SERIAL_PRINT_PORT 0
 
 /*
  * No longer populated on PCB
@@ -158,8 +156,6 @@ static const uint8_t A0 = PIN_A0;
 /* touch sensor, active high */
 
 #define TP_SER_IO (0 + 11)
-
-#define PIN_RTC_INT (0 + 16) // Interrupt from the PCF8563 RTC
 
 /*
  *External serial flash WP25R1635FZUIL0
@@ -216,7 +212,6 @@ static const uint8_t A0 = PIN_A0;
 
 // Controls power for all peripherals (eink + GPS + LoRa + Sensor)
 #define PIN_POWER_EN (0 + 12)
-// #define PIN_POWER_EN1 (0 + 13)
 
 #define PIN_SPI1_MISO                                                                                                            \
     (32 + 7) // FIXME not really needed, but for now the SPI code requires something to be defined, pick an used GPIO
@@ -242,6 +237,7 @@ static const uint8_t A0 = PIN_A0;
 #define PIN_SERIAL1_TX GPS_TX_PIN
 
 // PCF8563 RTC Module
+#define PIN_RTC_INT (0 + 16) // Interrupt from the PCF8563 RTC
 #define PCF8563_RTC 0x51
 
 /*
@@ -269,8 +265,6 @@ static const uint8_t A0 = PIN_A0;
 #define ADC_MULTIPLIER (2.0F)
 
 // #define NO_EXT_GPIO 1
-
-#define HAS_RTC 1
 
 #ifdef __cplusplus
 }

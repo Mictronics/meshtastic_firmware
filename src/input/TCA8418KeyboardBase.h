@@ -28,6 +28,11 @@ class TCA8418KeyboardBase
         SEND_PING = 0xAF,
         BL_TOGGLE = 0xAB,
         POWER = 0xB8,
+        FUNCTION_F1 = 0xF1,
+        FUNCTION_F2 = 0xF2,
+        FUNCTION_F3 = 0xF3,
+        FUNCTION_F4 = 0xF4,
+        FUNCTION_F5 = 0xF5
     };
 
     typedef uint8_t (*i2c_com_fptr_t)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint8_t len);
