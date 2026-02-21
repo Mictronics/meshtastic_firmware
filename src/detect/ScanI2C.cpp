@@ -8,11 +8,6 @@ ScanI2C::ScanI2C() = default;
 void ScanI2C::scanPort(ScanI2C::I2CPort port) {}
 void ScanI2C::scanPort(ScanI2C::I2CPort port, uint8_t *address, uint8_t asize) {}
 
-void ScanI2C::setSuppressScreen()
-{
-    shouldSuppressScreen = true;
-}
-
 ScanI2C::FoundDevice ScanI2C::firstRTC() const
 {
     ScanI2C::DeviceType types[] = {RTC_RV3028, RTC_PCF8563, RTC_RX8130CE};

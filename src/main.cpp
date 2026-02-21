@@ -485,13 +485,6 @@ void setup()
     printPartitionTable();
 #endif
 #endif // ARCH_ESP32
-#ifdef ARCH_ESP32
-    // Don't init display if we don't have one or we are waking headless due to a timer event
-    if (wakeCause == ESP_SLEEP_WAKEUP_TIMER) {
-        LOG_DEBUG("suppress screen wake because this is a headless timer wakeup");
-        i2cScanner->setSuppressScreen();
-    }
-#endif
     /*
      * There are a bunch of sensors that have no further logic than to be found and stuffed into the
      * nodeTelemetrySensorsMap singleton. This wraps that logic in a temporary scope to declare the temporary field
