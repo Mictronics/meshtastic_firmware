@@ -72,7 +72,6 @@
 
 #undef EXT_NOTIFY_OUT // Not used
 #undef BUTTON_PIN     // Not used
-#define LED_PIN PIN_LED
 
 #define BATTERY_PIN 29
 // ratio of voltage divider = 3.0 (R17=200k, R18=100k)

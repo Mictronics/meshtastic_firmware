@@ -1,5 +1,4 @@
 #include "configuration.h"
-
 #if !MESHTASTIC_EXCLUDE_PKI
 #include "KeyVerificationModule.h"
 #endif
@@ -30,7 +29,6 @@
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_POWER_TELEMETRY
 #include "modules/Telemetry/PowerTelemetry.h"
 #endif
-
 /**
  * Create module instances here.  If you are adding a new module, you must 'new' it here (or somewhere else)
  */

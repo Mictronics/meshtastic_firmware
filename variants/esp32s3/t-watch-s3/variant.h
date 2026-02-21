@@ -20,6 +20,8 @@
 #define SCREEN_TRANSITION_FRAMERATE 5 // fps
 #define USE_TFTDISPLAY 1
 
+#define HAS_DRV2605 1
+
 #define HAS_TOUCHSCREEN 1
 #define SCREEN_TOUCH_INT 16
 #define SCREEN_TOUCH_USE_I2C1
@@ -41,7 +43,8 @@
 
 #define HAS_AXP2101
 
-#define HAS_RTC 1
+// PCF8563 RTC Module
+#define PCF8563_RTC 0x51
 
 #define I2C_SDA 10 // For QMC6310 sensors and screens
 #define I2C_SCL 11 // For QMC6310 sensors and screens

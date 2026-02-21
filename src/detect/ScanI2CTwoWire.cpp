@@ -1,4 +1,6 @@
 #include "ScanI2CTwoWire.h"
+#include "configuration.h"
+#include "detect/ScanI2C.h"
 
 #if !MESHTASTIC_EXCLUDE_I2C
 
@@ -8,6 +10,7 @@
 #endif
 #if !defined(ARCH_PORTDUINO) && !defined(ARCH_STM32WL)
 #include "meshUtils.h" // vformat
+
 #endif
 
 bool in_array(uint8_t *array, int size, uint8_t lookfor)
@@ -75,6 +78,25 @@ uint16_t ScanI2CTwoWire::getRegisterValue(const ScanI2CTwoWire::RegisterLocation
             i2cBus->read();
     }
     return value;
+}
+
+bool ScanI2CTwoWire::i2cCommandResponseLength(ScanI2C::DeviceAddress addr, uint16_t command, uint8_t expectedLength) const
+{
+    TwoWire *i2cBus = fetchI2CBus(addr);
+    i2cBus->beginTransmission(addr.address);
+    if (command > 0xFF) {
+        i2cBus->write((uint8_t)(command >> 8));
+    }
+    i2cBus->write((uint8_t)(command & 0xFF));
+    if (i2cBus->endTransmission() != 0) {
+        return false;
+    }
+    delay(20);
+    uint8_t received = i2cBus->requestFrom(addr.address, expectedLength);
+    bool match = (received == expectedLength);
+    while (i2cBus->available())
+        i2cBus->read();
+    return match;
 }
 
 #define SCAN_SIMPLE_CASE(ADDR, T, ...)                                                                                           \

@@ -155,6 +155,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 // Default system gain to 0 if not defined
+#ifndef NUM_PA_POINTS
+#define NUM_PA_POINTS 1
+#endif
+
 #ifndef TX_GAIN_LORA
 #define TX_GAIN_LORA 0
 #endif
@@ -287,9 +291,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef HAS_RADIO
 #define HAS_RADIO 0
 #endif
-#ifndef HAS_RTC
-#define HAS_RTC 0
-#endif
 #ifndef HAS_CPU_SHUTDOWN
 #define HAS_CPU_SHUTDOWN 0
 #endif
@@ -358,6 +359,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MESHTASTIC_EXCLUDE_AUDIO 1
 #define MESHTASTIC_EXCLUDE_DETECTIONSENSOR 1
 #define MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR 1
+#define MESHTASTIC_EXCLUDE_AIR_QUALITY_SENSOR 1
+#define MESHTASTIC_EXCLUDE_HEALTH_TELEMETRY 1
 #define MESHTASTIC_EXCLUDE_EXTERNALNOTIFICATION 1
 #define MESHTASTIC_EXCLUDE_PAXCOUNTER 1
 #define MESHTASTIC_EXCLUDE_POWER_TELEMETRY 1
