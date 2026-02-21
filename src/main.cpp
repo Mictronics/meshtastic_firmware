@@ -480,17 +480,14 @@ void setup()
         sensor_detected = true;
 #endif
     }
-#ifdef ARCH_ESP32
-#ifdef DEBUG_PARTITION_TABLE
-    printPartitionTable();
-#endif
-#endif // ARCH_ESP32
+
+    auto rtc_info = i2cScanner->firstRTC();
+    rtc_found = rtc_info.type != ScanI2C::DeviceType::NONE ? rtc_info.address : rtc_found;
     /*
      * There are a bunch of sensors that have no further logic than to be found and stuffed into the
      * nodeTelemetrySensorsMap singleton. This wraps that logic in a temporary scope to declare the temporary field
      * "found".
      */
-
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA260, meshtastic_TelemetrySensorType_INA260);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA226, meshtastic_TelemetrySensorType_INA226);
     scannerToSensorsMap(i2cScanner, ScanI2C::DeviceType::INA219, meshtastic_TelemetrySensorType_INA219);
