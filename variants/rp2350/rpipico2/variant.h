@@ -12,8 +12,8 @@
 // txd = 8
 // rxd = 9
 
-#define EXT_NOTIFY_OUT 22
-#define BUTTON_PIN 17
+#undef EXT_NOTIFY_OUT // Not used
+#undef BUTTON_PIN     // Not used
 
 #define LED_POWER PIN_LED
 
