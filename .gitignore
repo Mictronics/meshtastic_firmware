@@ -33,6 +33,7 @@ __pycache__
 *~
 
 venv/
+.venv/
 release/
 .vscode/extensions.json
 /compile_commands.json
@@ -48,3 +49,14 @@ data/boot/logo.*
 # Ignore build script
 .builds
 build_all.sh
+# pioarduino platform
+managed_components/*
+arduino-lib-builder*
+dependencies.lock
+idf_component.yml
+CMakeLists.txt
+/sdkconfig.*
+.dummy/*
+
+# PYTHONPATH used by the Nix shell
+.python3

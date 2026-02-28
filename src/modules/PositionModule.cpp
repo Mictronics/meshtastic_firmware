@@ -6,6 +6,7 @@
 #include "NodeDB.h"
 #include "RTC.h"
 #include "Router.h"
+#include "TransmitHistory.h"
 #include "TypeConversions.h"
 #include "airtime.h"
 #include "configuration.h"
@@ -26,6 +27,15 @@ PositionModule::PositionModule()
     precision = 0;        // safe starting value
     isPromiscuous = true; // We always want to update our nodedb, even if we are sniffing on others
     nodeStatusObserver.observe(&nodeStatus->onNewStatus);
+
+    // Seed throttle timer from persisted transmit history so we don't re-broadcast immediately after reboot
+    if (transmitHistory) {
+        uint32_t restored = transmitHistory->getLastSentToMeshMillis(meshtastic_PortNum_POSITION_APP);
+        if (restored != 0) {
+            lastGpsSend = restored;
+            LOG_INFO("Position: restored lastGpsSend from transmit history");
+        }
+    }
 
     if (config.device.role != meshtastic_Config_DeviceConfig_Role_TRACKER &&
         config.device.role != meshtastic_Config_DeviceConfig_Role_TAK_TRACKER) {
@@ -349,6 +359,11 @@ void PositionModule::sendOurPosition()
 
 void PositionModule::sendOurPosition(NodeNum dest, bool wantReplies, uint8_t channel)
 {
+    if (!config.position.fixed_position && !nodeDB->hasLocalPositionSinceBoot()) {
+        LOG_DEBUG("Skip position send; no fresh position since boot");
+        return;
+    }
+
     // cancel any not yet sent (now stale) position packets
     if (prevPacketId) // if we wrap around to zero, we'll simply fail to cancel in that rare case (no big deal)
         service->cancelSending(prevPacketId);
@@ -420,13 +435,21 @@ int32_t PositionModule::runOnce()
         return RUNONCE_INTERVAL;
     }
 
+    bool waitingForFreshPosition = (lastGpsSend == 0) && !config.position.fixed_position && !nodeDB->hasLocalPositionSinceBoot();
+
     if (lastGpsSend == 0 || msSinceLastSend >= intervalMs) {
-        if (nodeDB->hasValidPosition(node)) {
+        if (waitingForFreshPosition) {
+#ifdef GPS_DEBUG
+            LOG_DEBUG("Skip initial position send; no fresh position since boot");
+#endif
+        } else if (nodeDB->hasValidPosition(node)) {
             lastGpsSend = now;
 
             lastGpsLatitude = node->position.latitude_i;
             lastGpsLongitude = node->position.longitude_i;
 
+            if (transmitHistory)
+                transmitHistory->setLastSentToMesh(meshtastic_PortNum_POSITION_APP);
             sendOurPosition();
             if (config.device.role == meshtastic_Config_DeviceConfig_Role_LOST_AND_FOUND) {
                 sendLostAndFoundText();
