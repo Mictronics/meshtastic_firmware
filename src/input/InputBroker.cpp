@@ -299,6 +299,7 @@ void InputBroker::Init()
     // Buttons. Moved here cause we need NodeDB to be initialized
     // If your variant.h has a BUTTON_PIN defined, go ahead and define BUTTON_ACTIVE_LOW and BUTTON_ACTIVE_PULLUP
     UserButtonThread = new ButtonThread("UserButton");
+#if HAS_SCREEN
     if (screen) {
         ButtonConfig userConfig;
         userConfig.pinNumber = (uint8_t)_pinNum;
@@ -318,6 +319,7 @@ void InputBroker::Init()
         userConfig.longLongPress = INPUT_BROKER_SHUTDOWN;
         UserButtonThread->initButton(userConfig);
     } else {
+#endif
         ButtonConfig userConfigNoScreen;
         userConfigNoScreen.pinNumber = (uint8_t)_pinNum;
         userConfigNoScreen.activeLow = BUTTON_ACTIVE_LOW;
@@ -337,7 +339,9 @@ void InputBroker::Init()
         userConfigNoScreen.doublePress = INPUT_BROKER_SEND_PING;
         userConfigNoScreen.triplePress = INPUT_BROKER_GPS_TOGGLE;
         UserButtonThread->initButton(userConfigNoScreen);
+#if HAS_SCREEN
     }
+#endif
 #endif
 #endif
 
