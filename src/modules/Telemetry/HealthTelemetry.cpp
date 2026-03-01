@@ -10,7 +10,6 @@
 #include "PowerFSM.h"
 #include "RTC.h"
 #include "Router.h"
-#include "TransmitHistory.h"
 #include "UnitConversions.h"
 #include "main.h"
 #include "power.h"
@@ -33,8 +32,6 @@ MLX90614Sensor mlx90614Sensor;
 #include "graphics/ScreenFonts.h"
 #endif
 #include <Throttle.h>
-
-static constexpr uint16_t TX_HISTORY_KEY_HEALTH_TELEMETRY = 0x8003;
 
 int32_t HealthTelemetryModule::runOnce()
 {
@@ -72,16 +69,14 @@ int32_t HealthTelemetryModule::runOnce()
             return disable();
         }
 
-        uint32_t lastTelemetry = transmitHistory ? transmitHistory->getLastSentToMeshMillis(TX_HISTORY_KEY_HEALTH_TELEMETRY) : 0;
-        if (((lastTelemetry == 0) ||
-             !Throttle::isWithinTimespanMs(lastTelemetry, Default::getConfiguredOrDefaultMsScaled(
-                                                              moduleConfig.telemetry.health_update_interval,
-                                                              default_telemetry_broadcast_interval_secs, numOnlineNodes))) &&
+        if (((lastSentToMesh == 0) ||
+             !Throttle::isWithinTimespanMs(lastSentToMesh, Default::getConfiguredOrDefaultMsScaled(
+                                                               moduleConfig.telemetry.health_update_interval,
+                                                               default_telemetry_broadcast_interval_secs, numOnlineNodes))) &&
             airTime->isTxAllowedChannelUtil(config.device.role != meshtastic_Config_DeviceConfig_Role_SENSOR) &&
             airTime->isTxAllowedAirUtil()) {
             sendTelemetry();
-            if (transmitHistory)
-                transmitHistory->setLastSentToMesh(TX_HISTORY_KEY_HEALTH_TELEMETRY);
+            lastSentToMesh = millis();
         } else if (((lastSentToPhone == 0) || !Throttle::isWithinTimespanMs(lastSentToPhone, sendToPhoneIntervalMs)) &&
                    (service->isToPhoneQueueEmpty())) {
             // Just send to phone when it's not our time to send to mesh yet
