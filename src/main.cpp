@@ -5,7 +5,6 @@
 #include "PowerMon.h"
 #include "RadioLibInterface.h"
 #include "ReliableRouter.h"
-#include "TransmitHistory.h"
 #include "airtime.h"
 #include "configuration.h"
 #include "power/PowerHAL.h"
@@ -533,8 +532,6 @@ void setup()
 #ifdef PIN_3V3_EN
         digitalWrite(PIN_3V3_EN, LOW);
 #endif
-        // Initialize transmit history to persist broadcast throttle timers across reboots
-        TransmitHistory::getInstance()->loadFromDisk();
     } else
         router = new ReliableRouter();
 

@@ -10,7 +10,6 @@
 #include "PowerTelemetry.h"
 #include "RTC.h"
 #include "Router.h"
-#include "TransmitHistory.h"
 #include "main.h"
 #include "power.h"
 #include "sleep.h"
@@ -20,8 +19,6 @@
 #define DISPLAY_RECEIVEID_MEASUREMENTS_ON_SCREEN true
 
 #include <Throttle.h>
-
-static constexpr uint16_t TX_HISTORY_KEY_POWER_TELEMETRY = 0x8005;
 
 int32_t PowerTelemetryModule::runOnce()
 {
@@ -81,12 +78,10 @@ int32_t PowerTelemetryModule::runOnce()
         if (!moduleConfig.telemetry.power_measurement_enabled)
             return disable();
 
-        uint32_t lastTelemetry = transmitHistory ? transmitHistory->getLastSentToMeshMillis(TX_HISTORY_KEY_POWER_TELEMETRY) : 0;
-        if (((lastTelemetry == 0) || !Throttle::isWithinTimespanMs(lastTelemetry, sendToMeshIntervalMs)) &&
+        if (((lastSentToMesh == 0) || !Throttle::isWithinTimespanMs(lastSentToMesh, sendToMeshIntervalMs)) &&
             airTime->isTxAllowedAirUtil()) {
             sendTelemetry();
-            if (transmitHistory)
-                transmitHistory->setLastSentToMesh(TX_HISTORY_KEY_POWER_TELEMETRY);
+            lastSentToMesh = millis();
         } else if (((lastSentToPhone == 0) || !Throttle::isWithinTimespanMs(lastSentToPhone, sendToPhoneIntervalMs)) &&
                    (service->isToPhoneQueueEmpty())) {
             // Just send to phone when it's not our time to send to mesh yet
