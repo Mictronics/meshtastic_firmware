@@ -25,6 +25,7 @@
 
 #undef EXT_NOTIFY_OUT // Not used
 #undef BUTTON_PIN     // Pin 17 used for antenna switching via DIO4
+#define LED_POWER PIN_LED
 
 #define LED_PIN 25 // GPIO25
 

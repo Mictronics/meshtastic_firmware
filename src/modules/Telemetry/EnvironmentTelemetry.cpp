@@ -10,6 +10,7 @@
 #include "PowerFSM.h"
 #include "RTC.h"
 #include "Router.h"
+#include "TransmitHistory.h"
 #include "UnitConversions.h"
 #include "main.h"
 #include "power.h"
@@ -33,7 +34,7 @@
 #include "Sensor/BMP280Sensor.h"
 #endif
 
-#if __has_include(<bsec2.h>)
+#if __has_include(<bsec2.h>) || __has_include(<Adafruit_BME680.h>)
 #include "Sensor/BME680Sensor.h"
 #endif
 
@@ -46,35 +47,10 @@
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
 #define DISPLAY_RECEIVEID_MEASUREMENTS_ON_SCREEN true
 
+#include "Sensor/AddI2CSensorTemplate.h"
 #include <Throttle.h>
 
-#include <forward_list>
-
-static std::forward_list<TelemetrySensor *> sensors;
-
-template <typename T> void addSensor(ScanI2C *i2cScanner, ScanI2C::DeviceType type)
-{
-    ScanI2C::FoundDevice dev = i2cScanner->find(type);
-    if (dev.type != ScanI2C::DeviceType::NONE || type == ScanI2C::DeviceType::NONE) {
-        TelemetrySensor *sensor = new T();
-#if WIRE_INTERFACES_COUNT > 1
-        TwoWire *bus = ScanI2CTwoWire::fetchI2CBus(dev.address);
-        if (dev.address.port != ScanI2C::I2CPort::WIRE1 && sensor->onlyWire1()) {
-            // This sensor only works on Wire (Wire1 is not supported)
-            delete sensor;
-            return;
-        }
-#else
-        TwoWire *bus = &Wire;
-#endif
-        if (sensor->initDevice(bus, &dev)) {
-            sensors.push_front(sensor);
-            return;
-        }
-        // destroy sensor
-        delete sensor;
-    }
-}
+static constexpr uint16_t TX_HISTORY_KEY_ENVIRONMENT_TELEMETRY = 0x8002;
 
 void EnvironmentTelemetryModule::i2cScanFinished(ScanI2C *i2cScanner)
 {
@@ -164,14 +140,17 @@ int32_t EnvironmentTelemetryModule::runOnce()
             }
         }
 
-        if (((lastSentToMesh == 0) ||
-             !Throttle::isWithinTimespanMs(lastSentToMesh, Default::getConfiguredOrDefaultMsScaled(
-                                                               moduleConfig.telemetry.environment_update_interval,
-                                                               default_telemetry_broadcast_interval_secs, numOnlineNodes))) &&
+        uint32_t lastTelemetry =
+            transmitHistory ? transmitHistory->getLastSentToMeshMillis(TX_HISTORY_KEY_ENVIRONMENT_TELEMETRY) : 0;
+        if (((lastTelemetry == 0) ||
+             !Throttle::isWithinTimespanMs(lastTelemetry, Default::getConfiguredOrDefaultMsScaled(
+                                                              moduleConfig.telemetry.environment_update_interval,
+                                                              default_telemetry_broadcast_interval_secs, numOnlineNodes))) &&
             airTime->isTxAllowedChannelUtil(config.device.role != meshtastic_Config_DeviceConfig_Role_SENSOR) &&
             airTime->isTxAllowedAirUtil()) {
             sendTelemetry();
-            lastSentToMesh = millis();
+            if (transmitHistory)
+                transmitHistory->setLastSentToMesh(TX_HISTORY_KEY_ENVIRONMENT_TELEMETRY);
         } else if (((lastSentToPhone == 0) || !Throttle::isWithinTimespanMs(lastSentToPhone, sendToPhoneIntervalMs)) &&
                    (service->isToPhoneQueueEmpty())) {
             // Just send to phone when it's not our time to send to mesh yet
@@ -218,27 +197,34 @@ bool EnvironmentTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPac
 
 bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m)
 {
-    bool valid = true;
+    bool valid = false;
     bool hasSensor = false;
+    // getMetrics() doesn't always get evaluated because of
+    // short-circuit evaluation rules in c++
+    bool get_metrics;
     m->time = getTime();
     m->which_variant = meshtastic_Telemetry_environment_metrics_tag;
     m->variant.environment_metrics = meshtastic_EnvironmentMetrics_init_zero;
 
     for (TelemetrySensor *sensor : sensors) {
-        valid = valid && sensor->getMetrics(m);
+        get_metrics = sensor->getMetrics(m); // avoid short-circuit evaluation rules
+        valid = valid || get_metrics;
         hasSensor = true;
     }
 
     if (ina219Sensor.hasSensor()) {
-        valid = valid && ina219Sensor.getMetrics(m);
+        get_metrics = ina219Sensor.getMetrics(m);
+        valid = valid || get_metrics;
         hasSensor = true;
     }
     if (ina260Sensor.hasSensor()) {
-        valid = valid && ina260Sensor.getMetrics(m);
+        get_metrics = ina260Sensor.getMetrics(m);
+        valid = valid || get_metrics;
         hasSensor = true;
     }
     if (ina3221Sensor.hasSensor()) {
-        valid = valid && ina3221Sensor.getMetrics(m);
+        get_metrics = ina3221Sensor.getMetrics(m);
+        valid = valid || get_metrics;
         hasSensor = true;
     }
     return valid && hasSensor;
@@ -247,6 +233,10 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
 meshtastic_MeshPacket *EnvironmentTelemetryModule::allocReply()
 {
     if (currentRequest) {
+        if (isMultiHopBroadcastRequest() && !isSensorOrRouterRole()) {
+            ignoreRequest = true;
+            return NULL;
+        }
         auto req = *currentRequest;
         const auto &p = req.decoded;
         meshtastic_Telemetry scratch;
@@ -293,8 +283,6 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
 
         LOG_INFO("Send: soil_temperature=%f, soil_moisture=%u", m.variant.environment_metrics.soil_temperature,
                  m.variant.environment_metrics.soil_moisture);
-
-        sensor_read_error_count = 0;
 
         meshtastic_MeshPacket *p = allocDataProtobuf(m);
         p->to = dest;

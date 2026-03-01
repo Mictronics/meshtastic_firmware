@@ -10,6 +10,7 @@ class ScanI2C
         NONE,
         RTC_RV3028,
         RTC_PCF8563,
+        RTC_PCF85063,
         RTC_RX8130CE,
         BME_680,
         BME_280,
@@ -59,11 +60,6 @@ class ScanI2C
     virtual void scanPort(ScanI2C::I2CPort);
     virtual void scanPort(ScanI2C::I2CPort, uint8_t *, uint8_t);
 
-    /*
-     * A bit of a hack, this tells the scanner not to tell later systems there is a screen to avoid enabling it.
-     */
-    void setSuppressScreen();
-
     FoundDevice firstRTC() const;
 
     virtual FoundDevice find(DeviceType) const;
@@ -74,7 +70,4 @@ class ScanI2C
 
   protected:
     virtual FoundDevice firstOfOrNONE(size_t, DeviceType[]) const;
-
-  private:
-    bool shouldSuppressScreen = false;
 };

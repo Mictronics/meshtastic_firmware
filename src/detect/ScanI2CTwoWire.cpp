@@ -1,4 +1,6 @@
 #include "ScanI2CTwoWire.h"
+#include "configuration.h"
+#include "detect/ScanI2C.h"
 
 #if !MESHTASTIC_EXCLUDE_I2C
 
@@ -8,6 +10,7 @@
 #endif
 #if !defined(ARCH_PORTDUINO) && !defined(ARCH_STM32WL)
 #include "meshUtils.h" // vformat
+
 #endif
 
 bool in_array(uint8_t *array, int size, uint8_t lookfor)
@@ -75,6 +78,64 @@ uint16_t ScanI2CTwoWire::getRegisterValue(const ScanI2CTwoWire::RegisterLocation
             i2cBus->read();
     }
     return value;
+}
+
+bool ScanI2CTwoWire::i2cCommandResponseLength(ScanI2C::DeviceAddress addr, uint16_t command, uint8_t expectedLength) const
+{
+    TwoWire *i2cBus = fetchI2CBus(addr);
+    i2cBus->beginTransmission(addr.address);
+    if (command > 0xFF) {
+        i2cBus->write((uint8_t)(command >> 8));
+    }
+    i2cBus->write((uint8_t)(command & 0xFF));
+    if (i2cBus->endTransmission() != 0) {
+        return false;
+    }
+    delay(20);
+    uint8_t received = i2cBus->requestFrom(addr.address, expectedLength);
+    bool match = (received == expectedLength);
+    while (i2cBus->available())
+        i2cBus->read();
+    return match;
+}
+
+/// for SEN5X detection
+// Note, this code needs to be called before setting the I2C bus speed
+// for the screen at high speed. The speed needs to be at 100kHz, otherwise
+// detection will not work
+String readSEN5xProductName(TwoWire *i2cBus, uint8_t address)
+{
+    uint8_t cmd[] = {0xD0, 0x14};
+    uint8_t response[48] = {0};
+
+    i2cBus->beginTransmission(address);
+    i2cBus->write(cmd, 2);
+    if (i2cBus->endTransmission() != 0)
+        return "";
+
+    delay(20);
+    if (i2cBus->requestFrom(address, (uint8_t)48) != 48)
+        return "";
+
+    for (int i = 0; i < 48 && i2cBus->available(); ++i) {
+        response[i] = i2cBus->read();
+    }
+
+    char productName[33] = {0};
+    int j = 0;
+    for (int i = 0; i < 48 && j < 32; i += 3) {
+        if (response[i] >= 32 && response[i] <= 126)
+            productName[j++] = response[i];
+        else
+            break;
+
+        if (response[i + 1] >= 32 && response[i + 1] <= 126)
+            productName[j++] = response[i + 1];
+        else
+            break;
+    }
+
+    return String(productName);
 }
 
 #define SCAN_SIMPLE_CASE(ADDR, T, ...)                                                                                           \

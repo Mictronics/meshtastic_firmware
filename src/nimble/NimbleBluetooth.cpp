@@ -52,6 +52,15 @@ NimBLEServer *bleServer;
 static bool passkeyShowing;
 static std::atomic<uint16_t> nimbleBluetoothConnHandle{BLE_HS_CONN_HANDLE_NONE}; // BLE_HS_CONN_HANDLE_NONE means "no connection"
 
+static void clearPairingDisplay()
+{
+    if (!passkeyShowing) {
+        return;
+    }
+
+    passkeyShowing = false;
+}
+
 class BluetoothPhoneAPI : public PhoneAPI, public concurrency::OSThread
 {
     /*
@@ -313,11 +322,11 @@ class BluetoothPhoneAPI : public PhoneAPI, public concurrency::OSThread
     {
         PhoneAPI::onNowHasData(fromRadioNum);
 
+#ifdef DEBUG_NIMBLE_NOTIFY
+
         int currentNotifyCount = notifyCount.fetch_add(1);
 
         uint8_t cc = bleServer->getConnectedCount();
-
-#ifdef DEBUG_NIMBLE_NOTIFY
         // This logging slows things down when there are lots of packets going to the phone, like initial connection:
         LOG_DEBUG("BLE notify(%d) fromNum: %d connections: %d", currentNotifyCount, fromRadioNum, cc);
 #endif
@@ -655,10 +664,14 @@ class NimbleBluetoothServerCallback : public NimBLEServerCallbacks
 #ifdef NIMBLE_TWO
         if (ble->isDeInit)
             return;
+#else
+        if (nimbleBluetooth && nimbleBluetooth->isDeInit)
+            return;
 #endif
 
         meshtastic::BluetoothStatus newStatus(meshtastic::BluetoothStatus::ConnectionState::DISCONNECTED);
         bluetoothStatus->updateStatus(&newStatus);
+        clearPairingDisplay();
 
         if (bluetoothPhoneAPI) {
             bluetoothPhoneAPI->close();
@@ -723,11 +736,7 @@ void NimbleBluetooth::deinit()
     isDeInit = true;
 
 #ifdef BLE_LED
-#ifdef BLE_LED_INVERTED
-    digitalWrite(BLE_LED, HIGH);
-#else
-    digitalWrite(BLE_LED, LOW);
-#endif
+    digitalWrite(BLE_LED, LED_STATE_OFF);
 #endif
 #ifndef NIMBLE_TWO
     NimBLEDevice::deinit();
