@@ -465,7 +465,6 @@ void setup()
     i2cScanner->scanPort(ScanI2C::I2CPort::WIRE);
 #elif defined(ARCH_PORTDUINO)
     if (portduino_config.i2cdev != "") {
-        LOG_INFO("Scan for i2c devices");
         i2cScanner->scanPort(ScanI2C::I2CPort::WIRE);
     }
 #elif HAS_WIRE

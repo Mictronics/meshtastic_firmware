@@ -315,7 +315,6 @@ void doDeepSleep(uint32_t msecToWake, bool skipPreflight = false, bool skipSaveN
 
 #ifdef HAS_PPM
     if (PPM) {
-        LOG_INFO("PMM shutdown");
         console->flush();
         PPM->shutdown();
     }
@@ -349,7 +348,6 @@ void doDeepSleep(uint32_t msecToWake, bool skipPreflight = false, bool skipSaveN
             PMU->disablePowerOutput(XPOWERS_LDO2); // lora radio power channel
         }
         if (msecToWake == portMAX_DELAY) {
-            LOG_INFO("PMU shutdown");
             console->flush();
             PMU->shutdown();
         }

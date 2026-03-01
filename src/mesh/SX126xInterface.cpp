@@ -437,8 +437,6 @@ template <typename T> void SX126xInterface<T>::resetAGC()
     if (sendingPacket != NULL || (isReceiving && isActivelyReceiving()))
         return;
 
-    LOG_DEBUG("SX126x AGC reset: warm sleep + Calibrate(0x7F)");
-
     // 1. Warm sleep — powers down the entire analog frontend, resetting AGC state.
     //    A plain standby→startReceive cycle does NOT reset the AGC.
     lora.sleep(true);

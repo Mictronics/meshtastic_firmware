@@ -30,13 +30,12 @@ bool TimeModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtas
 void TimeModule::trySetRtc(meshtastic_Position p, bool isLocal, bool forceUpdate)
 {
     if (hasQualityTimesource() && !isLocal) {
-        LOG_DEBUG("Ignore time from mesh because we have a GPS, RTC, or Phone/NTP time source in the past day");
         return;
     }
     if (!isLocal && p.location_source < meshtastic_Position_LocSource_LOC_INTERNAL) {
-        LOG_DEBUG("Ignore time from mesh because it has a unknown or manual source");
         return;
     }
+    LOG_INFO("Setting RTC time.");
     struct timeval tv;
     uint32_t secs = p.time;
 

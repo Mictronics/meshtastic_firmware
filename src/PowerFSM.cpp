@@ -185,7 +185,6 @@ static void powerEnter()
     LOG_POWERFSM("State: powerEnter");
     if (!isPowered()) {
         // If we got here, we are in the wrong state - we should be in powered, let that state handle things
-        LOG_INFO("Loss of power in Powered");
         powerFSM.trigger(EVENT_POWER_DISCONNECTED);
     } else {
         setBluetoothEnable(true);
@@ -195,10 +194,7 @@ static void powerEnter()
 
 static void powerIdle()
 {
-    // LOG_POWERFSM("State: powerIdle"); // very chatty
     if (!isPowered()) {
-        // If we got here, we are in the wrong state
-        LOG_INFO("Loss of power in Powered");
         powerFSM.trigger(EVENT_POWER_DISCONNECTED);
     }
 }

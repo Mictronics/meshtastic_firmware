@@ -63,12 +63,12 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
         LOG_DEBUG("Allow admin response message");
     } else if (mp.from == 0) {
         if (config.security.is_managed) {
-            LOG_INFO("Ignore local admin payload because is_managed");
+            LOG_INFO("Ignore local admin: is_managed");
             return handled;
         }
     } else if (strcasecmp(ch->settings.name, Channels::adminChannel) == 0) {
         if (!config.security.admin_channel_enabled) {
-            LOG_INFO("Ignore admin channel, legacy admin is disabled");
+            LOG_INFO("Ignore admin channel: disabled");
             myReply = allocErrorResponse(meshtastic_Routing_Error_NOT_AUTHORIZED, &mp);
             return handled;
         }
