@@ -34,7 +34,7 @@
 
 #if defined(BUTTON_PIN_TOUCH)
 ButtonThread *TouchButtonThread = nullptr;
-#if defined(TTGO_T_ECHO_PLUS) && defined(PIN_EINK_EN)
+#if defined(PIN_EINK_EN)
 static bool touchBacklightWasOn = false;
 static bool touchBacklightActive = false;
 #endif
@@ -220,8 +220,8 @@ void InputBroker::Init()
     };
     touchConfig.singlePress = INPUT_BROKER_NONE;
     touchConfig.longPress = INPUT_BROKER_BACK;
-#if defined(TTGO_T_ECHO_PLUS) && defined(PIN_EINK_EN)
-    // On T-Echo Plus the touch pad should only drive the backlight, not UI navigation/sounds
+#if defined(PIN_EINK_EN)
+    // Touch pad drives the backlight on devices with e-ink backlight pin
     touchConfig.longPress = INPUT_BROKER_NONE;
     touchConfig.suppressLeadUpSound = true;
     touchConfig.onPress = []() {
@@ -299,6 +299,7 @@ void InputBroker::Init()
     // Buttons. Moved here cause we need NodeDB to be initialized
     // If your variant.h has a BUTTON_PIN defined, go ahead and define BUTTON_ACTIVE_LOW and BUTTON_ACTIVE_PULLUP
     UserButtonThread = new ButtonThread("UserButton");
+#if HAS_SCREEN
     if (screen) {
         ButtonConfig userConfig;
         userConfig.pinNumber = (uint8_t)_pinNum;
@@ -318,6 +319,7 @@ void InputBroker::Init()
         userConfig.longLongPress = INPUT_BROKER_SHUTDOWN;
         UserButtonThread->initButton(userConfig);
     } else {
+#endif
         ButtonConfig userConfigNoScreen;
         userConfigNoScreen.pinNumber = (uint8_t)_pinNum;
         userConfigNoScreen.activeLow = BUTTON_ACTIVE_LOW;
@@ -337,7 +339,9 @@ void InputBroker::Init()
         userConfigNoScreen.doublePress = INPUT_BROKER_SEND_PING;
         userConfigNoScreen.triplePress = INPUT_BROKER_GPS_TOGGLE;
         UserButtonThread->initButton(userConfigNoScreen);
+#if HAS_SCREEN
     }
+#endif
 #endif
 #endif
 

@@ -3,6 +3,9 @@ export DEBEMAIL="michael@mictronics.de"
 export PLATFORMIO_LIBDEPS_DIR=pio/libdeps
 export PLATFORMIO_PACKAGES_DIR=pio/packages
 export PLATFORMIO_CORE_DIR=pio/core
+export PLATFORMIO_SETTING_ENABLE_TELEMETRY=0
+export PLATFORMIO_SETTING_CHECK_PLATFORMIO_INTERVAL=3650
+export PLATFORMIO_SETTING_CHECK_PRUNE_SYSTEM_THRESHOLD=10240
 
 # Cleanup from previous package build
 dh_clean
@@ -26,5 +29,10 @@ rm -rf debian/changelog
 dch --create --distribution "$SERIES" --package "$package" --newversion "$PKG_VERSION~$SERIES" \
 	"GitHub Actions Automatic packaging for $PKG_VERSION~$SERIES"
 
-# Build the binary deb
-debuild -b -nc --no-sign
+if [[ -n $GPG_KEY_ID ]]; then
+	# Build and sign the source deb
+	debuild -S -nc -k"$GPG_KEY_ID"
+else
+	# Build the source deb without signing (forks)
+	debuild -b -nc --no-sign
+fi

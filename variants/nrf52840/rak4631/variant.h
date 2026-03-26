@@ -46,7 +46,7 @@ extern "C" {
 // LEDs
 #define PIN_LED1 (35)
 #define LED_BLUE (36)
-
+#define LED_BUILTIN PIN_LED1
 #define LED_GREEN PIN_LED1
 #define LED_NOTIFICATION LED_BLUE
 

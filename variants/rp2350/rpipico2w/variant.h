@@ -20,8 +20,8 @@
 // txd = 8
 // rxd = 9
 
-#define EXT_NOTIFY_OUT 22
-#define BUTTON_PIN 17
+#undef EXT_NOTIFY_OUT // Not used
+#undef BUTTON_PIN     // Not used
 
 #define BATTERY_PIN 26
 // ratio of voltage divider = 3.0 (R17=200k, R18=100k)

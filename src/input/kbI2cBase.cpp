@@ -9,6 +9,8 @@
 #include "TLoraPagerKeyboard.h"
 #elif defined(NOKIA5130)
 #include "Nokia5130Keyboard.h"
+#elif defined(M5STACK_CARDPUTER_ADV)
+#include "CardputerKeyboard.h"
 #elif defined(HACKADAY_COMMUNICATOR)
 #include "HackadayCommunicatorKeyboard.h"
 #else
@@ -26,6 +28,8 @@ KbI2cBase::KbI2cBase(const char *name)
       TCAKeyboard(*(new TLoraPagerKeyboard()))
 #elif defined(NOKIA5130)
       TCAKeyboard(*(new Nokia5130Keyboard()))
+#elif defined(M5STACK_CARDPUTER_ADV)
+      TCAKeyboard(*(new CardputerKeyboard()))
 #elif defined(HACKADAY_COMMUNICATOR)
       TCAKeyboard(*(new HackadayCommunicatorKeyboard()))
 #else
@@ -495,7 +499,7 @@ int32_t KbI2cBase::runOnce()
                 e.kbchar = 0;
                 break;
             case 0xc: // Modifier key: 0xc is alt+c (Other options could be: 0xea = shift+mic button or 0x4 shift+$(speaker))
-                // toggle moddifiers button.
+                // toggle modifiers button.
                 is_sym = !is_sym;
                 e.inputEvent = INPUT_BROKER_ANYKEY;
                 e.kbchar = is_sym ? INPUT_BROKER_MSG_FN_SYMBOL_ON   // send 0xf1 to tell CannedMessages to display that the
