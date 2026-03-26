@@ -15,6 +15,8 @@ const char *Channels::adminChannel = "admin";
 const char *Channels::gpioChannel = "gpio";
 const char *Channels::serialChannel = "serial";
 
+meshtastic_Channel dummyChannel = {.index = -1};
+
 uint8_t xorHash(const uint8_t *p, size_t len)
 {
     uint8_t code = 0;
@@ -318,13 +320,7 @@ meshtastic_Channel &Channels::getByIndex(ChannelIndex chIndex)
         return *ch;
     } else {
         LOG_ERROR("Invalid channel index %d > %d, malformed packet received?", chIndex, channelFile.channels_count);
-
-        static meshtastic_Channel *ch = (meshtastic_Channel *)malloc(sizeof(meshtastic_Channel));
-        memset(ch, 0, sizeof(meshtastic_Channel));
-        // ch.index -1 means we don't know the channel locally and need to look it up by settings.name
-        // not sure this is handled right everywhere
-        ch->index = -1;
-        return *ch;
+        return dummyChannel;
     }
 }
 

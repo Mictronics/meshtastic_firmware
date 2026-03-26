@@ -115,6 +115,8 @@ void PhoneAPI::close()
         }
         packetForPhone = NULL;
         filesManifest.clear();
+        filesManifest.shrink_to_fit();
+        lastPortNumToRadio.clear();
         fromRadioNum = 0;
         config_nonce = 0;
         config_state = 0;
