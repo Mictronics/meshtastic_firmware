@@ -32,6 +32,11 @@
 #include "nrfx_power.h"
 #endif
 
+#if defined(ARCH_NRF52)
+#include "Nrf52SaadcLock.h"
+#include "concurrency/LockGuard.h"
+#endif
+
 #if defined(DEBUG_HEAP_MQTT) && !MESHTASTIC_EXCLUDE_MQTT
 #include "target_specific.h"
 #if HAS_WIFI
@@ -311,6 +316,9 @@ class AnalogBatteryLevel : public HasBatteryLevel
             scaled = esp_adc_cal_raw_to_voltage(raw, adc_characs);
             scaled *= operativeAdcMultiplier;
 #else // block for all other platforms
+#ifdef ARCH_NRF52
+            concurrency::LockGuard saadcGuard(concurrency::nrf52SaadcLock);
+#endif
             for (uint32_t i = 0; i < BATTERY_SENSE_SAMPLES; i++) {
                 raw += analogRead(BATTERY_PIN);
             }
@@ -679,32 +687,7 @@ bool Power::setup()
 #endif
     }
 #ifdef EXT_PWR_DETECT
-    attachInterrupt(
-        EXT_PWR_DETECT,
-        []() {
-            power->setIntervalFromNow(0);
-            runASAP = true;
-        },
-        CHANGE);
-#endif
-#ifdef BATTERY_CHARGING_INV
-    attachInterrupt(
-        BATTERY_CHARGING_INV,
-        []() {
-            power->setIntervalFromNow(0);
-            runASAP = true;
-        },
-        CHANGE);
-#endif
-#ifdef EXT_CHRG_DETECT
-    attachInterrupt(
-        EXT_CHRG_DETECT,
-        []() {
-            power->setIntervalFromNow(0);
-            runASAP = true;
-            BaseType_t higherWake = 0;
-        },
-        CHANGE);
+    attachPowerInterrupts();
 #endif
     enabled = found;
     low_voltage_counter = 0;
@@ -736,6 +719,10 @@ void Power::reboot()
     rp2040.reboot();
 #elif defined(ARCH_PORTDUINO)
     deInitApiServer();
+#ifdef __linux__
+    if (aLinuxInputImpl)
+        aLinuxInputImpl->deInit();
+#endif
     SPI.end();
     Wire.end();
     Serial1.end();

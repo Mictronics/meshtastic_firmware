@@ -72,7 +72,7 @@ extern RAK9154Sensor rak9154Sensor;
 extern XPowersLibInterface *PMU;
 #endif
 
-class Power : private concurrency::OSThread
+class Power : public concurrency::OSThread
 {
 
   public:
