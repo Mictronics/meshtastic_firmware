@@ -299,7 +299,7 @@ void InputBroker::Init()
     // Buttons. Moved here cause we need NodeDB to be initialized
     // If your variant.h has a BUTTON_PIN defined, go ahead and define BUTTON_ACTIVE_LOW and BUTTON_ACTIVE_PULLUP
     UserButtonThread = new ButtonThread("UserButton");
-#if HAS_SCREEN
+#if !MESHTASTIC_EXCLUDE_SCREEN
     if (screen) {
         ButtonConfig userConfig;
         userConfig.pinNumber = (uint8_t)_pinNum;
@@ -339,7 +339,7 @@ void InputBroker::Init()
         userConfigNoScreen.doublePress = INPUT_BROKER_SEND_PING;
         userConfigNoScreen.triplePress = INPUT_BROKER_GPS_TOGGLE;
         UserButtonThread->initButton(userConfigNoScreen);
-#if HAS_SCREEN
+#if !MESHTASTIC_EXCLUDE_SCREEN
     }
 #endif
 #endif
@@ -383,14 +383,19 @@ void InputBroker::Init()
     }
 #endif // HAS_BUTTON
 #if ARCH_PORTDUINO
-    if (config.display.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR && portduino_config.i2cdev != "") {
-        seesawRotary = new SeesawRotary("SeesawRotary");
-        if (!seesawRotary->init()) {
-            delete seesawRotary;
-            seesawRotary = nullptr;
+    if (config.display.displaymode != meshtastic_Config_DisplayConfig_DisplayMode_COLOR) {
+        if (portduino_config.i2cdev != "") {
+            seesawRotary = new SeesawRotary("SeesawRotary");
+            if (!seesawRotary->init()) {
+                delete seesawRotary;
+                seesawRotary = nullptr;
+            }
         }
+#ifdef __linux__
+        // Linux evdev keyboard input only — macOS has no <linux/input.h>.
         aLinuxInputImpl = new LinuxInputImpl();
         aLinuxInputImpl->init();
+#endif
     }
 #endif
 #if !MESHTASTIC_EXCLUDE_INPUTBROKER && HAS_TRACKBALL
