@@ -659,12 +659,6 @@ void setup()
         digitalWrite(LED_PIN, HIGH ^ LED_STATE_ON);
 #endif
 
-// Do this after service.init (because that clears error_code)
-#ifdef HAS_PMU
-    if (!pmu_found)
-        RECORD_CRITICALERROR(meshtastic_CriticalErrorCode_NO_AXP192); // Record a hardware fault for missing hardware
-#endif
-
 #ifdef PIN_PWR_DELAY_MS
     // This may be required to give the peripherals time to power up.
     delay(PIN_PWR_DELAY_MS);

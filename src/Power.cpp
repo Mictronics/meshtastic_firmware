@@ -114,24 +114,6 @@ NullSensor ina3221Sensor;
 
 #endif
 
-#if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR && HAS_RAKPROT
-RAK9154Sensor rak9154Sensor;
-#endif
-
-#ifdef HAS_PPM
-// note: XPOWERS_CHIP_XXX must be defined in variant.h
-#include <XPowersLib.h>
-XPowersPPM *PPM = NULL;
-#endif
-
-#ifdef HAS_BQ27220
-#include "bq27220.h"
-#endif
-
-#ifdef HAS_PMU
-XPowersLibInterface *PMU = NULL;
-#else
-
 // Copy of the base class defined in axp20x.h.
 // I'd rather not include axp20x.h as it brings Wire dependency.
 class HasBatteryLevel
@@ -155,9 +137,6 @@ class HasBatteryLevel
     virtual bool isVbusIn() { return false; }
     virtual bool isCharging() { return false; }
 };
-#endif
-
-bool pmu_irq = false;
 
 Power *power;
 
@@ -226,12 +205,6 @@ class AnalogBatteryLevel : public HasBatteryLevel
      */
     virtual int getBatteryPercent() override
     {
-#if defined(HAS_RAKPROT) && !defined(HAS_PMU)
-        if (hasRAK()) {
-            return rak9154Sensor.getBusBatteryPercent();
-        }
-#endif
-
         float v = getBattVoltage();
 
         if (v < noBatVolt)
@@ -275,12 +248,6 @@ class AnalogBatteryLevel : public HasBatteryLevel
      */
     virtual uint16_t getBattVoltage() override
     {
-
-#if HAS_TELEMETRY && defined(HAS_RAKPROT) && !defined(HAS_PMU) && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
-        if (hasRAK()) {
-            return getRAKVoltage();
-        }
-#endif
 
 #if HAS_TELEMETRY && !defined(HAS_PMU) && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
         if (hasINA()) {
@@ -466,11 +433,6 @@ class AnalogBatteryLevel : public HasBatteryLevel
     /// we can't be smart enough to say 'full'?
     virtual bool isCharging() override
     {
-#if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR && defined(HAS_RAKPROT) && !defined(HAS_PMU)
-        if (hasRAK()) {
-            return (rak9154Sensor.isCharging()) ? OptTrue : OptFalse;
-        }
-#endif
 #if defined(ELECROW_ThinkNode_M6)
         return digitalRead(EXT_CHRG_DETECT) == ext_chrg_detect_value || isVbusIn();
 #elif EXT_CHRG_DETECT
@@ -511,18 +473,6 @@ class AnalogBatteryLevel : public HasBatteryLevel
     bool initial_read_done = false;
     float last_read_value = (OCV[NUM_OCV_POINTS - 1] * NUM_CELLS);
     uint32_t last_read_time_ms = 0;
-
-#if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR && defined(HAS_RAKPROT)
-
-    uint16_t getRAKVoltage() { return rak9154Sensor.getBusVoltageMv(); }
-
-    bool hasRAK()
-    {
-        if (!rak9154Sensor.isInitialized())
-            return rak9154Sensor.runOnce() > 0;
-        return rak9154Sensor.isRunning();
-    }
-#endif
 
 #if HAS_TELEMETRY && !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR
     uint16_t getINAVoltage()
@@ -893,48 +843,6 @@ int32_t Power::runOnce()
 {
     readPowerStatus();
 
-#ifdef HAS_PMU
-    // WE no longer use the IRQ line to wake the CPU (due to false wakes from
-    // sleep), but we do poll the IRQ status by reading the registers over I2C
-    if (PMU) {
-
-        PMU->getIrqStatus();
-
-        if (PMU->isVbusRemoveIrq()) {
-            LOG_INFO("USB unplugged");
-            powerFSM.trigger(EVENT_POWER_DISCONNECTED);
-        }
-
-        if (PMU->isVbusInsertIrq()) {
-            LOG_INFO("USB plugged In");
-            powerFSM.trigger(EVENT_POWER_CONNECTED);
-        }
-
-        /*
-        Other things we could check if we cared...
-
-        if (PMU->isBatChagerStartIrq()) {
-            LOG_DEBUG("Battery start charging");
-        }
-        if (PMU->isBatChagerDoneIrq()) {
-            LOG_DEBUG("Battery fully charged");
-        }
-        if (PMU->isBatInsertIrq()) {
-            LOG_DEBUG("Battery inserted");
-        }
-        if (PMU->isBatRemoveIrq()) {
-            LOG_DEBUG("Battery removed");
-        }
-        */
-#ifndef T_WATCH_S3 // FIXME - why is this triggering on the T-Watch S3?
-        if (PMU->isPekeyLongPressIrq()) {
-            LOG_DEBUG("PEK long button press");
-        }
-#endif
-
-        PMU->clearIrqStatus();
-    }
-#endif
     // Only read once every 20 seconds once the power status for the app has been
     // initialized
     return (statusHandler && statusHandler->isInitialized()) ? (1000 * 20) : RUN_SAME;

@@ -46,10 +46,6 @@
 #define HAS_32768HZ 0
 #endif
 
-#if defined(HAS_AXP192) || defined(HAS_AXP2101)
-#define HAS_PMU
-#endif
-
 #ifdef PIN_BUTTON_TOUCH
 #define BUTTON_PIN_TOUCH PIN_BUTTON_TOUCH
 #endif
