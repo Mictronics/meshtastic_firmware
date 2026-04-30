@@ -81,7 +81,6 @@ bool KeyVerificationModule::handleReceivedProtobuf(const meshtastic_MeshPacket &
             sprintf(message, "Verification: \n");
             generateVerificationCode(message + 15);
             LOG_INFO("Hash1 matches!");
-            static const char *optionsArray[] = {"Reject", "Accept"};
             meshtastic_ClientNotification *cn = clientNotificationPool.allocZeroed();
             cn->level = meshtastic_LogRecord_Level_WARNING;
             sprintf(cn->message, "Final confirmation for incoming manual key verification %s", message);

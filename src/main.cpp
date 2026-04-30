@@ -329,8 +329,6 @@ void setup()
     DEBUG_PORT.printf("Debug mute is enabled, there will be no serial output.\r\n");
 #endif
 
-    initDeepSleep();
-
 #if defined(MODEM_POWER_EN)
     pinMode(MODEM_POWER_EN, OUTPUT);
     digitalWrite(MODEM_POWER_EN, LOW);

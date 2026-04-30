@@ -719,10 +719,6 @@ void Power::reboot()
     rp2040.reboot();
 #elif defined(ARCH_PORTDUINO)
     deInitApiServer();
-#ifdef __linux__
-    if (aLinuxInputImpl)
-        aLinuxInputImpl->deInit();
-#endif
     SPI.end();
     Wire.end();
     Serial1.end();
@@ -753,7 +749,6 @@ void Power::shutdown()
 #ifdef LED_NOTIFICATION
     ledOff(LED_NOTIFICATION);
 #endif
-    doDeepSleep(DELAY_FOREVER, true, true);
 #elif defined(ARCH_PORTDUINO)
     exit(EXIT_SUCCESS);
 #else

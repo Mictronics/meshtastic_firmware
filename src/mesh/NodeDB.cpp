@@ -419,8 +419,8 @@ NodeDB::NodeDB()
 #endif
 #ifdef USERPREFS_FIXED_GPS
     if (myNodeInfo.reboot_count == 1) { // Check if First boot ever or after Factory Reset.
-        meshtastic_Position fixedGPS = meshtastic_Position_init_default;
 #ifdef USERPREFS_FIXED_GPS_LAT
+        meshtastic_Position fixedGPS = meshtastic_Position_init_default;
         fixedGPS.latitude_i = (int32_t)(USERPREFS_FIXED_GPS_LAT * 1e7);
         fixedGPS.has_latitude_i = true;
 #endif

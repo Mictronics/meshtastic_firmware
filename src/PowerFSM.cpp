@@ -59,14 +59,11 @@ static bool isPowered()
 static void sdsEnter()
 {
     LOG_POWERFSM("State: SDS");
-    // FIXME - make sure GPS and LORA radio are off first - because we want close to zero current draw
-    doDeepSleep(Default::getConfiguredOrDefaultMs(config.power.sds_secs), false, false);
 }
 
 static void lowBattSDSEnter()
 {
     LOG_POWERFSM("State: Lower batt SDS");
-    doDeepSleep(Default::getConfiguredOrDefaultMs(config.power.sds_secs), false, true);
 }
 
 static void shutdownEnter()
@@ -83,68 +80,12 @@ static void lsEnter()
 {
     LOG_POWERFSM("lsEnter begin, ls_secs=%u", config.power.ls_secs);
     secsSlept = 0; // How long have we been sleeping this time
-
-    // LOG_INFO("lsEnter end");
 }
 
 static void lsIdle()
 {
-    // LOG_INFO("lsIdle begin ls_secs=%u", getPref_ls_secs());
-
 #ifdef ARCH_ESP32
-
-    // Do we have more sleeping to do?
-    if (secsSlept < config.power.ls_secs) {
-        // If some other service would stall sleep, don't let sleep happen yet
-        if (doPreflightSleep()) {
-            // Briefly come out of sleep long enough to blink the led once every few seconds
-            uint32_t sleepTime = SLEEP_TIME;
-
-            powerMon->setState(meshtastic_PowerMon_State_CPU_LightSleep);
-            esp_sleep_source_t wakeCause2 = doLightSleep(sleepTime * 1000LL);
-            powerMon->clearState(meshtastic_PowerMon_State_CPU_LightSleep);
-
-            switch (wakeCause2) {
-            case ESP_SLEEP_WAKEUP_TIMER:
-                // Normal case: timer expired, we should just go back to sleep ASAP
-
-                wakeCause2 = doLightSleep(100); // leave led on for 1ms
-
-                secsSlept += sleepTime;
-                // LOG_INFO("Sleep, flash led!");
-                break;
-
-            case ESP_SLEEP_WAKEUP_UART:
-                // Not currently used (because uart triggers in hw have problems)
-                powerFSM.trigger(EVENT_SERIAL_CONNECTED);
-                break;
-
-            default:
-                // We woke for some other reason (button press, device IRQ interrupt)
-
-#ifdef BUTTON_PIN
-                bool pressed = !digitalRead(config.device.button_gpio ? config.device.button_gpio : BUTTON_PIN);
-#else
-                bool pressed = false;
-#endif
-                if (pressed) { // If we woke because of press, instead generate a PRESS event.
-                    powerFSM.trigger(EVENT_PRESS);
-                } else {
-                    // Otherwise let the NB state handle the IRQ (and that state will handle stuff like IRQs etc)
-                    // we lie and say "wake timer" because the interrupt will be handled by the regular IRQ code
-                    powerFSM.trigger(EVENT_WAKE_TIMER);
-                }
-                break;
-            }
-        } else {
-            // Someone says we can't sleep now, so just save some power by sleeping the CPU for 100ms or so
-            delay(100);
-        }
-    } else {
-        // Time to stop sleeping!
-        LOG_INFO("Reached ls_secs, service loop()");
-        powerFSM.trigger(EVENT_WAKE_TIMER);
-    }
+    powerFSM.trigger(EVENT_WAKE_TIMER);
 #endif
 }
 

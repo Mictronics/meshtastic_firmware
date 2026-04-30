@@ -22,14 +22,6 @@
 
 int32_t PowerTelemetryModule::runOnce()
 {
-    if (sleepOnNextExecution == true) {
-        sleepOnNextExecution = false;
-        uint32_t nightyNightMs = Default::getConfiguredOrDefaultMs(moduleConfig.telemetry.power_update_interval,
-                                                                   default_telemetry_broadcast_interval_secs);
-        LOG_DEBUG("Sleep for %ims, then awake to send metrics again", nightyNightMs);
-        doDeepSleep(nightyNightMs, true, false);
-    }
-
     /*
         Uncomment the preferences below if you want to use the module
         without having to configure it from the PythonAPI or WebUI.
