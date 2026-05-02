@@ -56,16 +56,6 @@ static bool isPowered()
     return !isPowerSavingMode && powerStatus && (!powerStatus->getHasBattery() || powerStatus->getHasUSB());
 }
 
-static void sdsEnter()
-{
-    LOG_POWERFSM("State: SDS");
-}
-
-static void lowBattSDSEnter()
-{
-    LOG_POWERFSM("State: Lower batt SDS");
-}
-
 static void shutdownEnter()
 {
     LOG_POWERFSM("State: SHUTDOWN");
@@ -89,11 +79,6 @@ static void lsIdle()
 #endif
 }
 
-static void lsExit()
-{
-    LOG_POWERFSM("State: lsExit");
-}
-
 static void nbEnter()
 {
     LOG_POWERFSM("State: NB");
@@ -103,12 +88,6 @@ static void nbEnter()
 #endif
 
     // FIXME - check if we already have packets for phone and immediately trigger EVENT_PACKETS_FOR_PHONE
-}
-
-static void darkEnter()
-{
-    LOG_POWERFSM("State: darkEnter");
-    setBluetoothEnable(true);
 }
 
 static void serialEnter()
@@ -163,19 +142,13 @@ static void onIdle()
     }
 }
 
-static void bootEnter()
-{
-    LOG_POWERFSM("State: bootEnter");
-}
-
 State stateSHUTDOWN(shutdownEnter, NULL, NULL, "SHUTDOWN");
-State stateSDS(sdsEnter, NULL, NULL, "SDS");
-State stateLowBattSDS(lowBattSDSEnter, NULL, NULL, "SDS");
-State stateLS(lsEnter, lsIdle, lsExit, "LS");
+State stateSDS(NULL, NULL, NULL, "SDS");
+State stateLowBattSDS(NULL, NULL, NULL, "SDS");
+State stateLS(lsEnter, lsIdle, NULL, "LS");
 State stateNB(nbEnter, NULL, NULL, "NB");
-State stateDARK(darkEnter, NULL, NULL, "DARK");
 State stateSERIAL(serialEnter, NULL, serialExit, "SERIAL");
-State stateBOOT(bootEnter, NULL, NULL, "BOOT");
+State stateBOOT(NULL, NULL, NULL, "BOOT");
 State stateON(onEnter, onIdle, NULL, "ON");
 State statePOWER(powerEnter, powerIdle, powerExit, "POWER");
 Fsm powerFSM(&stateBOOT);
@@ -194,31 +167,20 @@ void PowerFSM_setup()
     // wake timer expired or a packet arrived
     // if we are a router node, we go to NB (no need for bluetooth) otherwise we go to DARK (so we can send message to phone)
 #ifdef ARCH_ESP32
-    powerFSM.add_transition(&stateLS, isRouter ? &stateNB : &stateDARK, EVENT_WAKE_TIMER, NULL, "Wake timer");
+    powerFSM.add_transition(&stateLS, &stateNB, EVENT_WAKE_TIMER, NULL, "Wake timer");
 #else // Don't go into a no-bluetooth state on low power platforms
-    powerFSM.add_transition(&stateLS, &stateDARK, EVENT_WAKE_TIMER, NULL, "Wake timer");
+    powerFSM.add_transition(&stateLS, &stateNB, EVENT_WAKE_TIMER, NULL, "Wake timer");
 #endif
 
     // We need this transition, because we might not transition if we were waiting to enter light-sleep, because when we wake from
-    // light sleep we _always_ transition to NB or dark and
-    powerFSM.add_transition(&stateLS, isRouter ? &stateNB : &stateDARK, EVENT_PACKET_FOR_PHONE, NULL,
-                            "Received packet, exiting light sleep");
+    // light sleep we _always_ transition to NB
+    powerFSM.add_transition(&stateLS, &stateNB, EVENT_PACKET_FOR_PHONE, NULL, "Received packet, exiting light sleep");
     powerFSM.add_transition(&stateNB, &stateNB, EVENT_PACKET_FOR_PHONE, NULL, "Received packet, resetting win wake");
-
-    // Handle press events - note: we ignore button presses when in API mode
-    powerFSM.add_transition(&stateLS, &stateON, EVENT_PRESS, NULL, "Press");
-    powerFSM.add_transition(&stateNB, &stateON, EVENT_PRESS, NULL, "Press");
-    powerFSM.add_transition(&stateDARK, isPowered() ? &statePOWER : &stateON, EVENT_PRESS, NULL, "Press");
-    powerFSM.add_transition(&statePOWER, &statePOWER, EVENT_PRESS, NULL, "Press");
-    powerFSM.add_transition(&stateON, &stateON, EVENT_PRESS, NULL, "Press"); // reenter On to restart our timers
-    powerFSM.add_transition(&stateSERIAL, &stateSERIAL, EVENT_PRESS, NULL,
-                            "Press"); // Allow button to work while in serial API
 
     // Handle critically low power battery by forcing deep sleep
     powerFSM.add_transition(&stateBOOT, &stateLowBattSDS, EVENT_LOW_BATTERY, NULL, "LowBat");
     powerFSM.add_transition(&stateLS, &stateLowBattSDS, EVENT_LOW_BATTERY, NULL, "LowBat");
     powerFSM.add_transition(&stateNB, &stateLowBattSDS, EVENT_LOW_BATTERY, NULL, "LowBat");
-    powerFSM.add_transition(&stateDARK, &stateLowBattSDS, EVENT_LOW_BATTERY, NULL, "LowBat");
     powerFSM.add_transition(&stateON, &stateLowBattSDS, EVENT_LOW_BATTERY, NULL, "LowBat");
     powerFSM.add_transition(&stateSERIAL, &stateLowBattSDS, EVENT_LOW_BATTERY, NULL, "LowBat");
 
@@ -226,43 +188,29 @@ void PowerFSM_setup()
     powerFSM.add_transition(&stateBOOT, &stateSHUTDOWN, EVENT_SHUTDOWN, NULL, "Shutdown");
     powerFSM.add_transition(&stateLS, &stateSHUTDOWN, EVENT_SHUTDOWN, NULL, "Shutdown");
     powerFSM.add_transition(&stateNB, &stateSHUTDOWN, EVENT_SHUTDOWN, NULL, "Shutdown");
-    powerFSM.add_transition(&stateDARK, &stateSHUTDOWN, EVENT_SHUTDOWN, NULL, "Shutdown");
     powerFSM.add_transition(&stateON, &stateSHUTDOWN, EVENT_SHUTDOWN, NULL, "Shutdown");
     powerFSM.add_transition(&stateSERIAL, &stateSHUTDOWN, EVENT_SHUTDOWN, NULL, "Shutdown");
 
-    // Inputbroker
-    powerFSM.add_transition(&stateLS, &stateON, EVENT_INPUT, NULL, "Input Device");
-    powerFSM.add_transition(&stateNB, &stateON, EVENT_INPUT, NULL, "Input Device");
-    powerFSM.add_transition(&stateDARK, &stateON, EVENT_INPUT, NULL, "Input Device");
-    powerFSM.add_transition(&stateON, &stateON, EVENT_INPUT, NULL, "Input Device");       // restarts the sleep timer
-    powerFSM.add_transition(&statePOWER, &statePOWER, EVENT_INPUT, NULL, "Input Device"); // restarts the sleep timer
-
-    powerFSM.add_transition(&stateDARK, &stateON, EVENT_BLUETOOTH_PAIR, NULL, "Bluetooth pairing");
+    powerFSM.add_transition(&stateNB, &stateON, EVENT_BLUETOOTH_PAIR, NULL, "Bluetooth pairing");
     powerFSM.add_transition(&stateON, &stateON, EVENT_BLUETOOTH_PAIR, NULL, "Bluetooth pairing");
 
     // if we are a router we don't turn the screen on for these things
     if (!isRouter) {
-        // if any packet destined for phone arrives, turn on bluetooth at least
-        powerFSM.add_transition(&stateNB, &stateDARK, EVENT_PACKET_FOR_PHONE, NULL, "Packet for phone");
-
         // Show the received text message
         powerFSM.add_transition(&stateLS, &stateON, EVENT_RECEIVED_MSG, NULL, "Received text");
         powerFSM.add_transition(&stateNB, &stateON, EVENT_RECEIVED_MSG, NULL, "Received text");
-        powerFSM.add_transition(&stateDARK, &stateON, EVENT_RECEIVED_MSG, NULL, "Received text");
         powerFSM.add_transition(&stateON, &stateON, EVENT_RECEIVED_MSG, NULL, "Received text"); // restarts the sleep timer
     }
 
     // If we are not in statePOWER but get a serial connection, suppress sleep (and keep the screen on) while connected
     powerFSM.add_transition(&stateLS, &stateSERIAL, EVENT_SERIAL_CONNECTED, NULL, "serial API");
     powerFSM.add_transition(&stateNB, &stateSERIAL, EVENT_SERIAL_CONNECTED, NULL, "serial API");
-    powerFSM.add_transition(&stateDARK, &stateSERIAL, EVENT_SERIAL_CONNECTED, NULL, "serial API");
     powerFSM.add_transition(&stateON, &stateSERIAL, EVENT_SERIAL_CONNECTED, NULL, "serial API");
     powerFSM.add_transition(&statePOWER, &stateSERIAL, EVENT_SERIAL_CONNECTED, NULL, "serial API");
 
     // If we get power connected, go to the power connect state
     powerFSM.add_transition(&stateLS, &statePOWER, EVENT_POWER_CONNECTED, NULL, "power connect");
     powerFSM.add_transition(&stateNB, &statePOWER, EVENT_POWER_CONNECTED, NULL, "power connect");
-    powerFSM.add_transition(&stateDARK, &statePOWER, EVENT_POWER_CONNECTED, NULL, "power connect");
     powerFSM.add_transition(&stateON, &statePOWER, EVENT_POWER_CONNECTED, NULL, "power connect");
 
     powerFSM.add_transition(&statePOWER, &stateON, EVENT_POWER_DISCONNECTED, NULL, "power disconnected");
@@ -271,8 +219,6 @@ void PowerFSM_setup()
     // the only way to leave state serial is for the client to disconnect (or we timeout and force disconnect them)
     // when we leave, go to ON (which might not be the correct state if we have power connected, we will fix that in onEnter)
     powerFSM.add_transition(&stateSERIAL, &stateON, EVENT_SERIAL_DISCONNECTED, NULL, "serial disconnect");
-
-    powerFSM.add_transition(&stateDARK, &stateDARK, EVENT_CONTACT_FROM_PHONE, NULL, "Contact from phone");
 
 // We never enter light-sleep or NB states on NRF52 (because the CPU uses so little power normally)
 #ifdef ARCH_ESP32
@@ -290,23 +236,21 @@ void PowerFSM_setup()
                                       Default::getConfiguredOrDefaultMs(config.power.min_wake_secs, default_min_wake_secs), NULL,
                                       "Min wake timeout");
 
-        // If ESP32 and using power-saving, timer mover from DARK to light-sleep
-        // Also serves purpose of the old DARK to DARK transition(?) See https://github.com/meshtastic/firmware/issues/3517
+        // If ESP32 and using power-saving, timer moves from NB to light-sleep
         powerFSM.add_timed_transition(
-            &stateDARK, &stateLS,
-            Default::getConfiguredOrDefaultMs(config.power.wait_bluetooth_secs, default_wait_bluetooth_secs), NULL,
-            "Bluetooth timeout");
+            &stateNB, &stateLS, Default::getConfiguredOrDefaultMs(config.power.wait_bluetooth_secs, default_wait_bluetooth_secs),
+            NULL, "Bluetooth timeout");
     } else {
-        // If ESP32, but not using power-saving, check periodically if config has drifted out of stateDark
-        powerFSM.add_timed_transition(&stateDARK, &stateDARK,
+        // If ESP32, but not using power-saving, check periodically if config has drifted out of stateNB
+        powerFSM.add_timed_transition(&stateNB, &stateNB,
                                       Default::getConfiguredOrDefaultMs(config.display.screen_on_secs, default_screen_on_secs),
                                       NULL, "Screen-on timeout");
     }
 #endif // HAS_WIFI || !defined(MESHTASTIC_EXCLUDE_WIFI)
 
 #else // (not) ARCH_ESP32
-    // If not ESP32, light-sleep not used. Check periodically if config has drifted out of stateDark
-    powerFSM.add_timed_transition(&stateDARK, &stateDARK,
+    // If not ESP32, light-sleep not used. Check periodically if config has drifted out of stateNB
+    powerFSM.add_timed_transition(&stateNB, &stateNB,
                                   Default::getConfiguredOrDefaultMs(config.display.screen_on_secs, default_screen_on_secs), NULL,
                                   "Screen-on timeout");
 #endif
