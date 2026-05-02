@@ -19,7 +19,6 @@
 // #include <Adafruit_USBD_Device.h>
 #include "HardwareRNG.h"
 #include "NodeDB.h"
-#include "PowerMon.h"
 #include "error.h"
 #include "main.h"
 #include "meshUtils.h"
@@ -210,8 +209,6 @@ void setBluetoothEnable(bool enable)
     }
 
     if (enable) {
-        powerMon->setState(meshtastic_PowerMon_State_BT_On);
-
         // If not yet set-up
         if (!nrf52Bluetooth) {
             LOG_DEBUG("Init NRF52 Bluetooth");
@@ -224,7 +221,6 @@ void setBluetoothEnable(bool enable)
     }
     // Disable (if previously set-up)
     else if (nrf52Bluetooth) {
-        powerMon->clearState(meshtastic_PowerMon_State_BT_On);
         nrf52Bluetooth->shutdown();
     }
 }

@@ -1,5 +1,4 @@
 #include "PowerFSM.h"
-#include "PowerMon.h"
 #include "configuration.h"
 #include "esp_task_wdt.h"
 #include "main.h"
@@ -44,7 +43,6 @@ void setBluetoothEnable(bool enable)
             nimbleBluetooth = new NimbleBluetooth();
         }
         if (enable && !nimbleBluetooth->isActive()) {
-            powerMon->setState(meshtastic_PowerMon_State_BT_On);
             nimbleBluetooth->setup();
         }
         // For ESP32, no way to recover from bluetooth shutdown without reboot

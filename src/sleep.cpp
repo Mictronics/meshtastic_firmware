@@ -4,7 +4,6 @@
 #include "MeshRadio.h"
 #include "MeshService.h"
 #include "NodeDB.h"
-#include "PowerMon.h"
 #include "detect/LoRaRadioType.h"
 #include "error.h"
 #include "main.h"

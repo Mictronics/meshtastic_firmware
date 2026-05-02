@@ -11,7 +11,6 @@
 #include "Default.h"
 #include "MeshService.h"
 #include "NodeDB.h"
-#include "PowerMon.h"
 #include "configuration.h"
 #include "main.h"
 #include "sleep.h"

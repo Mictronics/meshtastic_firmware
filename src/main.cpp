@@ -2,7 +2,6 @@
 #include "MeshService.h"
 #include "NodeDB.h"
 #include "PowerFSM.h"
-#include "PowerMon.h"
 #include "RadioLibInterface.h"
 #include "ReliableRouter.h"
 #include "airtime.h"
@@ -311,8 +310,6 @@ void setup()
     tv.tv_usec = 0;
     perhapsSetRTC(ourQuality, &tv);
 #endif
-
-    powerMonInit();
 
     LOG_INFO("\n\n//\\ E S H T /\\ S T / C\n");
 

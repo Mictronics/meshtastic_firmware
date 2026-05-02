@@ -371,7 +371,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MESHTASTIC_EXCLUDE_GPS 1
 #define MESHTASTIC_EXCLUDE_SCREEN 1
 #define MESHTASTIC_EXCLUDE_MQTT 1
-#define MESHTASTIC_EXCLUDE_POWERMON 1
 #define MESHTASTIC_EXCLUDE_I2C 1
 #define MESHTASTIC_EXCLUDE_PKI 1
 #define MESHTASTIC_EXCLUDE_POWER_FSM 1
