@@ -59,7 +59,6 @@ mail:   marchammermann@googlemail.com
 #include "airtime.h"
 #include "main.h"
 #include "mesh/wifi/WiFiAPClient.h"
-#include "sleep.h"
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>

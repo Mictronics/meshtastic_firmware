@@ -27,7 +27,6 @@
 #include "mesh/generated/meshtastic/config.pb.h"
 #include "meshUtils.h"
 #include "modules/Modules.h"
-#include "sleep.h"
 #include "target_specific.h"
 #include <memory>
 #include <utility>

@@ -13,7 +13,6 @@
 #include "NodeDB.h"
 #include "configuration.h"
 #include "main.h"
-#include "sleep.h"
 #include "target_specific.h"
 
 #if HAS_WIFI && !defined(ARCH_PORTDUINO) || defined(MESHTASTIC_EXCLUDE_WIFI)

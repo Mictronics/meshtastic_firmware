@@ -9,7 +9,6 @@
 #include "main.h"
 #include "mesh/PhoneAPI.h"
 #include "mesh/mesh-pb-constants.h"
-#include "sleep.h"
 #include <NimBLEDevice.h>
 #include <atomic>
 #include <mutex>

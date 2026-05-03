@@ -17,7 +17,6 @@
 #include "detect/LoRaRadioType.h"
 #include "main.h"
 #include "meshUtils.h" // for pow_of_2
-#include "sleep.h"
 #include <assert.h>
 #include <pb_decode.h>
 #include <pb_encode.h>

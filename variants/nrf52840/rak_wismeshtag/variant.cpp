@@ -23,7 +23,6 @@
 #include "FreeRTOS.h"
 #include "nrf.h"
 #include "power/PowerHAL.h"
-#include "sleep.h"
 #include "wiring_constants.h"
 #include "wiring_digital.h"
 

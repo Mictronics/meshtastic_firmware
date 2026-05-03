@@ -7,7 +7,6 @@
 #include "Wire.h"
 #include "input/InputBroker.h"
 #include "input/TouchScreenImpl1.h"
-#include "sleep.h"
 
 #ifdef MESHTASTIC_INCLUDE_NICHE_GRAPHICS
 #include "graphics/niche/InkHUD/InkHUD.h"

@@ -13,7 +13,6 @@
 #include "UnitConversions.h"
 #include "main.h"
 #include "power.h"
-#include "sleep.h"
 #include "target_specific.h"
 
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL

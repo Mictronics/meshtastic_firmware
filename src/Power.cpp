@@ -21,7 +21,6 @@
 #include "main.h"
 #include "meshUtils.h"
 #include "power/PowerHAL.h"
-#include "sleep.h"
 
 #if defined(ARCH_PORTDUINO)
 #include "api/WiFiServerAPI.h"
@@ -660,7 +659,6 @@ void Power::powerCommandsCheck()
 
 void Power::reboot()
 {
-    notifyReboot.notifyObservers(NULL);
 #if defined(ARCH_ESP32)
     ESP.restart();
 #elif defined(ARCH_NRF52)

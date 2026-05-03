@@ -12,7 +12,6 @@
 #include "Router.h"
 #include "main.h"
 #include "power.h"
-#include "sleep.h"
 #include "target_specific.h"
 
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
