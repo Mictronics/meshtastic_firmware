@@ -14,6 +14,7 @@
 #endif
 
 #include "esp_mac.h"
+#include "freertosinc.h"
 #include "meshUtils.h"
 #include "soc/rtc.h"
 #include "target_specific.h"
@@ -30,7 +31,7 @@ void variant_shutdown() {}
 #if !defined(CONFIG_IDF_TARGET_ESP32S2) && !MESHTASTIC_EXCLUDE_BLUETOOTH
 void setBluetoothEnable(bool enable)
 {
-#ifdef USE_WS5500
+#if defined(USE_WS5500) || defined(USE_CH390D)
     if ((config.bluetooth.enabled == true) && (config.network.wifi_enabled == false))
 #elif HAS_WIFI
     if (!isWifiAvailable() && config.bluetooth.enabled == true)
@@ -258,6 +259,8 @@ void cpuDeepSleep(uint32_t msecToWake)
     // We want RTC peripherals to stay on
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
 
-    esp_sleep_enable_timer_wakeup(msecToWake * 1000ULL); // call expects usecs
-    esp_deep_sleep_start();                              // TBD mA sleep current (battery)
+    // User shutdown (DELAY_FOREVER / portMAX_DELAY): no RTC timer — align with nRF52 system_off semantics.
+    if (msecToWake != portMAX_DELAY)
+        esp_sleep_enable_timer_wakeup(msecToWake * 1000ULL); // call expects usecs
+    esp_deep_sleep_start();
 }
