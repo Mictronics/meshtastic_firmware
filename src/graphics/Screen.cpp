@@ -60,6 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "mesh-pb-constants.h"
 #include "mesh/Channels.h"
+#include "mesh/Default.h"
 #include "mesh/generated/meshtastic/deviceonly.pb.h"
 #include "modules/ExternalNotificationModule.h"
 #include "modules/TextMessageModule.h"
@@ -98,6 +99,7 @@ namespace graphics
 
 // This means the *visible* area (sh1106 can address 132, but shows 128 for example)
 #define IDLE_FRAMERATE 1 // in fps
+#define COMPASS_ACTIVE_FRAMERATE 20
 
 // DEBUG
 #define NUM_EXTRA_FRAMES 3 // text message and debug frame
@@ -134,6 +136,60 @@ static bool heartbeat = false;
 // End Functions to write date/time to the screen
 
 extern bool hasUnreadMessage;
+
+static inline float wrapHeading360(float heading)
+{
+    if (heading < 0.0f) {
+        heading += 360.0f;
+    } else if (heading >= 360.0f) {
+        heading -= 360.0f;
+    }
+    return heading;
+}
+
+void Screen::setHeading(float heading)
+{
+    const float wrappedHeading = wrapHeading360(heading);
+
+    if (!hasCompass) {
+        hasCompass = true;
+        compassHeading = wrappedHeading;
+        return;
+    }
+
+    // Interpolate using shortest-path angular delta to avoid jumps around 0/360.
+    float delta = wrappedHeading - compassHeading;
+    if (delta > 180.0f) {
+        delta -= 360.0f;
+    } else if (delta < -180.0f) {
+        delta += 360.0f;
+    }
+
+    // Adaptive filtering:
+    // - Strong damping for tiny deltas (jitter)
+    // - Faster response for larger turns
+    const float absDelta = (delta >= 0.0f) ? delta : -delta;
+    if (absDelta < 1.0f) {
+        return;
+    }
+
+    float alpha = 0.35f;
+    if (absDelta > 25.0f) {
+        alpha = 0.85f;
+    } else if (absDelta > 10.0f) {
+        alpha = 0.65f;
+    }
+
+    float step = delta * alpha;
+    const float maxStep = 12.0f;
+    if (step > maxStep) {
+        step = maxStep;
+    } else if (step < -maxStep) {
+        step = -maxStep;
+    }
+
+    compassHeading = wrapHeading360(compassHeading + step);
+}
 
 // ==============================
 // Overlay Alert Banner Renderer
@@ -272,10 +328,25 @@ static void drawModuleFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int
 float Screen::estimatedHeading(double lat, double lon)
 {
     static double oldLat, oldLon;
-    static float b;
+    static float b = -1.0f;
+    static uint32_t lastHeadingAtMs = 0;
+    const uint32_t now = millis();
+    const uint32_t gpsUpdateIntervalSecs =
+        Default::getConfiguredOrDefault(config.position.gps_update_interval, default_gps_update_interval);
+    uint32_t effectiveUpdateIntervalSecs = gpsUpdateIntervalSecs;
+    if (config.position.position_broadcast_smart_enabled) {
+        const uint32_t smartMinIntervalSecs = Default::getConfiguredOrDefault(
+            config.position.broadcast_smart_minimum_interval_secs, default_broadcast_smart_minimum_interval_secs);
+        if (smartMinIntervalSecs > effectiveUpdateIntervalSecs) {
+            effectiveUpdateIntervalSecs = smartMinIntervalSecs;
+        }
+    }
+    // Two expected update windows; keep arithmetic 32-bit to avoid pulling in larger 64-bit helpers.
+    const uint32_t headingStaleMs =
+        (effectiveUpdateIntervalSecs > (UINT32_MAX / 2000U)) ? UINT32_MAX : (effectiveUpdateIntervalSecs * 2000U);
 
     if (oldLat == 0) {
-        // just prepare for next time
+        // Need at least two position points before we can infer heading.
         oldLat = lat;
         oldLon = lon;
 
@@ -283,12 +354,20 @@ float Screen::estimatedHeading(double lat, double lon)
     }
 
     float d = GeoCoord::latLongToMeter(oldLat, oldLon, lat, lon);
-    if (d < 10) // haven't moved enough, just keep current bearing
+    if (d < 10) { // haven't moved enough, keep previous heading (invalid until first real movement)
+        if (lastHeadingAtMs != 0 && (now - lastHeadingAtMs) >= headingStaleMs) {
+            // Heading is stale after prolonged no-movement; force reacquire.
+            b = -1.0f;
+            oldLat = lat;
+            oldLon = lon;
+        }
         return b;
+    }
 
     b = GeoCoord::bearing(oldLat, oldLon, lat, lon) * RAD_TO_DEG;
     oldLat = lat;
     oldLon = lon;
+    lastHeadingAtMs = now;
 
     return b;
 }
@@ -353,6 +432,11 @@ Screen::Screen(ScanI2C::DeviceAddress address, meshtastic_Config_DisplayConfig_O
 #elif defined(USE_SSD1306)
     dispdev = new SSD1306Wire(address.address, -1, -1, geometry,
                               (address.port == ScanI2C::I2CPort::WIRE1) ? HW_I2C::I2C_TWO : HW_I2C::I2C_ONE);
+#if defined(OLED_Y_OFFSET_PAGES)
+    // Panels whose active window does not start at GDDRAM row 0 (e.g. 72x40
+    // modules on pages 3..7) need a fixed vertical page shift on every write.
+    static_cast<SSD1306Wire *>(dispdev)->setYOffset(OLED_Y_OFFSET_PAGES);
+#endif
 #elif defined(USE_SPISSD1306)
     dispdev = new SSD1306Spi(SSD1306_RESET, SSD1306_RS, SSD1306_NSS, GEOMETRY_64_48);
     if (!dispdev->init()) {
@@ -834,7 +918,7 @@ int32_t Screen::runOnce()
 
 #ifndef DISABLE_WELCOME_UNSET
     if (!NotificationRenderer::isOverlayBannerShowing() && config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET) {
-#if defined(M5STACK_UNITC6L)
+#if defined(OLED_TINY)
         menuHandler::LoraRegionPicker();
 #else
         menuHandler::OnboardMessage();
@@ -923,9 +1007,22 @@ int32_t Screen::runOnce()
     // but we should only call setTargetFPS when framestate changes, because
     // otherwise that breaks animations.
 
-    if (targetFramerate != IDLE_FRAMERATE && ui->getUiState()->frameState == FIXED) {
+    uint32_t desiredFramerate = IDLE_FRAMERATE;
+#if HAS_GPS && !defined(USE_EINK)
+    if (showingNormalScreen && hasCompass) {
+        const uint8_t currentFrame = ui->getUiState()->currentFrame;
+        if ((framesetInfo.positions.gps != 255 && currentFrame == framesetInfo.positions.gps) ||
+            (framesetInfo.positions.waypoint != 255 && currentFrame == framesetInfo.positions.waypoint) ||
+            (framesetInfo.positions.firstFavorite != 255 && currentFrame >= framesetInfo.positions.firstFavorite &&
+             currentFrame <= framesetInfo.positions.lastFavorite)) {
+            desiredFramerate = COMPASS_ACTIVE_FRAMERATE;
+        }
+    }
+#endif
+
+    if (targetFramerate != desiredFramerate && ui->getUiState()->frameState == FIXED) {
         // oldFrameState = ui->getUiState()->frameState;
-        targetFramerate = IDLE_FRAMERATE;
+        targetFramerate = desiredFramerate;
 
         ui->setTargetFPS(targetFramerate);
         forceDisplay();
@@ -1057,7 +1154,7 @@ void Screen::setFrames(FrameFocus focus)
 #if defined(DISPLAY_CLOCK_FRAME)
     if (!hiddenFrames.clock) {
         fsi.positions.clock = numframes;
-#if defined(M5STACK_UNITC6L)
+#if defined(OLED_TINY)
         normalFrames[numframes++] = graphics::ClockRenderer::drawAnalogClockFrame;
 #else
         normalFrames[numframes++] = uiconfig.is_clockface_analog ? graphics::ClockRenderer::drawAnalogClockFrame
@@ -1510,7 +1607,7 @@ void Screen::showFrame(FrameDirection direction)
 
 void Screen::setFastFramerate()
 {
-#if defined(M5STACK_UNITC6L)
+#if defined(OLED_TINY)
     dispdev->clear();
     dispdev->display();
 #endif
