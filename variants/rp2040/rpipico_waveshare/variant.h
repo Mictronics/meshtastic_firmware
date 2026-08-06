@@ -26,8 +26,9 @@
 // At intrusion detection event send last known position on primary channel.
 #define INTRUSION_DETECTION_POSITION
 
-// Expecting the Waveshare Pico GPS hat
-#define HAS_GPS 1
+// No node on this branch has the Waveshare Pico GPS hat attached; keep GPS out of the build.
+#undef HAS_GPS
+#define MESHTASTIC_EXCLUDE_GPS 1
 
 // Redefine I2C0 pins to avoid collision with UART1/Serial2.
 #define I2C_SDA 8

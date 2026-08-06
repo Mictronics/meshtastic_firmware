@@ -1,11 +1,14 @@
-#if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
+#include "configuration.h"
 #include "TextMessageModule.h"
+
+// Defined unconditionally: FloodingRouter references this extern regardless of MESHTASTIC_EXCLUDE_TEXTMESSAGE.
+TextMessageModule *textMessageModule;
+
+#if !MESHTASTIC_EXCLUDE_TEXTMESSAGE
 #include "MeshService.h"
 #include "NodeDB.h"
 #include "PowerFSM.h"
-#include "configuration.h"
 #include "main.h"
-TextMessageModule *textMessageModule;
 
 ProcessMessage TextMessageModule::handleReceived(const meshtastic_MeshPacket &mp)
 {

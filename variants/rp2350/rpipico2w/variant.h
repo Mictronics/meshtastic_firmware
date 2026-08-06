@@ -23,6 +23,8 @@
 #undef EXT_NOTIFY_OUT
 #undef BUTTON_PIN
 
+#define MESHTASTIC_EXCLUDE_TEXTMESSAGE 1
+
 // Enable external ATtiny10 watchdog
 #define HAS_EXT_WATCHDOG 1
 // External watchdog trigger output pin
