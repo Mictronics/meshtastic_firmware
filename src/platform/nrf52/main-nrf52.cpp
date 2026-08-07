@@ -20,6 +20,7 @@
 #include "HardwareRNG.h"
 #include "NodeDB.h"
 #include "error.h"
+#include "freertosinc.h"
 #include "main.h"
 #include "meshUtils.h"
 #include "power.h"
@@ -171,6 +172,22 @@ void __attribute__((noreturn)) __assert_func(const char *file, int line, const c
     LOG_ERROR("assert failed %s: %d, %s, test=%s", file, line, func, failedexpr);
     // debugger_break(); FIXME doesn't work, possibly not for segger
     // Reboot cpu
+    NVIC_SystemReset();
+}
+
+// The Adafruit core's default vApplicationStackOverflowHook/vApplicationMallocFailedHook
+// (rtos.cpp) only loop when CFG_DEBUG is set, so in release builds they log a line and let
+// FreeRTOS keep running with corrupted RAM. Wrapped in via -Wl,--wrap in nrf52.ini to force an
+// immediate, safe reset instead.
+extern "C" void __wrap_vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+{
+    LOG_ERROR("Stack overflow in task %s - resetting", pcTaskName);
+    NVIC_SystemReset();
+}
+
+extern "C" void __wrap_vApplicationMallocFailedHook(void)
+{
+    LOG_ERROR("malloc() failed - resetting");
     NVIC_SystemReset();
 }
 
