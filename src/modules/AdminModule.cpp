@@ -576,18 +576,18 @@ void AdminModule::handleGetModuleConfigResponse(const meshtastic_MeshPacket &mp,
         LOG_DEBUG("Remote hardware module disabled or no available_pins. Skip");
         return;
     }
-    for (uint8_t i = 0; i < devicestate.node_remote_hardware_pins_count; i++) {
+    // For each populated pin slot, claim it for the responding node and assign it one of the
+    // available pins. Previously i was incremented both here and by the outer for(), which walked
+    // into later slots without re-checking their validity and could silently overwrite them.
+    for (uint8_t i = 0, j = 0; i < devicestate.node_remote_hardware_pins_count &&
+                                j < r->get_module_config_response.payload_variant.remote_hardware.available_pins_count;
+         i++) {
         if (devicestate.node_remote_hardware_pins[i].node_num == 0 || !devicestate.node_remote_hardware_pins[i].has_pin) {
             continue;
         }
-        for (uint8_t j = 0; j < r->get_module_config_response.payload_variant.remote_hardware.available_pins_count; j++) {
-            auto availablePin = r->get_module_config_response.payload_variant.remote_hardware.available_pins[j];
-            if (i < devicestate.node_remote_hardware_pins_count) {
-                devicestate.node_remote_hardware_pins[i].node_num = mp.from;
-                devicestate.node_remote_hardware_pins[i].pin = availablePin;
-            }
-            i++;
-        }
+        auto availablePin = r->get_module_config_response.payload_variant.remote_hardware.available_pins[j++];
+        devicestate.node_remote_hardware_pins[i].node_num = mp.from;
+        devicestate.node_remote_hardware_pins[i].pin = availablePin;
     }
 }
 
