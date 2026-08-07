@@ -25,8 +25,10 @@ ErrorCode NextHopRouter::send(meshtastic_MeshPacket *p)
 
     // If it's from us, ReliableRouter already handles retransmissions if want_ack is set. If a next hop is set and hop limit is
     // not 0 or want_ack is set, start retransmissions
-    if ((!isFromUs(p) || !p->want_ack) && p->next_hop != NO_NEXT_HOP_PREFERENCE && (p->hop_limit > 0 || p->want_ack))
-        startRetransmission(packetPool.allocCopy(*p)); // start retransmission for relayed packet
+    if ((!isFromUs(p) || !p->want_ack) && p->next_hop != NO_NEXT_HOP_PREFERENCE && (p->hop_limit > 0 || p->want_ack)) {
+        if (auto *copy = packetPool.allocCopy(*p))
+            startRetransmission(copy); // start retransmission for relayed packet
+    }
 
     return Router::send(p);
 }
@@ -123,11 +125,16 @@ void NextHopRouter::sniffReceived(const meshtastic_MeshPacket *p, const meshtast
 /* Check if we should be rebroadcasting this packet if so, do so. */
 bool NextHopRouter::perhapsRebroadcast(const meshtastic_MeshPacket *p)
 {
+    if (p->to == NODENUM_BROADCAST_NO_LORA)
+        return false;
+
     if (!isToUs(p) && !isFromUs(p) && p->hop_limit > 0) {
         if (p->id != 0) {
             if (isRebroadcaster()) {
                 if (p->next_hop == NO_NEXT_HOP_PREFERENCE || p->next_hop == nodeDB->getLastByteOfNodeNum(getNodeNum())) {
                     meshtastic_MeshPacket *tosend = packetPool.allocCopy(*p); // keep a copy because we will be sending it
+                    if (!tosend)
+                        return true;
                     LOG_INFO("Rebroadcast received message coming from %x", p->relay_node);
 
                     // Use shared logic to determine if hop_limit should be decremented
@@ -144,11 +151,10 @@ bool NextHopRouter::perhapsRebroadcast(const meshtastic_MeshPacket *p)
                     }
 #endif
 
-                    if (p->next_hop == NO_NEXT_HOP_PREFERENCE) {
-                        FloodingRouter::send(tosend);
-                    } else {
-                        NextHopRouter::send(tosend);
-                    }
+                    ErrorCode res =
+                        (p->next_hop == NO_NEXT_HOP_PREFERENCE) ? FloodingRouter::send(tosend) : NextHopRouter::send(tosend);
+                    if (res == ERRNO_SHOULD_RELEASE)
+                        packetPool.release(tosend);
 
                     return true;
                 }
@@ -297,14 +303,23 @@ int32_t NextHopRouter::doRetransmissions()
                             LOG_INFO("Resetting next hop for packet with dest 0x%x\n", p.packet->to);
                             sentTo->next_hop = NO_NEXT_HOP_PREFERENCE;
                         }
-                        FloodingRouter::send(packetPool.allocCopy(*p.packet));
+                        if (auto *copy = packetPool.allocCopy(*p.packet)) {
+                            if (FloodingRouter::send(copy) == ERRNO_SHOULD_RELEASE)
+                                packetPool.release(copy);
+                        }
                     } else {
-                        NextHopRouter::send(packetPool.allocCopy(*p.packet));
+                        if (auto *copy = packetPool.allocCopy(*p.packet)) {
+                            if (NextHopRouter::send(copy) == ERRNO_SHOULD_RELEASE)
+                                packetPool.release(copy);
+                        }
                     }
                 } else {
                     // Note: we call the superclass version because we don't want to have our version of send() add a new
                     // retransmission record
-                    FloodingRouter::send(packetPool.allocCopy(*p.packet));
+                    if (auto *copy = packetPool.allocCopy(*p.packet)) {
+                        if (FloodingRouter::send(copy) == ERRNO_SHOULD_RELEASE)
+                            packetPool.release(copy);
+                    }
                 }
 
                 // Queue again
