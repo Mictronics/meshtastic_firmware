@@ -18,6 +18,11 @@
 #ifndef MAX_RX_TOPHONE
 #if defined(ARCH_ESP32) && !(defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3))
 #define MAX_RX_TOPHONE 8
+#elif defined(NRF52840_XXAA)
+// Each slot is a ~340 B MeshPacket in the static pool, so 32 slots cost ~11 KB of .bss on the
+// RAM-tightest platform (nRF52840 field reports: 99% heap use). 16 still doubles the 8 classic
+// ESP32 has shipped with for years.
+#define MAX_RX_TOPHONE 16
 #else
 #define MAX_RX_TOPHONE 32
 #endif
