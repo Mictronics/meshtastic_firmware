@@ -9,7 +9,7 @@
 #include "mesh/generated/meshtastic/telemetry.pb.h"
 #include <SPI.h>
 #include <map>
-#if defined(ARCH_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32S2)
+#if defined(ARCH_ESP32) && !defined(CONFIG_IDF_TARGET_ESP32S2) && !MESHTASTIC_EXCLUDE_BLUETOOTH
 #include "nimble/NimbleBluetooth.h"
 extern NimbleBluetooth *nimbleBluetooth;
 #endif

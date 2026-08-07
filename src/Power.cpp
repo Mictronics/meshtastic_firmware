@@ -22,10 +22,6 @@
 #include "meshUtils.h"
 #include "power/PowerHAL.h"
 
-#if defined(ARCH_PORTDUINO)
-#include "api/WiFiServerAPI.h"
-#endif
-
 // Working USB detection for powered/charging states on the RAK platform
 #ifdef NRF_APM
 #include "nrfx_power.h"

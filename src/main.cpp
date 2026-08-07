@@ -33,13 +33,6 @@
 
 #ifdef ARCH_ESP32
 #include "freertosinc.h"
-#if !MESHTASTIC_EXCLUDE_WEBSERVER
-#include "mesh/http/WebServer.h"
-#endif
-#if !MESHTASTIC_EXCLUDE_BLUETOOTH
-#include "nimble/NimbleBluetooth.h"
-NimbleBluetooth *nimbleBluetooth = nullptr;
-#endif
 #endif
 
 #ifdef ARCH_NRF52
@@ -48,13 +41,7 @@ NRF52Bluetooth *nrf52Bluetooth = nullptr;
 #endif
 
 #if HAS_WIFI || defined(USE_WS5500) || defined(USE_CH390D)
-#include "mesh/api/WiFiServerAPI.h"
 #include "mesh/wifi/WiFiAPClient.h"
-#endif
-
-#if HAS_ETHERNET && !defined(USE_WS5500) && !defined(USE_CH390D)
-#include "mesh/api/ethServerAPI.h"
-#include "mesh/eth/ethClient.h"
 #endif
 
 #include "LLCC68Interface.h"
@@ -77,7 +64,6 @@ NRF52Bluetooth *nrf52Bluetooth = nullptr;
 
 #ifdef ARCH_PORTDUINO
 #include "linux/LinuxHardwareI2C.h"
-#include "mesh/raspihttp/PiWebServer.h"
 #include "platform/portduino/PortduinoGlue.h"
 #include <cstdlib>
 #include <fstream>
@@ -707,18 +693,7 @@ void setup()
 #endif
 #endif
 
-#if defined(ARCH_ESP32) && !MESHTASTIC_EXCLUDE_WEBSERVER
-    // Start web server thread.
-    webServerThread = new WebServerThread();
-#endif
-
 #ifdef ARCH_PORTDUINO
-#if __has_include(<ulfius.h>)
-    if (portduino_config.webserverport != -1) {
-        piwebServerThread = new PiWebServerThread();
-        std::atexit([] { delete piwebServerThread; });
-    }
-#endif
     initApiServer(TCPPort);
 #endif
 

@@ -2,6 +2,7 @@
 #include "configuration.h"
 #include "esp_task_wdt.h"
 #include "main.h"
+#include "mesh/NodeDB.h"
 
 #if !defined(CONFIG_IDF_TARGET_ESP32S2) && !MESHTASTIC_EXCLUDE_BLUETOOTH
 #include "nimble/NimbleBluetooth.h"
