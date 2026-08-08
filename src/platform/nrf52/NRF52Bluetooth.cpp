@@ -371,7 +371,6 @@ void NRF52Bluetooth::setup()
 }
 void NRF52Bluetooth::resumeAdvertising()
 {
-    LOG_DEBUG("Resume NRF52 BLE advertising");
     // shutdown() swaps security callbacks, so restore BLE state before advertising.
     restoreSecurityState();
     restoreTxPower();
