@@ -50,7 +50,6 @@ class NodeInfoModule : public ProtobufModule<meshtastic_User>, private concurren
   private:
     uint32_t lastSentToMesh = 0; // Last time we sent our NodeInfo to the mesh
     bool shorterTimeout = false;
-    uint32_t lastSentToMesh = 0; // Last time we sent our NodeInfo to the mesh
     bool suppressReplyForCurrentRequest = false;
     std::map<NodeNum, uint32_t> lastNodeInfoSeen;
 
