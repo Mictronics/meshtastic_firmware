@@ -86,9 +86,7 @@ template <typename T> bool SX128xInterface<T>::init()
 #endif
     }
 
-    LOG_INFO("Frequency set to %f", getFreq());
-    LOG_INFO("Bandwidth set to %f", bw);
-    LOG_INFO("Power output set to %d", power);
+    LOG_INFO("Frequency set to %f, bandwidth set to %f, power output set to %d", getFreq(), bw, power);
 
 #if defined(SX128X_TXEN) && (SX128X_TXEN != RADIOLIB_NC) && defined(SX128X_RXEN) && (SX128X_RXEN != RADIOLIB_NC)
     if (res == RADIOLIB_ERR_NONE) {
@@ -203,7 +201,6 @@ template <typename T> void SX128xInterface<T>::setStandby()
  */
 template <typename T> void SX128xInterface<T>::addReceiveMetadata(meshtastic_MeshPacket *mp)
 {
-    // LOG_DEBUG("PacketStatus %x", lora.getPacketStatus());
     mp->rx_snr = lora.getSNR();
     mp->rx_rssi = lround(lora.getRSSI());
     LOG_DEBUG("Frequency error: %i Hz", (int)lora.getFrequencyError());

@@ -248,12 +248,17 @@ void listDir(const char *dirname, uint8_t levels, bool del)
         return;
     }
 
+    size_t fileCount = 0;
+    size_t dirCount = 0;
+    uint32_t totalBytes = 0;
+
     File file = root.openNextFile();
     while (
         file &&
         file.name()[0]) { // This file.name() check is a workaround for a bug in the Adafruit LittleFS nrf52 glue (see issue 4395)
         if (file.isDirectory() && !String(file.name()).endsWith(".")) {
             if (levels) {
+                dirCount++;
 #ifdef ARCH_ESP32
                 listDir(file.path(), levels - 1, del);
                 if (del) {
@@ -275,12 +280,12 @@ void listDir(const char *dirname, uint8_t levels, bool del)
                     file.close();
                 }
 #else
-                LOG_DEBUG(" %s (directory)", file.name());
                 listDir(file.name(), levels - 1, del);
                 file.close();
 #endif
             }
         } else {
+            fileCount++;
 #ifdef ARCH_ESP32
             if (del) {
                 LOG_DEBUG("Delete %s", file.path());
@@ -288,7 +293,7 @@ void listDir(const char *dirname, uint8_t levels, bool del)
                 file.close();
                 FSCom.remove(buffer);
             } else {
-                LOG_DEBUG(" %s (%i Bytes)", file.path(), file.size());
+                totalBytes += file.size();
                 file.close();
             }
 #elif (defined(ARCH_RP2040) || defined(ARCH_PORTDUINO))
@@ -298,16 +303,18 @@ void listDir(const char *dirname, uint8_t levels, bool del)
                 file.close();
                 FSCom.remove(buffer);
             } else {
-                LOG_DEBUG(" %s (%i Bytes)", file.name(), file.size());
+                totalBytes += file.size();
                 file.close();
             }
 #else
-            LOG_DEBUG("   %s (%i Bytes)", file.name(), file.size());
+            totalBytes += file.size();
             file.close();
 #endif
         }
         file = root.openNextFile();
     }
+    if (!del)
+        LOG_DEBUG("%s: %u files, %u dirs, %u bytes", dirname, (unsigned)fileCount, (unsigned)dirCount, (unsigned)totalBytes);
 #ifdef ARCH_ESP32
     if (del) {
         LOG_DEBUG("Remove %s", root.path());
@@ -393,20 +400,17 @@ void setupSDCard()
         LOG_DEBUG("No SD_MMC card attached");
         return;
     }
-    LOG_DEBUG("SD_MMC Card Type: ");
-    if (cardType == CARD_MMC) {
-        LOG_DEBUG("MMC");
-    } else if (cardType == CARD_SD) {
-        LOG_DEBUG("SDSC");
-    } else if (cardType == CARD_SDHC) {
-        LOG_DEBUG("SDHC");
-    } else {
-        LOG_DEBUG("UNKNOWN");
-    }
+    const char *cardTypeStr = "UNKNOWN";
+    if (cardType == CARD_MMC)
+        cardTypeStr = "MMC";
+    else if (cardType == CARD_SD)
+        cardTypeStr = "SDSC";
+    else if (cardType == CARD_SDHC)
+        cardTypeStr = "SDHC";
 
     uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-    LOG_DEBUG("SD Card Size: %lu MB", (uint32_t)cardSize);
-    LOG_DEBUG("Total space: %lu MB", (uint32_t)(SD.totalBytes() / (1024 * 1024)));
-    LOG_DEBUG("Used space: %lu MB", (uint32_t)(SD.usedBytes() / (1024 * 1024)));
+    LOG_DEBUG("SD_MMC Card Type: %s, Size: %lu MB", cardTypeStr, (uint32_t)cardSize);
+    LOG_DEBUG("Total space: %lu MB, Used space: %lu MB", (uint32_t)(SD.totalBytes() / (1024 * 1024)),
+              (uint32_t)(SD.usedBytes() / (1024 * 1024)));
 #endif
 }

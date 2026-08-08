@@ -114,9 +114,7 @@ template <typename T> bool LR11x0Interface<T>::init()
         LOG_DEBUG("LR11x0 Device %d, HW %d, FW %d.%d, WiFi %d.%d, GNSS %d.%d", version.device, version.hardware, version.fwMajor,
                   version.fwMinor, version.fwMajorWiFi, version.fwMinorWiFi, version.fwGNSS, version.almanacGNSS);
 
-    LOG_INFO("Frequency set to %f", getFreq());
-    LOG_INFO("Bandwidth set to %f", bw);
-    LOG_INFO("Power output set to %d", power);
+    LOG_INFO("Frequency set to %f, bandwidth set to %f, power output set to %d", getFreq(), bw, power);
 
     if (res == RADIOLIB_ERR_NONE)
         res = lora.setCRC(2);
@@ -226,7 +224,6 @@ template <typename T> void LR11x0Interface<T>::setStandby()
  */
 template <typename T> void LR11x0Interface<T>::addReceiveMetadata(meshtastic_MeshPacket *mp)
 {
-    // LOG_DEBUG("PacketStatus %x", lora.getPacketStatus());
     mp->rx_snr = lora.getSNR();
     mp->rx_rssi = lround(lora.getRSSI());
     LOG_DEBUG("Frequency error: %i Hz", (int)lora.getFrequencyError());

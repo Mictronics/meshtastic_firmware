@@ -85,10 +85,8 @@ void OSThread::run()
     auto newDelay = runOnce();
 #ifdef DEBUG_HEAP
     auto newHeap = memGet.getFreeHeap();
-    if (newHeap < heap)
-        LOG_HEAP("------ Thread %s leaked heap %d -> %d (%d) ------", ThreadName.c_str(), heap, newHeap, newHeap - heap);
-    if (heap < newHeap)
-        LOG_HEAP("++++++ Thread %s freed heap %d -> %d (%d) ++++++", ThreadName.c_str(), heap, newHeap, newHeap - heap);
+    if (newHeap != heap)
+        LOG_HEAP("Thread %s heap %d -> %d (%d)", ThreadName.c_str(), heap, newHeap, newHeap - heap);
 #endif
 #ifdef DEBUG_LOOP_TIMING
     LOG_DEBUG("====== Thread next run in: %d", newDelay);

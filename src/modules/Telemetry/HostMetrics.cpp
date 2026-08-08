@@ -120,7 +120,7 @@ meshtastic_Telemetry HostMetricsModule::getHostMetrics()
 bool HostMetricsModule::sendMetrics()
 {
     meshtastic_Telemetry telemetry = getHostMetrics();
-    LOG_INFO("Send: uptime=%u, diskfree=%lu, memory free=%lu, load=%04.2f, %04.2f, %04.2f",
+    LOG_INFO("Send packet to mesh: uptime=%u, diskfree=%lu, memory free=%lu, load=%04.2f, %04.2f, %04.2f",
              telemetry.variant.host_metrics.uptime_seconds, telemetry.variant.host_metrics.diskfree1_bytes,
              telemetry.variant.host_metrics.freemem_bytes, static_cast<float>(telemetry.variant.host_metrics.load1) / 100,
              static_cast<float>(telemetry.variant.host_metrics.load5) / 100,
@@ -132,7 +132,6 @@ bool HostMetricsModule::sendMetrics()
     p->decoded.want_response = false;
     p->priority = meshtastic_MeshPacket_Priority_BACKGROUND;
     p->channel = portduino_config.hostMetrics_channel;
-    LOG_INFO("Send packet to mesh");
     service->sendToMesh(p, RX_SRC_LOCAL, true);
     return true;
 }

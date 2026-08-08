@@ -104,9 +104,7 @@ template <typename T> bool SX126xInterface<T>::init()
     if (res == RADIOLIB_ERR_CHIP_NOT_FOUND || res == RADIOLIB_ERR_SPI_CMD_FAILED)
         return false;
 
-    LOG_INFO("Frequency set to %f", getFreq());
-    LOG_INFO("Bandwidth set to %f", bw);
-    LOG_INFO("Power output set to %d", power);
+    LOG_INFO("Frequency set to %f, bandwidth set to %f, power output set to %d", getFreq(), bw, power);
 
     // Overriding current limit
     // (https://github.com/jgromes/RadioLib/blob/690a050ebb46e6097c5d00c371e961c1caa3b52e/src/modules/SX126x/SX126x.cpp#L85) using
@@ -117,8 +115,7 @@ template <typename T> bool SX126xInterface<T>::init()
     // FIXME: Not ideal to increase SX1261 current limit above 60mA as it can only transmit max 15dBm, should probably only do it
     // if using SX1262 or SX1268
     res = lora.setCurrentLimit(currentLimit);
-    LOG_DEBUG("Current limit set to %f", currentLimit);
-    LOG_DEBUG("Current limit set result %d", res);
+    LOG_DEBUG("Current limit set to %f, result %d", currentLimit, res);
 
     if (res == RADIOLIB_ERR_NONE) {
 #ifdef SX126X_DIO2_AS_RF_SWITCH
@@ -346,7 +343,6 @@ template <typename T> void SX126xInterface<T>::setStandby()
  */
 template <typename T> void SX126xInterface<T>::addReceiveMetadata(meshtastic_MeshPacket *mp)
 {
-    // LOG_DEBUG("PacketStatus %x", lora.getPacketStatus());
     mp->rx_snr = lora.getSNR();
     mp->rx_rssi = lround(lora.getRSSI());
     LOG_DEBUG("Frequency error: %i Hz", (int)lora.getFrequencyError());

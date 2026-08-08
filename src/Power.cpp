@@ -299,9 +299,6 @@ class AnalogBatteryLevel : public HasBatteryLevel
                 // Already initialized - filter this reading
                 last_read_value += (scaled - last_read_value) * 0.5; // Virtual LPF
             }
-
-            // LOG_DEBUG("battery gpio %d raw val=%u scaled=%u filtered=%u",
-            // BATTERY_PIN, raw, (uint32_t)(scaled), (uint32_t) (last_read_value));
         }
         return last_read_value;
 #endif // BATTERY_PIN
@@ -587,21 +584,18 @@ bool Power::analogInit()
     // calibrate ADC
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_characs);
     // show ADC characterization base
+    const char *adcCalSource = "default reference voltage";
     if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
-        LOG_INFO("ADC config based on Two Point values stored in eFuse");
+        adcCalSource = "Two Point values stored in eFuse";
     } else if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
-        LOG_INFO("ADC config based on reference voltage stored in eFuse");
+        adcCalSource = "reference voltage stored in eFuse";
     }
 #ifdef CONFIG_IDF_TARGET_ESP32S3
-    // ESP32S3
     else if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP_FIT) {
-        LOG_INFO("ADC config based on Two Point values and fitting curve "
-                 "coefficients stored in eFuse");
+        adcCalSource = "Two Point values and fitting curve coefficients stored in eFuse";
     }
 #endif
-    else {
-        LOG_INFO("ADC config based on default reference voltage");
-    }
+    LOG_INFO("ADC config based on %s", adcCalSource);
 #endif // ARCH_ESP32
 
     // NRF52 ADC init moved to powerHAL_init in nrf52 platform
@@ -744,7 +738,6 @@ void Power::readPowerStatus()
                // the power states.  Takes 20 seconds or so to detect changes.
 
     nrfx_power_usb_state_t nrf_usb_state = nrfx_power_usbstatus_get();
-    // LOG_DEBUG("NRF Power %d", nrf_usb_state);
 
     // If changed to DISCONNECTED
     if (nrf_usb_state == NRFX_POWER_USB_STATE_DISCONNECTED)

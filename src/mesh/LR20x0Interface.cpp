@@ -136,9 +136,7 @@ template <typename T> bool LR20x0Interface<T>::init()
     if (res == RADIOLIB_ERR_CHIP_NOT_FOUND || res == RADIOLIB_ERR_SPI_CMD_FAILED)
         return false;
 
-    LOG_INFO("Frequency set to %f", getFreq());
-    LOG_INFO("Bandwidth set to %f", bw);
-    LOG_INFO("Power output set to %d", power);
+    LOG_INFO("Frequency set to %f, bandwidth set to %f, power output set to %d", getFreq(), bw, power);
 
     if (res == RADIOLIB_ERR_NONE)
         res = lora.setCRC(2);
@@ -250,11 +248,8 @@ template <typename T> void LR20x0Interface<T>::setStandby()
  */
 template <typename T> void LR20x0Interface<T>::addReceiveMetadata(meshtastic_MeshPacket *mp)
 {
-    // LOG_DEBUG("PacketStatus %x", lora.getPacketStatus());
     mp->rx_snr = lora.getSNR();
     mp->rx_rssi = lround(lora.getRSSI());
-    // LOG_DEBUG("Corrected frequency offset: %f", lora.getFrequencyError()); // not implemented for LR20x0, but noop for LR11x0
-    // too(!)
 }
 
 /** We override to turn on transmitter power as needed.

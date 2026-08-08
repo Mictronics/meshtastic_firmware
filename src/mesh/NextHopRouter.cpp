@@ -182,7 +182,6 @@ std::optional<uint8_t> NextHopRouter::getNextHop(NodeNum to, uint8_t relay_node)
     if (node && node->next_hop) {
         // We are careful not to return the relay node as the next hop
         if (node->next_hop != relay_node) {
-            // LOG_DEBUG("Next hop for 0x%x is 0x%x", to, node->next_hop);
             return node->next_hop;
         } else
             LOG_WARN("Next hop for 0x%x is 0x%x, same as relayer; set no pref", to, node->next_hop);

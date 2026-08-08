@@ -719,8 +719,7 @@ void setup()
     powerFSMthread = new PowerFSMThread();
 
 #ifdef ARDUINO_ARCH_ESP32
-    LOG_DEBUG("Free heap  : %7d bytes", ESP.getFreeHeap());
-    LOG_DEBUG("Free PSRAM : %7d bytes", ESP.getFreePsram());
+    LOG_DEBUG("Free heap: %d bytes, Free PSRAM: %d bytes", ESP.getFreeHeap(), ESP.getFreePsram());
 #endif
 
     // We manually run this to update the NodeStatus

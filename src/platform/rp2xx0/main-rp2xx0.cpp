@@ -126,18 +126,11 @@ void rp2040Setup()
     uint f_clk_adc = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_ADC);
 #ifdef __PLAT_RP2040__
     uint f_clk_rtc = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_RTC);
-#endif
-
-    LOG_INFO("Clock speed:");
-    LOG_INFO("pll_sys  = %dkHz", f_pll_sys);
-    LOG_INFO("pll_usb  = %dkHz", f_pll_usb);
-    LOG_INFO("rosc     = %dkHz", f_rosc);
-    LOG_INFO("clk_sys  = %dkHz", f_clk_sys);
-    LOG_INFO("clk_peri = %dkHz", f_clk_peri);
-    LOG_INFO("clk_usb  = %dkHz", f_clk_usb);
-    LOG_INFO("clk_adc  = %dkHz", f_clk_adc);
-#ifdef __PLAT_RP2040__
-    LOG_INFO("clk_rtc  = %dkHz", f_clk_rtc);
+    LOG_INFO("Clock speed (kHz): pll_sys=%d pll_usb=%d rosc=%d clk_sys=%d clk_peri=%d clk_usb=%d clk_adc=%d clk_rtc=%d",
+             f_pll_sys, f_pll_usb, f_rosc, f_clk_sys, f_clk_peri, f_clk_usb, f_clk_adc, f_clk_rtc);
+#else
+    LOG_INFO("Clock speed (kHz): pll_sys=%d pll_usb=%d rosc=%d clk_sys=%d clk_peri=%d clk_usb=%d clk_adc=%d", f_pll_sys,
+             f_pll_usb, f_rosc, f_clk_sys, f_clk_peri, f_clk_usb, f_clk_adc);
 #endif
 #endif
 }

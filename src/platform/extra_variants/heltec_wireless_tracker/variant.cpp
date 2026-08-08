@@ -8,8 +8,6 @@
 // Heltec tracker specific init
 void lateInitVariant()
 {
-    // LOG_DEBUG("Heltec tracker initVariant");
-
 #ifndef MESHTASTIC_EXCLUDE_GPS
     GpioVirtPin *virtGpsEnable = gps ? gps->enablePin : new GpioVirtPin();
 #else

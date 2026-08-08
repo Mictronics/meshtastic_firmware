@@ -102,11 +102,7 @@ void onCccd(uint16_t conn_hdl, BLECharacteristic *chr, uint16_t cccd_value)
 
     if (chr->uuid == fromNum.uuid || chr->uuid == logRadio.uuid) {
         auto result = cccd_value == 2 ? chr->indicateEnabled(conn_hdl) : chr->notifyEnabled(conn_hdl);
-        if (result) {
-            LOG_INFO("Notify/Indicate enabled");
-        } else {
-            LOG_INFO("Notify/Indicate disabled");
-        }
+        LOG_INFO("Notify/Indicate %s", result ? "enabled" : "disabled");
     }
 }
 void startAdv(void)
@@ -152,8 +148,6 @@ void onFromRadioAuthorize(uint16_t conn_hdl, BLECharacteristic *chr, ble_gatts_e
         // Someone is going to read our value as soon as this callback returns.  So fill it with the next message in the queue
         // or make empty if the queue is empty
         fromRadio.write(fromRadioBytes, numBytes);
-    } else {
-        // LOG_INFO("Ignore successor read");
     }
     authorizeRead(conn_hdl);
 }
@@ -343,22 +337,18 @@ void NRF52Bluetooth::setup()
     bledfusecure.begin();                                                     // Install the DFU helper
 #endif
     // Configure and Start the Device Information Service
-    LOG_INFO("Init the Device Information Service");
     bledis.setModel(optstr(HW_VERSION));
     bledis.setFirmwareRev(optstr(APP_VERSION));
     bledis.begin();
     // Start the BLE Battery Service and set it to 100%
-    LOG_INFO("Init the Battery Service");
     blebas.begin();
     blebas.write(0); // Unknown battery level for now
     // Setup the Heart Rate Monitor service using
     // BLEService and BLECharacteristic classes
-    LOG_INFO("Init the Mesh bluetooth service");
     setupMeshService();
-    // Setup the advertising packet(s)
-    LOG_INFO("Set up the advertising payload(s)");
+    // Setup the advertising packet(s) and start advertising
     startAdv();
-    LOG_INFO("Advertise");
+    LOG_INFO("Init DIS/Battery/Mesh BLE services, start advertising");
 }
 void NRF52Bluetooth::resumeAdvertising()
 {
@@ -409,7 +399,6 @@ bool NRF52Bluetooth::onPairingPasskey(uint16_t conn_handle, uint8_t const passke
                 break;
         }
     }
-    LOG_INFO("BLE passkey pair: match_request=%i", match_request);
     return true;
 }
 

@@ -133,7 +133,6 @@ void MeshService::reloadConfig(int saveWhat)
 /// The owner User record just got updated, update our node DB and broadcast the info into the mesh
 void MeshService::reloadOwner(bool shouldSave)
 {
-    // LOG_DEBUG("reloadOwner()");
     // update our local data directly
     nodeDB->updateUser(nodeDB->getNodeNum(), owner);
     assert(nodeInfoModule);
@@ -286,7 +285,6 @@ void MeshService::sendToPhone(meshtastic_MeshPacket *p)
             if (d)
                 releaseToPool(d);
         } else {
-            // LOG_WARN("ToPhone queue is full, drop packet");
             releaseToPool(p);
             fromNum++; // Make sure to notify observers in case they are reconnected so they can get the packets
             return;
@@ -334,7 +332,6 @@ void MeshService::sendRoutingErrorResponse(meshtastic_Routing_Error error, const
 
 void MeshService::sendClientNotification(meshtastic_ClientNotification *n)
 {
-    LOG_DEBUG("Send client notification to phone");
     if (toPhoneClientNotificationQueue.numFree() == 0) {
         LOG_WARN("ClientNotification queue is full, discard oldest");
         meshtastic_ClientNotification *d = toPhoneClientNotificationQueue.dequeuePtr(0);

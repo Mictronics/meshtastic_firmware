@@ -161,21 +161,15 @@ bool EnvironmentTelemetryModule::handleReceivedProtobuf(const meshtastic_MeshPac
         const char *sender = getSenderShortName(mp);
 
         LOG_INFO("(Received from %s): barometric_pressure=%f, current=%f, gas_resistance=%f, relative_humidity=%f, "
-                 "temperature=%f",
+                 "temperature=%f, voltage=%f, IAQ=%d, distance=%f, lux=%f, white_lux=%f, wind speed=%fm/s, "
+                 "direction=%d degrees, weight=%fkg, radiation=%fµR/h",
                  sender, t->variant.environment_metrics.barometric_pressure, t->variant.environment_metrics.current,
                  t->variant.environment_metrics.gas_resistance, t->variant.environment_metrics.relative_humidity,
-                 t->variant.environment_metrics.temperature);
-        LOG_INFO("(Received from %s): voltage=%f, IAQ=%d, distance=%f, lux=%f, white_lux=%f", sender,
-                 t->variant.environment_metrics.voltage, t->variant.environment_metrics.iaq,
-                 t->variant.environment_metrics.distance, t->variant.environment_metrics.lux,
-                 t->variant.environment_metrics.white_lux);
-
-        LOG_INFO("(Received from %s): wind speed=%fm/s, direction=%d degrees, weight=%fkg", sender,
+                 t->variant.environment_metrics.temperature, t->variant.environment_metrics.voltage,
+                 t->variant.environment_metrics.iaq, t->variant.environment_metrics.distance,
+                 t->variant.environment_metrics.lux, t->variant.environment_metrics.white_lux,
                  t->variant.environment_metrics.wind_speed, t->variant.environment_metrics.wind_direction,
-                 t->variant.environment_metrics.weight);
-
-        LOG_INFO("(Received from %s): radiation=%fµR/h", sender, t->variant.environment_metrics.radiation);
-
+                 t->variant.environment_metrics.weight, t->variant.environment_metrics.radiation);
 #endif
         // release previous packet before occupying a new spot
         if (lastMeasurementPacket != nullptr)
@@ -261,20 +255,17 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     m.time = getTime();
 
     if (getEnvironmentTelemetry(&m)) {
-        LOG_INFO("Send: barometric_pressure=%f, current=%f, gas_resistance=%f, relative_humidity=%f, temperature=%f",
-                 m.variant.environment_metrics.barometric_pressure, m.variant.environment_metrics.current,
-                 m.variant.environment_metrics.gas_resistance, m.variant.environment_metrics.relative_humidity,
-                 m.variant.environment_metrics.temperature);
-        LOG_INFO("Send: voltage=%f, IAQ=%d, distance=%f, lux=%f", m.variant.environment_metrics.voltage,
-                 m.variant.environment_metrics.iaq, m.variant.environment_metrics.distance, m.variant.environment_metrics.lux);
-
-        LOG_INFO("Send: wind speed=%fm/s, direction=%d degrees, weight=%fkg", m.variant.environment_metrics.wind_speed,
-                 m.variant.environment_metrics.wind_direction, m.variant.environment_metrics.weight);
-
-        LOG_INFO("Send: radiation=%fµR/h", m.variant.environment_metrics.radiation);
-
-        LOG_INFO("Send: soil_temperature=%f, soil_moisture=%u", m.variant.environment_metrics.soil_temperature,
-                 m.variant.environment_metrics.soil_moisture);
+        LOG_INFO("Send to %s: barometric_pressure=%f, current=%f, gas_resistance=%f, relative_humidity=%f, temperature=%f, "
+                 "voltage=%f, IAQ=%d, distance=%f, lux=%f, wind speed=%fm/s, direction=%d degrees, weight=%fkg, "
+                 "radiation=%fµR/h, soil_temperature=%f, soil_moisture=%u",
+                 phoneOnly ? "phone" : "mesh", m.variant.environment_metrics.barometric_pressure,
+                 m.variant.environment_metrics.current, m.variant.environment_metrics.gas_resistance,
+                 m.variant.environment_metrics.relative_humidity, m.variant.environment_metrics.temperature,
+                 m.variant.environment_metrics.voltage, m.variant.environment_metrics.iaq,
+                 m.variant.environment_metrics.distance, m.variant.environment_metrics.lux,
+                 m.variant.environment_metrics.wind_speed, m.variant.environment_metrics.wind_direction,
+                 m.variant.environment_metrics.weight, m.variant.environment_metrics.radiation,
+                 m.variant.environment_metrics.soil_temperature, m.variant.environment_metrics.soil_moisture);
 
         meshtastic_MeshPacket *p = allocDataProtobuf(m);
         p->to = dest;
@@ -289,10 +280,8 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
 
         lastMeasurementPacket = packetPool.allocCopy(*p);
         if (phoneOnly) {
-            LOG_INFO("Send packet to phone");
             service->sendToPhone(p);
         } else {
-            LOG_INFO("Send packet to mesh");
             service->sendToMesh(p, RX_SRC_LOCAL, true);
 
             if (config.device.role == meshtastic_Config_DeviceConfig_Role_SENSOR && config.power.is_power_saving) {

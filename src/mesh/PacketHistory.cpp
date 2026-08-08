@@ -73,12 +73,6 @@ bool PacketHistory::wasSeenRecently(const meshtastic_MeshPacket *p, bool withUpd
     if (r.rxTimeMsec == 0)   // =0 every 49.7 days? 0 is special
         r.rxTimeMsec = 1;
 
-#if VERBOSE_PACKET_HISTORY
-    LOG_DEBUG("Packet History - Was Seen Recently: @start s=%08x id=%08x / to=%08x nh=%02x rn=%02x / wUpd=%s / wasFb?%d wWNH?%d",
-              r.sender, r.id, p->to, p->next_hop, p->relay_node, withUpdate ? "YES" : "NO", wasFallback ? *wasFallback : -1,
-              weWereNextHop ? *weWereNextHop : -1);
-#endif
-
     PacketRecord *found = find(r.sender, r.id); // Find the packet record in the recentPackets array
     bool seenRecently = (found != NULL);        // If found -> the packet was seen recently
 
@@ -231,17 +225,11 @@ void PacketHistory::insert(const PacketRecord &r)
     for (it = base; it < (base + recentPacketsCapacity); ++it) {
         if (it->id == 0 && it->sender == 0 /*&& rxTimeMsec == 0*/) { // Record is empty
             tu = it;                                                 // Remember the free slot
-#if VERBOSE_PACKET_HISTORY >= 2
-            LOG_DEBUG("Packet History - insert: Free slot@ %d/%d", tu - base, recentPacketsCapacity);
-#endif
             // We have that, Exit the loop
             it = (base + recentPacketsCapacity);
         } else if (it->id == r.id && it->sender == r.sender) { // Record matches the packet we want to insert
             tu = it;                                           // Remember the matching slot
             OldtrxTimeMsec = now_millis - it->rxTimeMsec;      // ..and save current entry's age
-#if VERBOSE_PACKET_HISTORY >= 2
-            LOG_DEBUG("Packet History - insert: Matched slot@ %d/%d age=%d", tu - base, recentPacketsCapacity, OldtrxTimeMsec);
-#endif
             // We have that, Exit the loop
             it = (base + recentPacketsCapacity);
         } else {
@@ -253,9 +241,6 @@ void PacketHistory::insert(const PacketRecord &r)
             if ((now_millis - it->rxTimeMsec) > OldtrxTimeMsec) { // 49.7 days rollover friendly
                 OldtrxTimeMsec = now_millis - it->rxTimeMsec;
                 tu = it; // remember the oldest packet
-#if VERBOSE_PACKET_HISTORY >= 2
-                LOG_DEBUG("Packet History - insert: Older slot@ %d/%d age=%d", tu - base, recentPacketsCapacity, OldtrxTimeMsec);
-#endif
             }
             // keep looking for oldest till entire array is checked
         }

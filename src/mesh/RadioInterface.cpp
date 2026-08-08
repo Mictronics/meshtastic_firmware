@@ -294,7 +294,7 @@ std::unique_ptr<RadioInterface> initLoRa()
         rIf = nullptr;
         exit(EXIT_FAILURE);
     } else {
-        LOG_INFO("%s init success", portduino_config.loraModules[portduino_config.lora_module].c_str());
+        LOG_INFO("%s radio OK", portduino_config.loraModules[portduino_config.lora_module].c_str());
     }
 
 #elif defined(HW_SPI1_DEVICE)
@@ -318,7 +318,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No STM32WL radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("STM32WL init success");
+            LOG_INFO("STM32WL radio OK");
             radioType = STM32WLx_RADIO;
         }
     }
@@ -331,7 +331,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No RF95 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("RF95 init success");
+            LOG_INFO("RF95 radio OK");
             radioType = RF95_RADIO;
         }
     }
@@ -348,7 +348,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No SX1262 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("SX1262 init success");
+            LOG_INFO("SX1262 radio OK");
             rIf = std::move(sxIf);
             radioType = SX1262_RADIO;
         }
@@ -362,10 +362,10 @@ std::unique_ptr<RadioInterface> initLoRa()
             std::unique_ptr<SX1262Interface>(new SX1262Interface(loraHal, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
         sxIf->setTCXOVoltage(SX126X_DIO3_TCXO_VOLTAGE);
         if (!sxIf->init()) {
-            LOG_WARN("No SX1262 radio with TCXO, Vref %fV", SX126X_DIO3_TCXO_VOLTAGE);
+            LOG_WARN("SX1262 TCXO %fV: not found", SX126X_DIO3_TCXO_VOLTAGE);
             rIf = nullptr;
         } else {
-            LOG_INFO("SX1262 init success, TCXO, Vref %fV", SX126X_DIO3_TCXO_VOLTAGE);
+            LOG_INFO("SX1262 TCXO %fV: OK", SX126X_DIO3_TCXO_VOLTAGE);
             rIf = std::move(sxIf);
             radioType = SX1262_RADIO;
         }
@@ -375,10 +375,10 @@ std::unique_ptr<RadioInterface> initLoRa()
         // If specified TCXO voltage fails, attempt to use DIO3 as a reference instead
         rIf = std::unique_ptr<SX1262Interface>(new SX1262Interface(loraHal, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
         if (!rIf->init()) {
-            LOG_WARN("No SX1262 radio with XTAL, Vref 0.0V");
+            LOG_WARN("SX1262 XTAL: not found");
             rIf = nullptr;
         } else {
-            LOG_INFO("SX1262 init success, XTAL, Vref 0.0V");
+            LOG_INFO("SX1262 XTAL: OK");
             radioType = SX1262_RADIO;
         }
     }
@@ -392,10 +392,10 @@ std::unique_ptr<RadioInterface> initLoRa()
             std::unique_ptr<SX1268Interface>(new SX1268Interface(loraHal, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
         sxIf->setTCXOVoltage(SX126X_DIO3_TCXO_VOLTAGE);
         if (!sxIf->init()) {
-            LOG_WARN("No SX1268 radio with TCXO, Vref %fV", SX126X_DIO3_TCXO_VOLTAGE);
+            LOG_WARN("SX1268 TCXO %fV: not found", SX126X_DIO3_TCXO_VOLTAGE);
             rIf = nullptr;
         } else {
-            LOG_INFO("SX1268 init success, TCXO, Vref %fV", SX126X_DIO3_TCXO_VOLTAGE);
+            LOG_INFO("SX1268 TCXO %fV: OK", SX126X_DIO3_TCXO_VOLTAGE);
             rIf = std::move(sxIf);
             radioType = SX1268_RADIO;
         }
@@ -407,7 +407,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No SX1268 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("SX1268 init success");
+            LOG_INFO("SX1268 radio OK");
             radioType = SX1268_RADIO;
         }
     }
@@ -420,7 +420,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No LLCC68 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("LLCC68 init success");
+            LOG_INFO("LLCC68 radio OK");
             radioType = LLCC68_RADIO;
         }
     }
@@ -434,7 +434,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No LR1110 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("LR1110 init success");
+            LOG_INFO("LR1110 radio OK");
             radioType = LR1110_RADIO;
         }
     }
@@ -448,7 +448,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No LR1120 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("LR1120 init success");
+            LOG_INFO("LR1120 radio OK");
             radioType = LR1120_RADIO;
         }
     }
@@ -462,7 +462,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No LR1121 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("LR1121 init success");
+            LOG_INFO("LR1121 radio OK");
             radioType = LR1121_RADIO;
         }
     }
@@ -476,7 +476,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No LR2021 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("LR2021 init success");
+            LOG_INFO("LR2021 radio OK");
             radioType = LR2021_RADIO;
         }
     }
@@ -489,7 +489,7 @@ std::unique_ptr<RadioInterface> initLoRa()
             LOG_WARN("No SX1280 radio");
             rIf = nullptr;
         } else {
-            LOG_INFO("SX1280 init success");
+            LOG_INFO("SX1280 radio OK");
             radioType = SX1280_RADIO;
         }
     }
@@ -583,7 +583,6 @@ uint32_t RadioInterface::getRetransmissionMsec(const meshtastic_MeshPacket *p)
                           : p->encrypted.size + MESHTASTIC_HEADER_LENGTH;
     uint32_t packetAirtime = getPacketTime(numbytes + sizeof(PacketHeader));
     // Make sure enough time has elapsed for this packet to be sent and an ACK is received.
-    // LOG_DEBUG("Waiting for flooding message with airtime %d and slotTime is %d", packetAirtime, slotTimeMsec);
     float channelUtil = airTime->channelUtilizationPercent();
     uint8_t CWsize = map(channelUtil, 0, 100, CWmin, CWmax);
     // Assuming we pick max. of CWsize and there will be a client with SNR at half the range
@@ -599,7 +598,6 @@ uint32_t RadioInterface::getTxDelayMsec()
     current channel utilization. */
     float channelUtil = airTime->channelUtilizationPercent();
     uint8_t CWsize = map(channelUtil, 0, 100, CWmin, CWmax);
-    // LOG_DEBUG("Current channel utilization is %f so setting CWsize to %d", channelUtil, CWsize);
     return random(0, pow_of_2(CWsize)) * slotTimeMsec;
 }
 
@@ -642,7 +640,6 @@ uint32_t RadioInterface::getTxDelayMsecWeighted(meshtastic_MeshPacket *p)
     float snr = p->rx_snr;
     uint32_t delay = 0;
     uint8_t CWsize = getCWsize(snr);
-    // LOG_DEBUG("rx_snr of %f so setting CWsize to:%d", snr, CWsize);
     if (shouldRebroadcastEarlyLikeRouter(p)) {
         delay = random(0, 2 * CWsize) * slotTimeMsec;
         LOG_DEBUG("rx_snr found in packet. Router: setting tx delay:%d", delay);
@@ -889,15 +886,10 @@ void RadioInterface::applyModemConfig()
     slotTimeMsec = computeSlotTimeMsec();
     preambleTimeMsec = preambleLength * (pow_of_2(sf) / bw);
 
-    LOG_INFO("Radio freq=%.3f, config.lora.frequency_offset=%.3f", freq, loraConfig.frequency_offset);
-    LOG_INFO("Set radio: region=%s, name=%s, config=%u, ch=%d, power=%d", myRegion->name, channelName, loraConfig.modem_preset,
-             channel_num, power);
-    LOG_INFO("myRegion->freqStart -> myRegion->freqEnd: %f -> %f (%f MHz)", myRegion->freqStart, myRegion->freqEnd,
-             myRegion->freqEnd - myRegion->freqStart);
-    LOG_INFO("numChannels: %d x %.3fkHz", numChannels, bw);
-    LOG_INFO("channel_num: %d", channel_num + 1);
-    LOG_INFO("frequency: %f", getFreq());
-    LOG_INFO("Slot time: %u msec, preamble time: %u msec", slotTimeMsec, preambleTimeMsec);
+    LOG_INFO("Radio: region=%s (%.1f-%.1fMHz) name=%s ch=%d/%d preset=%u power=%d freq=%.3f+offset%.3f=%.3f", myRegion->name,
+             myRegion->freqStart, myRegion->freqEnd, channelName, channel_num + 1, numChannels, loraConfig.modem_preset, power,
+             freq, loraConfig.frequency_offset, getFreq());
+    LOG_INFO("Radio: bw=%.3fkHz slotTime=%u msec preambleTime=%u msec", bw, slotTimeMsec, preambleTimeMsec);
 }
 
 /** Slottime is the time to detect a transmission has started, consisting of:
@@ -988,7 +980,6 @@ size_t RadioInterface::beginSending(meshtastic_MeshPacket *p)
 {
     assert(!sendingPacket);
 
-    // LOG_DEBUG("Send queued packet on mesh (txGood=%d,rxGood=%d,rxBad=%d)", rf95.txGood(), rf95.rxGood(), rf95.rxBad());
     assert(p->which_payload_variant == meshtastic_MeshPacket_encrypted_tag); // It should have already been encoded by now
 
     radioBuffer.header.from = p->from;

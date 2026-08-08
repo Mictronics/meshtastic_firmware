@@ -36,18 +36,14 @@ std::string MeshPacketSerializer::JsonSerialize(const meshtastic_MeshPacket *mp,
             payloadStr[mp->decoded.payload.size] = 0; // null terminated string
             // check if this is a JSON payload
             JSONValue *json_value = JSON::Parse(payloadStr);
+            if (shouldLog)
+                LOG_INFO("text message payload is of type %s", json_value != NULL ? "json" : "plaintext");
             if (json_value != NULL) {
-                if (shouldLog)
-                    LOG_INFO("text message payload is of type json");
-
                 // if it is, then we can just use the json object
                 jsonObj["payload"] = json_value;
             } else {
                 // if it isn't, then we need to create a json object
                 // with the string as the value
-                if (shouldLog)
-                    LOG_INFO("text message payload is of type plaintext");
-
                 msgPayload["text"] = new JSONValue(payloadStr);
                 jsonObj["payload"] = new JSONValue(msgPayload);
             }

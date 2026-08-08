@@ -148,13 +148,12 @@ meshtastic_Telemetry DeviceTelemetryModule::getLocalStatsTelemetry()
     }
 
     LOG_INFO("Sending local stats: uptime=%i, channel_utilization=%f, air_util_tx=%f, num_online_nodes=%i, num_total_nodes=%i, "
-             "noise_floor=%d",
+             "noise_floor=%d, num_packets_tx=%i, num_packets_rx=%i, num_packets_rx_bad=%i",
              telemetry.variant.local_stats.uptime_seconds, telemetry.variant.local_stats.channel_utilization,
              telemetry.variant.local_stats.air_util_tx, telemetry.variant.local_stats.num_online_nodes,
-             telemetry.variant.local_stats.num_total_nodes, telemetry.variant.local_stats.noise_floor);
-
-    LOG_INFO("num_packets_tx=%i, num_packets_rx=%i, num_packets_rx_bad=%i", telemetry.variant.local_stats.num_packets_tx,
-             telemetry.variant.local_stats.num_packets_rx, telemetry.variant.local_stats.num_packets_rx_bad);
+             telemetry.variant.local_stats.num_total_nodes, telemetry.variant.local_stats.noise_floor,
+             telemetry.variant.local_stats.num_packets_tx, telemetry.variant.local_stats.num_packets_rx,
+             telemetry.variant.local_stats.num_packets_rx_bad);
 
     return telemetry;
 }
@@ -172,10 +171,10 @@ void DeviceTelemetryModule::sendLocalStatsToPhone()
 bool DeviceTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
 {
     meshtastic_Telemetry telemetry = getDeviceTelemetry();
-    LOG_INFO("Send: air_util_tx=%f, channel_utilization=%f, battery_level=%i, voltage=%f, uptime=%i",
-             telemetry.variant.device_metrics.air_util_tx, telemetry.variant.device_metrics.channel_utilization,
-             telemetry.variant.device_metrics.battery_level, telemetry.variant.device_metrics.voltage,
-             telemetry.variant.device_metrics.uptime_seconds);
+    LOG_INFO("Send to %s: air_util_tx=%f, channel_utilization=%f, battery_level=%i, voltage=%f, uptime=%i",
+             phoneOnly ? "phone" : "mesh", telemetry.variant.device_metrics.air_util_tx,
+             telemetry.variant.device_metrics.channel_utilization, telemetry.variant.device_metrics.battery_level,
+             telemetry.variant.device_metrics.voltage, telemetry.variant.device_metrics.uptime_seconds);
 
     DEBUG_HEAP_BEFORE;
     meshtastic_MeshPacket *p = allocDataProtobuf(telemetry);
@@ -187,10 +186,8 @@ bool DeviceTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
 
     nodeDB->updateTelemetry(nodeDB->getNodeNum(), telemetry, RX_SRC_LOCAL);
     if (phoneOnly) {
-        LOG_INFO("Send packet to phone");
         service->sendToPhone(p);
     } else {
-        LOG_INFO("Send packet to mesh");
         service->sendToMesh(p, RX_SRC_LOCAL, true);
     }
     return true;

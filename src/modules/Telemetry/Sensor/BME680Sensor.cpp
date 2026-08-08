@@ -158,8 +158,6 @@ void BME680Sensor::updateState()
             LOG_DEBUG("%s state update IAQ accuracy %u >= 2", sensorName, accuracy);
             update = true;
             stateUpdateCounter++;
-        } else {
-            LOG_DEBUG("%s not updated, IAQ accuracy is %u < 2", sensorName, accuracy);
         }
     } else {
         /* Update every STATE_SAVE_PERIOD minutes */

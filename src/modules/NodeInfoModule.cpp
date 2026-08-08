@@ -58,7 +58,6 @@ bool NodeInfoModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mes
 
     bool wasBroadcast = isBroadcast(mp.to);
 
-    // LOG_DEBUG("did encode");
     // if user has changed while packet was not for us, inform phone
     if (hasChanged && !wasBroadcast && !isToUs(&mp)) {
         auto packetCopy = packetPool.allocCopy(mp); // Keep a copy of the packet for later analysis
@@ -73,7 +72,6 @@ bool NodeInfoModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mes
 
     pruneLastNodeInfoCache();
 
-    // LOG_DEBUG("did handleReceived");
     return false; // Let others look at this message also if they want
 }
 

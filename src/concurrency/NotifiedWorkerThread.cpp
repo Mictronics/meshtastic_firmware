@@ -25,22 +25,18 @@ bool NotifiedWorkerThread::notify(uint32_t v, bool overwrite)
  */
 IRAM_ATTR bool NotifiedWorkerThread::notifyCommon(uint32_t v, bool overwrite)
 {
-    if (overwrite || notification == 0) {
+    bool set = overwrite || notification == 0;
+    if (set) {
         enabled = true;
         setInterval(0); // Run ASAP
         runASAP = true;
 
         notification = v;
-        if (debugNotification) {
-            LOG_DEBUG("Set notification %d", v);
-        }
-        return true;
-    } else {
-        if (debugNotification) {
-            LOG_DEBUG("Drop notification %d", v);
-        }
-        return false;
     }
+    if (debugNotification) {
+        LOG_DEBUG("%s notification %d", set ? "Set" : "Drop", v);
+    }
+    return set;
 }
 
 /**

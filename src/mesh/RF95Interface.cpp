@@ -180,9 +180,7 @@ bool RF95Interface::init()
     if (res == RADIOLIB_ERR_CHIP_NOT_FOUND || res == RADIOLIB_ERR_SPI_CMD_FAILED)
         return false;
 
-    LOG_INFO("Frequency set to %f", getFreq());
-    LOG_INFO("Bandwidth set to %f", bw);
-    LOG_INFO("Power output set to %d", power);
+    LOG_INFO("Frequency set to %f, bandwidth set to %f, power output set to %d", getFreq(), bw, power);
 #if defined(RADIOMASTER_900_BANDIT_NANO) || defined(RADIOMASTER_900_BANDIT)
     LOG_INFO("DAC output set to %d", powerDAC);
 #endif
@@ -313,14 +311,12 @@ bool RF95Interface::isChannelActive()
     result = lora->scanChannel();
 
     if (result == RADIOLIB_PREAMBLE_DETECTED) {
-        // LOG_DEBUG("Channel is busy!");
         return true;
     }
     if (result != RADIOLIB_CHANNEL_FREE)
         LOG_ERROR("RF95 isChannelActive %s%d", radioLibErr, result);
     assert(result != RADIOLIB_ERR_WRONG_MODEM);
 
-    // LOG_DEBUG("Channel is free!");
     return false;
 }
 

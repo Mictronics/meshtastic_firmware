@@ -65,10 +65,6 @@ Router::Router() : concurrency::OSThread("Router"), fromRadioQueue(MAX_RX_FROMRA
 {
     // This is called pre main(), don't touch anything here, the following code is not safe
 
-    /* LOG_DEBUG("Size of NodeInfo %d", sizeof(NodeInfo));
-    LOG_DEBUG("Size of SubPacket %d", sizeof(SubPacket));
-    LOG_DEBUG("Size of MeshPacket %d", sizeof(MeshPacket)); */
-
     fromRadioQueue.setReader(this);
 
     // init Lockguard for crypt operations
@@ -139,7 +135,6 @@ int32_t Router::runOnce()
         perhapsHandleReceived(mp);
     }
 
-    // LOG_DEBUG("Sleep forever!");
     return INT32_MAX; // Wait a long time - until we get woken for the message queue
 }
 
@@ -219,7 +214,6 @@ void Router::abortSendAndNak(meshtastic_Routing_Error err, meshtastic_MeshPacket
 
 void Router::setReceivedMessage()
 {
-    // LOG_DEBUG("set interval to ASAP");
     setInterval(0); // Run ASAP, so we can figure out our correct sleep time
     runASAP = true;
 }
@@ -599,9 +593,8 @@ meshtastic_Routing_Error perhapsEncode(meshtastic_MeshPacket *p)
             int compressed_len;
             compressed_len = unishox2_compress_simple(original_payload, p->decoded.payload.size, compressed_out);
 
-            LOG_DEBUG("Original length - %d ", p->decoded.payload.size);
-            LOG_DEBUG("Compressed length - %d ", compressed_len);
-            LOG_DEBUG("Original message - %s ", p->decoded.payload.bytes);
+            LOG_DEBUG("Original length - %d, compressed length - %d, original message - %s ", p->decoded.payload.size,
+                      compressed_len, p->decoded.payload.bytes);
 
             // If the compressed length is greater than or equal to the original size, don't use the compressed form
             if (compressed_len >= p->decoded.payload.size) {

@@ -394,9 +394,7 @@ RTCSetResult perhapsSetRTC(RTCQuality q, const struct tm &t)
     }
 #endif
 
-    // LOG_DEBUG("Got time from GPS month=%d, year=%d, unixtime=%ld", t.tm_mon, t.tm_year, tv.tv_sec);
     if (t.tm_year < 0 || t.tm_year >= 300) {
-        // LOG_DEBUG("Ignore invalid GPS month=%d, year=%d, unixtime=%ld", t.tm_mon, t.tm_year, tv.tv_sec);
         return RTCSetResultInvalidTime;
     } else {
         return perhapsSetRTC(q, &tv);

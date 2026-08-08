@@ -166,10 +166,11 @@ bool PowerTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     m.which_variant = meshtastic_Telemetry_power_metrics_tag;
     m.time = getTime();
     if (getPowerTelemetry(&m)) {
-        LOG_INFO("Send: ch1_voltage=%f, ch1_current=%f, ch2_voltage=%f, ch2_current=%f, "
+        LOG_INFO("Send to %s: ch1_voltage=%f, ch1_current=%f, ch2_voltage=%f, ch2_current=%f, "
                  "ch3_voltage=%f, ch3_current=%f",
-                 m.variant.power_metrics.ch1_voltage, m.variant.power_metrics.ch1_current, m.variant.power_metrics.ch2_voltage,
-                 m.variant.power_metrics.ch2_current, m.variant.power_metrics.ch3_voltage, m.variant.power_metrics.ch3_current);
+                 phoneOnly ? "phone" : "mesh", m.variant.power_metrics.ch1_voltage, m.variant.power_metrics.ch1_current,
+                 m.variant.power_metrics.ch2_voltage, m.variant.power_metrics.ch2_current, m.variant.power_metrics.ch3_voltage,
+                 m.variant.power_metrics.ch3_current);
 
         sensor_read_error_count = 0;
 
@@ -186,10 +187,8 @@ bool PowerTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
 
         lastMeasurementPacket = packetPool.allocCopy(*p);
         if (phoneOnly) {
-            LOG_INFO("Send packet to phone");
             service->sendToPhone(p);
         } else {
-            LOG_INFO("Send packet to mesh");
             service->sendToMesh(p, RX_SRC_LOCAL, true);
 
             if (config.device.role == meshtastic_Config_DeviceConfig_Role_SENSOR && config.power.is_power_saving) {

@@ -240,16 +240,6 @@ NodeDB::NodeDB()
     // FIXME - implement for other platforms
 #endif
 
-    // if (myNodeInfo.device_id.size == 16) {
-    //     std::string deviceIdHex;
-    //     for (size_t i = 0; i < myNodeInfo.device_id.size; ++i) {
-    //         char buf[3];
-    //         snprintf(buf, sizeof(buf), "%02X", myNodeInfo.device_id.bytes[i]);
-    //         deviceIdHex += buf;
-    //     }
-    //     LOG_DEBUG("Device ID (HEX): %s", deviceIdHex.c_str());
-    // }
-
     // likewise - we always want the app requirements to come from the running appload
     myNodeInfo.min_app_version = 30200; // format is Mmmss (where M is 1+the numeric major number. i.e. 30200 means 2.2.00
     // Note! We do this after loading saved settings, so that if somehow an invalid nodenum was stored in preferences we won't
@@ -321,7 +311,6 @@ NodeDB::NodeDB()
 #endif
 
     resetRadioConfig(); // If bogus settings got saved, then fix them
-    // nodeDB->LOG_DEBUG("region=%d, NODENUM=0x%x, dbsize=%d", config.lora.region, myNodeInfo.my_node_num, numMeshNodes);
 
     // Uncomment below to always enable UDP broadcasts
     // config.network.enabled_protocols = meshtastic_Config_NetworkConfig_ProtocolFlags_UDP_BROADCAST;
@@ -530,7 +519,6 @@ bool NodeDB::factoryReset(bool eraseBleBonds)
         nvs_flash_erase();
 #endif
 #ifdef ARCH_NRF52
-        LOG_INFO("Clear bluetooth bonds!");
         bond_print_list(BLE_GAP_ROLE_PERIPH);
         bond_print_list(BLE_GAP_ROLE_CENTRAL);
         Bluefruit.Periph.clearBonds();
@@ -1712,12 +1700,7 @@ void NodeDB::updateTelemetry(uint32_t nodeId, const meshtastic_Telemetry &t, RxS
         return;
     }
 
-    if (src == RX_SRC_LOCAL) {
-        // Local packet, fully authoritative
-        LOG_DEBUG("updateTelemetry LOCAL");
-    } else {
-        LOG_DEBUG("updateTelemetry REMOTE node=0x%x ", nodeId);
-    }
+    LOG_DEBUG("updateTelemetry %s node=0x%x", src == RX_SRC_LOCAL ? "LOCAL" : "REMOTE", nodeId);
     info->device_metrics = t.variant.device_metrics;
     info->has_device_metrics = true;
     updateGUIforNode = info;
@@ -1825,7 +1808,6 @@ bool NodeDB::updateUser(uint32_t nodeId, meshtastic_User &p, uint8_t channelInde
             LOG_WARN("Public Key mismatch, dropping NodeInfo");
             return false;
         }
-        // LOG_INFO("Public Key set for node, not updating!");
     }
 #endif
 
@@ -2080,7 +2062,6 @@ meshtastic_NodeInfoLite *NodeDB::getOrCreateMeshNode(NodeNum n)
         // everything is missing except the nodenum
         memset(lite, 0, sizeof(*lite));
         lite->num = n;
-        // LOG_INFO("Adding node to database with %i nodes and %u bytes free!", numMeshNodes, memGet.getFreeHeap());
     }
 
     return lite;
@@ -2143,20 +2124,17 @@ static void applyRestoredPreferences(const meshtastic_BackupPreferences &backup,
 {
     if (restoreWhat & SEGMENT_CONFIG) {
         config = backup.config;
-        LOG_DEBUG("Restored config");
     }
     if (restoreWhat & SEGMENT_MODULECONFIG) {
         moduleConfig = backup.module_config;
-        LOG_DEBUG("Restored module config");
     }
     if (restoreWhat & SEGMENT_DEVICESTATE) {
         devicestate.owner = backup.owner;
-        LOG_DEBUG("Restored device state");
     }
     if (restoreWhat & SEGMENT_CHANNELS) {
         channelFile = backup.channels;
-        LOG_DEBUG("Restored channels");
     }
+    LOG_DEBUG("Restored preferences, segments=0x%x", restoreWhat);
 }
 #endif
 

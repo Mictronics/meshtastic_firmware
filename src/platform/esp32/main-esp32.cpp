@@ -118,18 +118,14 @@ void esp32Setup()
     pinMode(ADC_V, INPUT);
 #endif
 
-    LOG_DEBUG("Total heap: %d", ESP.getHeapSize());
-    LOG_DEBUG("Free heap: %d", ESP.getFreeHeap());
-    LOG_DEBUG("Total PSRAM: %d", ESP.getPsramSize());
-    LOG_DEBUG("Free PSRAM: %d", ESP.getFreePsram());
+    LOG_DEBUG("Heap: total=%d free=%d, PSRAM: total=%d free=%d", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getPsramSize(),
+              ESP.getFreePsram());
 
     nvs_stats_t nvs_stats;
     auto res = nvs_get_stats(NULL, &nvs_stats);
     assert(res == ESP_OK);
     LOG_DEBUG("NVS: UsedEntries %d, FreeEntries %d, AllEntries %d, NameSpaces %d", nvs_stats.used_entries, nvs_stats.free_entries,
               nvs_stats.total_entries, nvs_stats.namespace_count);
-
-    LOG_DEBUG("Setup Preferences in Flash Storage");
 
     // Create object to store our persistent data
     Preferences preferences;

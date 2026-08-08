@@ -50,8 +50,6 @@ bool read_cst3530_touch(int16_t *x, int16_t *y)
     *x = buffer[4] + ((uint16_t)(buffer[7] & 0x0F) << 8);
     *y = buffer[5] + ((uint16_t)(buffer[7] & 0xF0) << 4);
 
-    // LOG_DEBUG("CST3530 touch: num:%d x=%d,y=%d", touch_points, *x, *y);
-
     Wire.beginTransmission(CST3530_ADDR);
     Wire.write(clear_cmd, sizeof(clear_cmd));
     if (Wire.endTransmission() != 0) {
@@ -118,8 +116,6 @@ void lateInitVariant()
                 attachInterrupt(digitalPinToInterrupt(CST328_PIN_INT), touchInterruptHandler, FALLING);
 
                 break;
-            } else {
-                LOG_DEBUG("CST3530 not response ~!");
             }
         }
         uint8_t cmd1[] = {0xD0, 0x00, 0x04, 0x00};
