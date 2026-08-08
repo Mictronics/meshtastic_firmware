@@ -20,10 +20,11 @@ bool RoutingModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mesh
         if ((nodeDB->getMeshNode(mp.from) == NULL || !nodeDB->getMeshNode(mp.from)->has_user) &&
             (nodeDB->getMeshNode(mp.to) == NULL || !nodeDB->getMeshNode(mp.to)->has_user))
             return false;
-    } else if (owner.is_licensed && nodeDB->getLicenseStatus(mp.from) == UserLicenseStatus::NotLicensed) {
-        // Don't let licensed users to rebroadcast packets from unlicensed users
+    } else if (owner.is_licensed && ((nodeDB->getLicenseStatus(mp.from) == UserLicenseStatus::NotLicensed) ||
+                                     (nodeDB->getLicenseStatus(mp.to) == UserLicenseStatus::NotLicensed))) {
+        // Don't let licensed users to rebroadcast packets to or from unlicensed users
         // If we know they are in-fact unlicensed
-        LOG_DEBUG("Packet from unlicensed user, ignoring packet");
+        LOG_DEBUG("Packet to or from unlicensed user, ignoring packet");
         return false;
     }
 
@@ -55,7 +56,8 @@ void RoutingModule::sendAckNak(meshtastic_Routing_Error err, NodeNum to, PacketI
     // Allow the caller to set want_ack on this ACK packet if it's important that the ACK be delivered reliably
     p->want_ack = ackWantsAck;
 
-    router->sendLocal(p); // we sometimes send directly to the local node
+    if (router->sendLocal(p) == ERRNO_SHOULD_RELEASE) // we sometimes send directly to the local node
+        packetPool.release(p);
 }
 
 uint8_t RoutingModule::getHopLimitForResponse(const meshtastic_MeshPacket &mp)

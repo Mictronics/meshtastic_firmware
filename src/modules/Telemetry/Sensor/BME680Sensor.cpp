@@ -108,7 +108,7 @@ bool BME680Sensor::getMetrics(meshtastic_Telemetry *measurement)
     // Gas sensor resistance drops with humidity; compensate to a 40% RH reference baseline
     // Map compensated gas resistance (Ohms) to IAQ 0-500 using log-linear interpolation
     // Clean air reference ~400 kOhm, polluted reference ~5 kOhm
-    if (gasRaw > 0.0f && !isfinite(gasRaw)) {
+    if (gasRaw > 0.0f && isfinite(gasRaw)) {
 
         static constexpr float LOG_UPPER = 12.899219f;                          // log(400k)
         static constexpr float LOG_RANGE_INV = 1.0f / (12.899219f - 8.517193f); // 1 / (log(400k) - log(5k))

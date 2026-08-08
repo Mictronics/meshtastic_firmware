@@ -576,18 +576,18 @@ void AdminModule::handleGetModuleConfigResponse(const meshtastic_MeshPacket &mp,
         LOG_DEBUG("Remote hardware module disabled or no available_pins. Skip");
         return;
     }
-    for (uint8_t i = 0; i < devicestate.node_remote_hardware_pins_count; i++) {
+    // For each populated pin slot, claim it for the responding node and assign it one of the
+    // available pins. Previously i was incremented both here and by the outer for(), which walked
+    // into later slots without re-checking their validity and could silently overwrite them.
+    for (uint8_t i = 0, j = 0; i < devicestate.node_remote_hardware_pins_count &&
+                                j < r->get_module_config_response.payload_variant.remote_hardware.available_pins_count;
+         i++) {
         if (devicestate.node_remote_hardware_pins[i].node_num == 0 || !devicestate.node_remote_hardware_pins[i].has_pin) {
             continue;
         }
-        for (uint8_t j = 0; j < r->get_module_config_response.payload_variant.remote_hardware.available_pins_count; j++) {
-            auto availablePin = r->get_module_config_response.payload_variant.remote_hardware.available_pins[j];
-            if (i < devicestate.node_remote_hardware_pins_count) {
-                devicestate.node_remote_hardware_pins[i].node_num = mp.from;
-                devicestate.node_remote_hardware_pins[i].pin = availablePin;
-            }
-            i++;
-        }
+        auto availablePin = r->get_module_config_response.payload_variant.remote_hardware.available_pins[j++];
+        devicestate.node_remote_hardware_pins[i].node_num = mp.from;
+        devicestate.node_remote_hardware_pins[i].pin = availablePin;
     }
 }
 
@@ -602,10 +602,14 @@ void AdminModule::handleSetOwner(const meshtastic_User &o)
     if (*o.long_name) {
         changed |= strcmp(owner.long_name, o.long_name);
         strncpy(owner.long_name, o.long_name, sizeof(owner.long_name));
+        owner.long_name[sizeof(owner.long_name) - 1] = '\0';
+        sanitizeUtf8(owner.long_name, sizeof(owner.long_name));
     }
     if (*o.short_name) {
         changed |= strcmp(owner.short_name, o.short_name);
         strncpy(owner.short_name, o.short_name, sizeof(owner.short_name));
+        owner.short_name[sizeof(owner.short_name) - 1] = '\0';
+        sanitizeUtf8(owner.short_name, sizeof(owner.short_name));
     }
     snprintf(owner.id, sizeof(owner.id), "!%08x", nodeDB->getNodeNum());
 
@@ -986,11 +990,11 @@ bool AdminModule::handleSetModuleConfig(const meshtastic_ModuleConfig &c)
     case meshtastic_ModuleConfig_neighbor_info_tag:
         LOG_INFO("Set module config: Neighbor Info");
         moduleConfig.has_neighbor_info = true;
+        moduleConfig.neighbor_info = c.payload_variant.neighbor_info;
         if (moduleConfig.neighbor_info.update_interval < min_neighbor_info_broadcast_secs) {
             LOG_DEBUG("Tried to set update_interval too low, setting to %d", default_neighbor_info_broadcast_secs);
             moduleConfig.neighbor_info.update_interval = default_neighbor_info_broadcast_secs;
         }
-        moduleConfig.neighbor_info = c.payload_variant.neighbor_info;
         break;
     case meshtastic_ModuleConfig_detection_sensor_tag:
         LOG_INFO("Set module config: Detection Sensor");
@@ -1280,7 +1284,7 @@ void AdminModule::handleGetDeviceConnectionStatus(const meshtastic_MeshPacket &r
     }
 #endif
 
-#if HAS_ETHERNET && !defined(USE_WS5500)
+#if HAS_ETHERNET && !defined(USE_WS5500) && !defined(USE_CH390D)
     conn.has_ethernet = true;
     conn.ethernet.has_status = true;
     if (Ethernet.linkStatus() == LinkON) {
@@ -1403,7 +1407,11 @@ void AdminModule::handleSetHamMode(const meshtastic_HamParameters &p)
 
     // Set call sign and override lora limitations for licensed use
     strncpy(owner.long_name, p.call_sign, sizeof(owner.long_name));
+    owner.long_name[sizeof(owner.long_name) - 1] = '\0';
+    sanitizeUtf8(owner.long_name, sizeof(owner.long_name));
     strncpy(owner.short_name, p.short_name, sizeof(owner.short_name));
+    owner.short_name[sizeof(owner.short_name) - 1] = '\0';
+    sanitizeUtf8(owner.short_name, sizeof(owner.short_name));
     owner.is_licensed = true;
     config.lora.override_duty_cycle = true;
     config.lora.tx_power = p.tx_power;
@@ -1492,8 +1500,15 @@ void AdminModule::handleSendInputEvent(const meshtastic_AdminMessage_InputEvent 
     LOG_DEBUG("Processing input event: event_code=%u, kb_char=%u, touch_x=%u, touch_y=%u", inputEvent.event_code,
               inputEvent.kb_char, inputEvent.touch_x, inputEvent.touch_y);
 
-    // Create InputEvent for injection
-    InputEvent event = {.inputEvent = (input_broker_event)inputEvent.event_code,
+    // Create InputEvent for injection.
+    //
+    // `.source` MUST be a non-null C string: the LOG_INFO below formats it
+    // with %s, and passing NULL to the esp-log formatter crashes with
+    // Guru Meditation LoadProhibited at strlen(NULL). Other InputBroker
+    // sources (buttons, rotary) always set this; the admin path was the
+    // only one leaving it default-null.
+    InputEvent event = {.source = "admin",
+                        .inputEvent = (input_broker_event)inputEvent.event_code,
                         .kbchar = (unsigned char)inputEvent.kb_char,
                         .touchX = inputEvent.touch_x,
                         .touchY = inputEvent.touch_y};

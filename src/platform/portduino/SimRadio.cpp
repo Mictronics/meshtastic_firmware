@@ -209,6 +209,8 @@ void SimRadio::startSend(meshtastic_MeshPacket *txp)
     isReceiving = false;
     size_t numbytes = beginSending(txp);
     meshtastic_MeshPacket *p = packetPool.allocCopy(*txp);
+    if (!p)
+        return;
     perhapsDecode(p);
     meshtastic_Compressed c = meshtastic_Compressed_init_default;
     c.portnum = p->decoded.portnum;
@@ -313,6 +315,8 @@ void SimRadio::handleReceiveInterrupt()
     meshtastic_MeshPacket *mp = packetPool.allocCopy(*receivingPacket); // keep a copy in packetPool
     packetPool.release(receivingPacket);                                // release the original
     receivingPacket = nullptr;
+    if (!mp)
+        return;
 
     printPacket("Lora RX", mp);
 
@@ -362,4 +366,10 @@ uint32_t SimRadio::getPacketTime(uint32_t pl, bool received)
 
     uint32_t msecs = tPacket * 1000;
     return msecs;
+}
+
+int16_t SimRadio::getCurrentRSSI()
+{
+    // Simulated radio - return a reasonable default noise floor
+    return -120;
 }
