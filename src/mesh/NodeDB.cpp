@@ -1400,10 +1400,14 @@ void NodeDB::loadFromDisk()
                       &meshtastic_LocalModuleConfig_msg, &moduleConfig);
     if (state != LoadFileResult::LOAD_SUCCESS) {
         installDefaultModuleConfig(); // Our in RAM copy might now be corrupt
+        // Unlike config/channels/nodedb/devicestate, moduleConfig has no CRC-diff autosave below,
+        // so persist the fresh default now or module.proto never gets (re)created.
+        saveToDisk(SEGMENT_MODULECONFIG);
     } else {
         if (moduleConfig.version < DEVICESTATE_MIN_VER) {
             LOG_WARN("moduleConfig %d is old, discard", moduleConfig.version);
             installDefaultModuleConfig();
+            saveToDisk(SEGMENT_MODULECONFIG);
         } else {
             LOG_INFO("Loaded saved moduleConfig version %d", moduleConfig.version);
         }
