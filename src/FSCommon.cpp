@@ -270,10 +270,12 @@ void listDir(const char *dirname, uint8_t levels, bool del)
                     file.close();
                 }
 #elif (defined(ARCH_RP2040) || defined(ARCH_PORTDUINO))
-                listDir(file.name(), levels - 1, del);
+                // file.name() is basename-only on this platform; use fullName() so the path passed to
+                // FSCom actually resolves (see rmDir()/listDir() below for the same fix).
+                listDir(file.fullName(), levels - 1, del);
                 if (del) {
-                    LOG_DEBUG("Remove %s", file.name());
-                    strncpy(buffer, file.name(), sizeof(buffer));
+                    LOG_DEBUG("Remove %s", file.fullName());
+                    strncpy(buffer, file.fullName(), sizeof(buffer));
                     file.close();
                     FSCom.rmdir(buffer);
                 } else {
@@ -298,8 +300,8 @@ void listDir(const char *dirname, uint8_t levels, bool del)
             }
 #elif (defined(ARCH_RP2040) || defined(ARCH_PORTDUINO))
             if (del) {
-                LOG_DEBUG("Delete %s", file.name());
-                strncpy(buffer, file.name(), sizeof(buffer));
+                LOG_DEBUG("Delete %s", file.fullName());
+                strncpy(buffer, file.fullName(), sizeof(buffer));
                 file.close();
                 FSCom.remove(buffer);
             } else {
@@ -326,8 +328,8 @@ void listDir(const char *dirname, uint8_t levels, bool del)
     }
 #elif (defined(ARCH_RP2040) || defined(ARCH_PORTDUINO))
     if (del) {
-        LOG_DEBUG("Remove %s", root.name());
-        strncpy(buffer, root.name(), sizeof(buffer));
+        LOG_DEBUG("Remove %s", root.fullName());
+        strncpy(buffer, root.fullName(), sizeof(buffer));
         root.close();
         FSCom.rmdir(buffer);
     } else {
