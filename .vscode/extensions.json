@@ -8,6 +8,7 @@
     ],
     "unwantedRecommendations": [
         "ms-vscode.cpptools-extension-pack",
+        "pioarduino.pioarduino-ide",
         "platformio.platformio-ide"
     ]
 }

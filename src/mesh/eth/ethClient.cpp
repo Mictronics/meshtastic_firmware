@@ -6,7 +6,13 @@
 #include "main.h"
 #include "mesh/api/ethServerAPI.h"
 #include "target_specific.h"
+#ifdef USE_ARDUINO_ETHERNET
+#include <Ethernet.h> // arduino-libraries/Ethernet - supports W5100/W5200/W5500
+// Shorter DHCP timeout so LoRa startup isn't blocked when no DHCP server is present.
+#define ETH_DHCP_TIMEOUT_MS 10000
+#else
 #include <RAK13800_W5100S.h>
+#endif
 #include <SPI.h>
 
 #if HAS_NETWORKING && !defined(USE_WS5500) && !defined(USE_CH390D)
@@ -69,6 +75,13 @@ static int32_t reconnectETH()
             delay(100);
 #endif
 
+#ifdef USE_ARDUINO_ETHERNET // Re-configure SPI0 for the W5500 module
+            SPI.setRX(ETH_SPI0_MISO);
+            SPI.setSCK(ETH_SPI0_SCK);
+            SPI.setTX(ETH_SPI0_MOSI);
+            SPI.begin();
+            Ethernet.init(PIN_ETHERNET_SS);
+#else
 #ifdef RAK11310
             ETH_SPI_PORT.setSCK(PIN_SPI0_SCK);
             ETH_SPI_PORT.setTX(PIN_SPI0_MOSI);
@@ -76,6 +89,7 @@ static int32_t reconnectETH()
             ETH_SPI_PORT.begin();
 #endif
             Ethernet.init(ETH_SPI_PORT, PIN_ETHERNET_SS);
+#endif
 
             int status = 0;
             if (config.network.address_mode == meshtastic_Config_NetworkConfig_AddressMode_DHCP) {
@@ -182,6 +196,13 @@ bool initEthernet()
         digitalWrite(PIN_ETHERNET_RESET, HIGH); // Reset Time.
 #endif
 
+#ifdef USE_ARDUINO_ETHERNET // Configure SPI0 for the W5500 module
+        SPI.setRX(ETH_SPI0_MISO);
+        SPI.setSCK(ETH_SPI0_SCK);
+        SPI.setTX(ETH_SPI0_MOSI);
+        SPI.begin();
+        Ethernet.init(PIN_ETHERNET_SS);
+#else
 #ifdef RAK11310 // Initialize the SPI port
         ETH_SPI_PORT.setSCK(PIN_SPI0_SCK);
         ETH_SPI_PORT.setTX(PIN_SPI0_MOSI);
@@ -189,6 +210,7 @@ bool initEthernet()
         ETH_SPI_PORT.begin();
 #endif
         Ethernet.init(ETH_SPI_PORT, PIN_ETHERNET_SS);
+#endif
 
         uint8_t mac[6];
 
