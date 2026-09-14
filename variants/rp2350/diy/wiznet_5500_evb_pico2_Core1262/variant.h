@@ -56,13 +56,15 @@
 #define LORA_DIO2 2  // BUSY
 #define LORA_DIO3 RADIOLIB_NC
 
+// Waveshare Core1262 uses a PA4269 RF switch that supports single-pin or complementary-pin control logic.
+// Core1262 pin RXEN connected to 3V3 VCC to enable single-pin control logic via DIO2 -> TXEN connection.
 #ifdef USE_SX1262
 #define SX126X_CS LORA_CS
 #define SX126X_DIO1 LORA_DIO1
 #define SX126X_BUSY LORA_DIO2
 #define SX126X_RESET LORA_RESET
 #define SX126X_DIO2_AS_RF_SWITCH
-#define SX126X_RXEN 3
+#define SX126X_RXEN RADIOLIB_NC
 #define SX126X_TXEN RADIOLIB_NC
 #define SX126X_DIO3_TCXO_VOLTAGE 1.8
 #endif

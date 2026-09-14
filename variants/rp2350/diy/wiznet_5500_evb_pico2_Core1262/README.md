@@ -62,12 +62,23 @@ The W5500-EVB-Pico2 carries a smaller Q-SPI flash (2 MB) than a stock Pi Pico 2 
 | RESET           | GP15        | Active LOW reset                           |
 | DIO1            | GP14        | IRQ interrupt                              |
 | BUSY            | GP2         | Module busy indicator                      |
-| RXEN            | GP3         |                                            |
+| RXEN            | ← 3.3V      | Bridge on the module (see below)           |
 | TXEN            | ← DIO2      | Bridge on the module (see below)           |
 | VCC             | 3.3V        | Add a 100 µF capacitor close to the module |
 | GND             | GND         | -                                          |
 
 ---
+
+## Special wiring: 3.3V → RXEN bridge on the Waveshare Core1262 module
+
+Waveshare Core1262 uses a PA4269 RF switch that supports single-pin or complementary-pin control logic.
+Connect the Core1262 modules pin RXEN to 3V3 VCC to enable single-pin control logic via DIO2 → TXEN connection. See below.
+
+```text
+Core1262 3.3V pin  ──┐
+                     ├── wire / solder bridge on the module
+Core1262 RXEN pin  ──┘
+```
 
 ## Special wiring: DIO2 → TXEN bridge on the Waveshare Core1262 module
 
