@@ -174,6 +174,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TX_GAIN_LORA 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8
 #endif
 
+#ifdef SEEED_WIO_TRACKER_L1_PRO_1W
+// Re-indexed from Seeed's 31-point table (based at -9 dBm) to limitPower()'s 0-based radio dBm.
+// TODO: verify against measured output.
+#define NUM_PA_POINTS 22
+#define TX_GAIN_LORA 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 10
+#endif
+
 // Default system gain to 0 if not defined
 #ifndef NUM_PA_POINTS
 #define NUM_PA_POINTS 1
